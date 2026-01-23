@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import SubscriptionDetailsModal from "../../../../../components/admin/subscription/SubscriptionDetailsModal";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -59,6 +60,14 @@ export default function SubscriptionManagement() {
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
+
+    const [selectedSubscription, setSelectedSubscription] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleViewSubscription = (sub: any) => {
+        setSelectedSubscription(sub);
+        setIsModalOpen(true);
+    };
 
     const filteredSubscriptions = useMemo(() => {
         return initialSubscriptions.filter(sub => {
@@ -166,96 +175,212 @@ export default function SubscriptionManagement() {
                 </div>
             </div>
 
-            {/* Subscriptions Table */}
-            <div className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-[#F8FAFC] text-xs font-semibold uppercase text-gray-500">
-                            <tr className="whitespace-nowrap">
-                                <th className="px-6 py-4 min-w-[200px]">User</th>
-                                <th className="px-6 py-4 min-w-[120px]">Plan</th>
-                                <th className="px-6 py-4 min-w-[100px]">Status</th>
-                                <th className="px-6 py-4 min-w-[100px]">Amount</th>
-                                <th className="px-6 py-4 min-w-[120px]">Billing Cycle</th>
-                                <th className="px-6 py-4 min-w-[150px]">Next Billing</th>
-                                <th className="px-6 py-4 min-w-[80px] text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#E2E8F0]">
-                            {paginatedSubscriptions.map((sub) => (
-                                <tr key={sub.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col">
-                                            <span className="font-medium text-[#0F172A]">{sub.name}</span>
-                                            <span className="text-xs text-gray-500">{sub.email}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-600">{sub.plan}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={cn(
-                                            "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                                            sub.status === "Active" && "bg-green-50 text-green-700",
-                                            sub.status === "Trial" && "bg-blue-50 text-blue-700",
-                                            sub.status === "Past due" && "bg-red-50 text-red-700"
-                                        )}>
-                                            {sub.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 font-semibold text-[#0F172A]">{sub.amount}</td>
-                                    <td className="px-6 py-4 text-gray-500">{sub.cycle}</td>
-                                    <td className="px-6 py-4 text-gray-500">{sub.nextBilling}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button className="flex items-center justify-center size-8 ml-auto rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer">
-                                            <Eye className="size-4" />
-                                        </button>
-                                    </td>
+            <div className="space-y-6">
+                {/* Subscriptions Table */}
+                <div className="overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm hidden xl:block">
+                    <div className="overflow-x-auto custom-scrollbar">
+                        <table className="w-full table-auto text-left text-sm">
+                            <thead className="bg-[#F8FAFC] text-xs font-semibold uppercase text-gray-500">
+                                <tr className="whitespace-nowrap">
+                                    <th className="px-5 py-4 min-w-[180px]">User</th>           {/* ← reduced a bit */}
+                                    <th className="px-5 py-4 min-w-[100px]">Plan</th>
+                                    <th className="px-5 py-4 min-w-[90px]">Status</th>
+                                    <th className="px-5 py-4 min-w-[90px]">Amount</th>
+                                    <th className="px-5 py-4 min-w-[110px]">Billing Cycle</th>
+                                    <th className="px-5 py-4 min-w-[130px]">Next Billing</th>   {/* ← most variable */}
+                                    <th className="px-5 py-4 min-w-[70px] text-right">Actions</th>
                                 </tr>
-                            ))}
-                            {paginatedSubscriptions.length === 0 && (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                                        No subscriptions found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                                {paginatedSubscriptions.map((sub) => (
+                                    <tr key={sub.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-5 py-4">
+                                            <div className="flex flex-col min-w-[160px]">  {/* prevents crushing name+email */}
+                                                <span className="font-medium text-[#0F172A] truncate max-w-[220px]">
+                                                    {sub.name}
+                                                </span>
+                                                <span className="text-xs text-gray-500 truncate max-w-[220px]">
+                                                    {sub.email}
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-5 py-4 text-gray-600 whitespace-nowrap">
+                                            {sub.plan}
+                                        </td>
+
+                                        <td className="px-5 py-4 whitespace-nowrap">
+                                            <span
+                                                className={cn(
+                                                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                                                    sub.status === "Active" && "bg-green-50 text-green-700",
+                                                    sub.status === "Trial" && "bg-blue-50 text-blue-700",
+                                                    sub.status === "Past due" && "bg-red-50 text-red-700"
+                                                )}
+                                            >
+                                                {sub.status}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-5 py-4 font-semibold text-[#0F172A] whitespace-nowrap">
+                                            {sub.amount}
+                                        </td>
+
+                                        <td className="px-5 py-4 text-gray-500 whitespace-nowrap">
+                                            {sub.cycle}
+                                        </td>
+
+                                        <td className="px-5 py-4 text-gray-500 whitespace-nowrap">
+                                            {sub.nextBilling}
+                                        </td>
+
+                                        <td className="px-5 py-4 text-right whitespace-nowrap">
+                                            <button
+                                                onClick={() => handleViewSubscription(sub)}
+                                                className="flex items-center justify-center size-8 ml-auto rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer"
+                                            >
+                                                <Eye className="size-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+
+                                {paginatedSubscriptions.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                                            No subscriptions found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:hidden">
+                    {paginatedSubscriptions.map((sub) => (
+                        <div
+                            key={sub.id}
+                            className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4 hover:border-blue-200 transition-colors"
+                        >
+                            {/* Header: Name + Email + Status */}
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex flex-col">
+                                    <span className="font-medium text-[#0F172A] text-base">{sub.name}</span>
+                                    <span className="text-sm text-gray-500 mt-0.5">{sub.email}</span>
+                                </div>
+                                <span
+                                    className={cn(
+                                        "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap",
+                                        sub.status === "Active" && "bg-green-50 text-green-700",
+                                        sub.status === "Trial" && "bg-blue-50 text-blue-700",
+                                        sub.status === "Past due" && "bg-red-50 text-red-700"
+                                    )}
+                                >
+                                    {sub.status}
+                                </span>
+                            </div>
+
+                            {/* Main info grid */}
+                            <div className="grid grid-cols-2 gap-4 py-3 border-y border-gray-50 text-sm">
+                                <div className="space-y-0.5">
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Plan</p>
+                                    <p className="font-medium text-[#0F172A]">{sub.plan}</p>
+                                </div>
+                                <div className="space-y-0.5">
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</p>
+                                    <p className="font-semibold text-[#0F172A]">{sub.amount}</p>
+                                </div>
+                                <div className="space-y-0.5">
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Cycle</p>
+                                    <p className="text-gray-600">{sub.cycle}</p>
+                                </div>
+                                <div className="space-y-0.5">
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Next Billing</p>
+                                    <p className="text-gray-600">{sub.nextBilling}</p>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center justify-end pt-2">
+                                <button
+                                    onClick={() => handleViewSubscription(sub)}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer"
+                                >
+                                    <Eye className="size-4" />
+                                    <span className="text-sm font-medium">View</span>
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+
+                    {paginatedSubscriptions.length === 0 && (
+                        <div className="col-span-1 md:col-span-2 py-16 flex flex-col items-center justify-center bg-white rounded-xl border border-dashed border-gray-300">
+                            <p className="text-gray-500 font-medium">No subscriptions found</p>
+                            <p className="text-gray-400 text-sm mt-1">Try adjusting your filters</p>
+                        </div>
+                    )}
+                </div>
+
             </div>
 
             {/* Pagination */}
             {totalPages >= 1 && (
-                <div className="flex items-center justify-center gap-2">
-                    <button
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
-                    >
-                        <ChevronLeft className="size-5" />
-                    </button>
-                    {[...Array(totalPages)].map((_, i) => (
+                <div className="flex flex-col items-center justify-center gap-4 pt-4 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 font-medium text-center order-2">
+                        Showing{" "}
+                        <span className="text-[#0F172A] font-bold">
+                            {(currentPage - 1) * itemsPerPage + 1}
+                        </span>{" "}
+                        to{" "}
+                        <span className="text-[#0F172A] font-bold">
+                            {Math.min(currentPage * itemsPerPage, filteredSubscriptions.length)}
+                        </span>{" "}
+                        of{" "}
+                        <span className="text-[#0F172A] font-bold">
+                            {filteredSubscriptions.length}
+                        </span>{" "}
+                        entries
+                    </p>
+
+                    <div className="flex items-center justify-center gap-2 order-1">
                         <button
-                            key={i + 1}
-                            onClick={() => setCurrentPage(i + 1)}
-                            className={cn(
-                                "size-8 rounded-lg text-sm transition-colors cursor-pointer",
-                                currentPage === i + 1
-                                    ? "bg-blue-50 font-bold text-blue-600 ring-1 ring-blue-100"
-                                    : "text-gray-500 hover:bg-gray-100"
-                            )}
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
                         >
-                            {i + 1}
+                            <ChevronLeft className="size-5" />
                         </button>
-                    ))}
-                    <button
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
-                    >
-                        <ChevronRight className="size-5" />
-                    </button>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <button
+                                key={i + 1}
+                                onClick={() => setCurrentPage(i + 1)}
+                                className={cn(
+                                    "size-8 rounded-lg text-sm transition-colors cursor-pointer",
+                                    currentPage === i + 1
+                                        ? "bg-blue-50 font-bold text-blue-600 ring-1 ring-blue-100"
+                                        : "text-gray-500 hover:bg-gray-100"
+                                )}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                        <button
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        >
+                            <ChevronRight className="size-5" />
+                        </button>
+                    </div>
                 </div>
             )}
+
+            <SubscriptionDetailsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                subscription={selectedSubscription}
+            />
         </div>
     );
 }

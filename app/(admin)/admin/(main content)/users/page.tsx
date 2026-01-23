@@ -14,13 +14,16 @@ import {
   TrendingDown,
   ChevronLeft,
   ChevronRight,
-  PencilLine,
   Mail,
   Building2,
   Calendar,
+  Ban,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import UserDetailsModal from "../../../../../components/admin/users/UserDetailsModal";
+import SuspensionModal from "../../../../../components/admin/users/SuspensionModal";
+import DeleteUserModal from "../../../../../components/admin/users/DeleteUserModal";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -163,6 +166,36 @@ export default function UserManagement() {
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isSuspensionModalOpen, setIsSuspensionModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const handleViewDetails = (user: any) => {
+    setSelectedUser(user);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleOpenSuspension = (user: any) => {
+    setSelectedUser(user);
+    setIsSuspensionModalOpen(true);
+  };
+
+  const handleOpenDelete = (user: any) => {
+    setSelectedUser(user);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmSuspension = () => {
+    console.log("Suspending user:", selectedUser.id);
+    // Add logic here to update user status
+  };
+
+  const handleConfirmDelete = () => {
+    console.log("Deleting user:", selectedUser.id);
+    // Add logic here to remove user
+  };
 
   const filteredUsers = useMemo(() => {
     return initialUsers.filter((user) => {
@@ -311,7 +344,7 @@ export default function UserManagement() {
       </div>
 
       {/* Mobile & Tablet Card View (Visible below lg screens) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xxl:hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:hidden">
         {paginatedUsers.map((user) => (
           <div
             key={user.id}
@@ -372,13 +405,22 @@ export default function UserManagement() {
             </div>
 
             <div className="flex items-center gap-2 pt-1">
-              <button className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs hover:bg-blue-600 hover:text-white transition-all cursor-pointer">
+              <button
+                onClick={() => handleViewDetails(user)}
+                className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
+              >
                 <Eye className="size-4" /> View
               </button>
-              <button className="flex items-center justify-center size-10 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all cursor-pointer">
-                <PencilLine className="size-4" />
+              <button
+                onClick={() => handleOpenSuspension(user)}
+                className="flex items-center justify-center size-10 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all cursor-pointer"
+              >
+                <Ban className="size-4" />
               </button>
-              <button className="flex items-center justify-center size-10 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all cursor-pointer">
+              <button
+                onClick={() => handleOpenDelete(user)}
+                className="flex items-center justify-center size-10 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all cursor-pointer"
+              >
                 <Trash2 className="size-4" />
               </button>
             </div>
@@ -387,19 +429,19 @@ export default function UserManagement() {
       </div>
 
       {/* Desktop Table View (Visible from lg screens up) */}
-      <div className="hidden xxl:block overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-sm transition-all hover:shadow-md">
+      <div className="hidden xl:block overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
         <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left text-sm min-w-[1000px]">
+          <table className="w-full table-auto text-left text-sm">
             <thead className="bg-[#F8FAFC] text-[11px] font-bold uppercase tracking-wider text-gray-400">
               <tr>
-                <th className="px-6 py-5 min-w-[240px]">User Profile</th>
-                <th className="px-6 py-5 min-w-[120px]">Status</th>
-                <th className="px-6 py-5 min-w-[140px]">Subscription</th>
-                <th className="px-6 py-5 min-w-[180px]">Assets</th>
-                <th className="px-6 py-5 min-w-[120px]">MRR</th>
-                <th className="px-6 py-5 min-w-[160px]">Activity</th>
-                <th className="px-6 py-5 min-w-[140px] text-right">Actions</th>
+                <th className="px-5 py-5 whitespace-nowrap">User Profile</th>
+                <th className="px-5 py-5 whitespace-nowrap">Status</th>
+                <th className="px-5 py-5 whitespace-nowrap">Subscription</th>
+                <th className="px-5 py-5 whitespace-nowrap">Assets</th>
+                <th className="px-5 py-5 whitespace-nowrap">MRR</th>
+                <th className="px-5 py-5 whitespace-nowrap">Activity</th>
+                <th className="px-5 py-5 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8F0]">
@@ -408,8 +450,8 @@ export default function UserManagement() {
                   key={user.id}
                   className="group hover:bg-blue-50/30 transition-all"
                 >
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-4">
+                  <td className="px-5 py-5">
+                    <div className="flex items-center gap-4 min-w-[220px]">
                       <div className="relative flex-shrink-0">
                         <img
                           src={`https://ui-avatars.com/api/?name=${user.name}&background=6366f1&color=fff&bold=true`}
@@ -419,9 +461,7 @@ export default function UserManagement() {
                         <div
                           className={cn(
                             "absolute -bottom-1 -right-1 size-3 rounded-full border-2 border-white",
-                            user.status === "Active"
-                              ? "bg-green-500"
-                              : "bg-gray-400",
+                            user.status === "Active" ? "bg-green-500" : "bg-gray-400"
                           )}
                         />
                       </div>
@@ -435,14 +475,15 @@ export default function UserManagement() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-5">
+
+                  <td className="px-5 py-5 whitespace-nowrap">
+                    {/* Status badge – same as before */}
                     <span
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-                        user.status === "Active" &&
-                          "bg-green-50 text-green-700",
+                        user.status === "Active" && "bg-green-50 text-green-700",
                         user.status === "Trial" && "bg-blue-50 text-blue-700",
-                        user.status === "Suspended" && "bg-red-50 text-red-700",
+                        user.status === "Suspended" && "bg-red-50 text-red-700"
                       )}
                     >
                       <span
@@ -450,13 +491,14 @@ export default function UserManagement() {
                           "size-1.5 rounded-full",
                           user.status === "Active" && "bg-green-500",
                           user.status === "Trial" && "bg-blue-500",
-                          user.status === "Suspended" && "bg-red-500",
+                          user.status === "Suspended" && "bg-red-500"
                         )}
                       />
                       {user.status}
                     </span>
                   </td>
-                  <td className="px-6 py-5">
+
+                  <td className="px-5 py-5 whitespace-nowrap">
                     <div className="flex flex-col">
                       <span className="text-[#0F172A] font-bold text-sm tracking-tight">
                         {user.plan}
@@ -466,8 +508,9 @@ export default function UserManagement() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-3">
+
+                  <td className="px-5 py-5">
+                    <div className="flex items-center gap-4 whitespace-nowrap">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-1.5">
                           <Building2 className="size-3.5 text-blue-500" />
@@ -481,7 +524,8 @@ export default function UserManagement() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-5">
+
+                  <td className="px-5 py-5 whitespace-nowrap">
                     <div className="flex flex-col">
                       <span className="font-black text-[#0F172A] text-sm">
                         {user.mrr}
@@ -491,7 +535,8 @@ export default function UserManagement() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-5">
+
+                  <td className="px-5 py-5 whitespace-nowrap">
                     <div className="flex items-center gap-2 text-gray-500">
                       <Clock className="size-3.5" />
                       <span className="text-xs font-medium">
@@ -499,15 +544,25 @@ export default function UserManagement() {
                       </span>
                     </div>
                   </td>
+
                   <td className="px-6 py-5 text-right">
                     <div className="flex items-center justify-end gap-2.5 transition-all">
-                      <button className="flex items-center justify-center size-9 rounded-xl text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white transition-all cursor-pointer shadow-sm">
+                      <button
+                        onClick={() => handleViewDetails(user)}
+                        className="flex items-center justify-center size-9 rounded-xl text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white transition-all cursor-pointer shadow-sm"
+                      >
                         <Eye className="size-4" />
                       </button>
-                      <button className="flex items-center justify-center size-9 rounded-xl text-amber-600 bg-amber-50 hover:bg-amber-600 hover:text-white transition-all cursor-pointer shadow-sm">
-                        <PencilLine className="size-4" />
+                      <button
+                        onClick={() => handleOpenSuspension(user)}
+                        className="flex items-center justify-center size-9 rounded-xl text-amber-600 bg-amber-50 hover:bg-amber-600 hover:text-white transition-all cursor-pointer shadow-sm"
+                      >
+                        <Ban className="size-4" />
                       </button>
-                      <button className="flex items-center justify-center size-9 rounded-xl text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition-all cursor-pointer shadow-sm">
+                      <button
+                        onClick={() => handleOpenDelete(user)}
+                        className="flex items-center justify-center size-9 rounded-xl text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition-all cursor-pointer shadow-sm"
+                      >
                         <Trash2 className="size-4" />
                       </button>
                     </div>
@@ -567,8 +622,8 @@ export default function UserManagement() {
                   className={cn(
                     "size-9 rounded-xl text-xs font-black transition-all cursor-pointer shadow-sm",
                     currentPage === i + 1
-                      ? "bg-blue-600 text-white shadow-blue-200"
-                      : "border border-[#E2E8F0] bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-900",
+                      ? "bg-blue-50 font-bold text-blue-600 ring-1 ring-blue-100"
+                      : "text-gray-500 hover:bg-gray-100"
                   )}
                 >
                   {i + 1}
@@ -586,6 +641,26 @@ export default function UserManagement() {
           </div>
         )}
       </div>
+
+      <UserDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        user={selectedUser}
+      />
+
+      <SuspensionModal
+        isOpen={isSuspensionModalOpen}
+        onClose={() => setIsSuspensionModalOpen(false)}
+        onConfirm={handleConfirmSuspension}
+        user={selectedUser}
+      />
+
+      <DeleteUserModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        user={selectedUser}
+      />
     </div>
   );
 }

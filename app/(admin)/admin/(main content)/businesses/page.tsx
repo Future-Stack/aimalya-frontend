@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import BusinessDetailsModal from "../../../../../components/admin/buisnesses/BusinessDetailsModal";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -40,6 +41,14 @@ export default function BusinessManagement() {
     const [cityFilter, setCityFilter] = useState("All location");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 4;
+
+    const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleViewDetails = (biz: any) => {
+        setSelectedBusiness(biz);
+        setIsModalOpen(true);
+    };
 
     const filteredBusinesses = useMemo(() => {
         return initialBusinesses.filter(biz => {
@@ -180,7 +189,10 @@ export default function BusinessManagement() {
                                 </div>
                             </div>
 
-                            <button className="mt-6 w-full rounded-lg border border-blue-100 bg-blue-50 py-2.5 text-xs font-bold text-blue-600 transition-colors hover:bg-blue-600 hover:text-white">
+                            <button
+                                onClick={() => handleViewDetails(biz)}
+                                className="mt-6 w-full rounded-lg border border-blue-100 bg-blue-50 py-2.5 text-xs font-bold text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
+                            >
                                 View Details
                             </button>
                         </div>
@@ -195,38 +207,62 @@ export default function BusinessManagement() {
             )}
 
             {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 pt-4">
-                    <button
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
-                    >
-                        <ChevronLeft className="size-5" />
-                    </button>
-                    {[...Array(totalPages)].map((_, i) => (
+            {totalPages >= 1 && (
+                <div className="flex flex-col items-center justify-center gap-4 pt-4 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 font-medium text-center order-2">
+                        Showing{" "}
+                        <span className="text-[#0F172A] font-bold">
+                            {(currentPage - 1) * itemsPerPage + 1}
+                        </span>{" "}
+                        to{" "}
+                        <span className="text-[#0F172A] font-bold">
+                            {Math.min(currentPage * itemsPerPage, filteredBusinesses.length)}
+                        </span>{" "}
+                        of{" "}
+                        <span className="text-[#0F172A] font-bold">
+                            {filteredBusinesses.length}
+                        </span>{" "}
+                        businesses
+                    </p>
+
+                    <div className="flex items-center justify-center gap-2 order-1">
                         <button
-                            key={i + 1}
-                            onClick={() => setCurrentPage(i + 1)}
-                            className={cn(
-                                "size-8 rounded-lg text-sm transition-colors cursor-pointer",
-                                currentPage === i + 1
-                                    ? "bg-blue-50 font-bold text-blue-600 ring-1 ring-blue-100"
-                                    : "text-gray-500 hover:bg-gray-100"
-                            )}
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
                         >
-                            {i + 1}
+                            <ChevronLeft className="size-5" />
                         </button>
-                    ))}
-                    <button
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
-                    >
-                        <ChevronRight className="size-5" />
-                    </button>
+                        {[...Array(totalPages)].map((_, i) => (
+                            <button
+                                key={i + 1}
+                                onClick={() => setCurrentPage(i + 1)}
+                                className={cn(
+                                    "size-8 rounded-lg text-sm transition-colors cursor-pointer",
+                                    currentPage === i + 1
+                                        ? "bg-blue-50 font-bold text-blue-600 ring-1 ring-blue-100"
+                                        : "text-gray-500 hover:bg-gray-100"
+                                )}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
+                        <button
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 disabled:opacity-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        >
+                            <ChevronRight className="size-5" />
+                        </button>
+                    </div>
                 </div>
             )}
+
+            <BusinessDetailsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                business={selectedBusiness}
+            />
         </div>
     );
 }
