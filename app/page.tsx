@@ -37,70 +37,70 @@ export default function Home() {
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Hero Entrance
-      const heroTl = gsap.timeline();
-      heroTl.from(".hero-text", {
-        x: -100,
-        opacity: 0,
-        duration: 1,
-        ease: "power4.out",
-      })
-        .from(".hero-cards", {
-          x: 100,
-          opacity: 0,
-          duration: 1,
-          ease: "power4.out",
-        }, "-=0.8");
+  // useEffect(() => {
+  //   const ctx = gsap.context(() => {
+  //     // Hero Entrance
+  //     const heroTl = gsap.timeline();
+  //     heroTl.from(".hero-text", {
+  //       x: -100,
+  //       opacity: 0,
+  //       duration: 1,
+  //       ease: "power4.out",
+  //     })
+  //       .from(".hero-cards", {
+  //         x: 100,
+  //         opacity: 0,
+  //         duration: 1,
+  //         ease: "power4.out",
+  //       }, "-=0.8");
 
-      // Section to Section Scroll Transitions
-      const sections = Object.values(sectionRefs);
-      sections.forEach((section, i) => {
-        if (section.current) {
-          // Reveal children on scroll
-          gsap.from(section.current.querySelectorAll(".reveal-up"), {
-            scrollTrigger: {
-              trigger: section.current,
-              start: "top 80%",
-              toggleActions: "play none none none",
-            },
-            y: 60,
-            opacity: 0,
-            duration: 1,
-            stagger: 0.15,
-            ease: "power3.out",
-          });
+  //     // Section to Section Scroll Transitions
+  //     const sections = Object.values(sectionRefs);
+  //     sections.forEach((section, i) => {
+  //       if (section.current) {
+  //         // Reveal children on scroll
+  //         gsap.from(section.current.querySelectorAll(".reveal-up"), {
+  //           scrollTrigger: {
+  //             trigger: section.current,
+  //             start: "top 80%",
+  //             toggleActions: "play none none none",
+  //           },
+  //           y: 60,
+  //           opacity: 0,
+  //           duration: 1,
+  //           stagger: 0.15,
+  //           ease: "power3.out",
+  //         });
 
-          // Section transition (slight scale or background shift)
-          if (i > 0) {
-            gsap.from(section.current, {
-              scrollTrigger: {
-                trigger: section.current,
-                start: "top bottom",
-                end: "top top",
-                scrub: 1,
-              },
-              backgroundColor: i % 2 === 0 ? "#f8fafc" : "#ffffff",
-              ease: "none",
-            });
-          }
-        }
-      });
+  //         // Section transition (slight scale or background shift)
+  //         if (i > 0) {
+  //           gsap.from(section.current, {
+  //             scrollTrigger: {
+  //               trigger: section.current,
+  //               start: "top bottom",
+  //               end: "top top",
+  //               scrub: 1,
+  //             },
+  //             backgroundColor: i % 2 === 0 ? "#f8fafc" : "#ffffff",
+  //             ease: "none",
+  //           });
+  //         }
+  //       }
+  //     });
 
-      // Special animation for dashboard cards in hero
-      gsap.to(".floating-card", {
-        y: -15,
-        duration: 2,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-        stagger: 0.3
-      });
-    }, containerRef);
+  //     // Special animation for dashboard cards in hero
+  //     gsap.to(".floating-card", {
+  //       y: -15,
+  //       duration: 2,
+  //       repeat: -1,
+  //       yoyo: true,
+  //       ease: "sine.inOut",
+  //       stagger: 0.3
+  //     });
+  //   }, containerRef);
 
-    return () => ctx.revert();
-  }, []);
+  //   return () => ctx.revert();
+  // }, []);
 
   return (
     <div ref={containerRef} className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
@@ -145,69 +145,42 @@ export default function Home() {
       <main>
         {/* Hero Section */}
         <section id="home" ref={sectionRefs.hero} className="relative pt-32 pb-20 lg:pt-44 lg:pb-40 overflow-hidden">
-          {/* Diagonal Background Overlay matching image */}
-          <div className="absolute top-0 right-0 w-[55%] h-full bg-[#33E5EA] -z-10 skew-x-[-15deg] origin-top translate-x-32 hidden lg:block"></div>
-          <div className="absolute top-0 right-0 w-[45%] h-full bg-[#35CBF9] -z-20 skew-x-[-15deg] origin-top translate-x-40 hidden lg:block"></div>
+          {/* Full Width Background Image */}
+          <div className="absolute inset-0 w-full h-full">
+            <Image
+              src="/hero-bg.png"
+              alt="Hero Background"
+              fill
+              className="object-cover"
+              priority
+              unoptimized
+            />
+          </div>
 
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="hero-text">
-              <h1 className="text-[52px] lg:text-[68px] font-extrabold text-[#1A1A1A] leading-[1] mb-8">
-                Turn Customer Reviews into <span className="text-[#1A1A1A]">Business Growth</span>
-              </h1>
-              <p className="text-[17px] text-zinc-500 mb-11 max-w-[500px] leading-[1.6]">
-                AI-powered insights from your Google reviews. Understand your customers, outperform competitors, and make data-driven improvements.
-              </p>
-              <div className="flex flex-wrap gap-5">
-                <button className="bg-[#0066FF] text-white px-9 py-4 rounded-lg font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 text-[15px]">
-                  Start Free Trial
-                </button>
-                <button className="bg-white text-zinc-800 border-2 border-zinc-100 px-9 py-4 rounded-lg font-bold hover:bg-zinc-50 transition-all text-[15px]">
-                  Request Demo
-                </button>
+          {/* Content Overlay */}
+          <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              {/* Left Column - Text Content */}
+              <div className="hero-text">
+                <h1 className="text-[42px] lg:text-[48px] font-extrabold text-[#1A1A1A] leading-[1.15] mb-6 text-wrap">
+                  Turn Customer Reviews into Business Growth
+                </h1>
+                <p className="text-[16px] text-zinc-600 mb-10 max-w-[480px] leading-[1.65]">
+                  AI-powered insights from your Google reviews. Understand your customers, outperform competitors, and make data-driven improvements.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <button className="bg-[#0066FF] text-white px-8 py-3.5 rounded-lg font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 text-[15px]">
+                    Start Free Trial
+                  </button>
+                  <button className="bg-white text-zinc-700 border-2 border-zinc-200 px-8 py-3.5 rounded-lg font-bold hover:bg-zinc-50 transition-all text-[15px]">
+                    Request Demo
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="hero-cards relative">
-              <div className="relative z-10 grid grid-cols-2 gap-6 scale-110 lg:translate-x-12 translate-y-8">
-                {/* Simulated Dashboard Cards */}
-                <div className="bg-white p-5 rounded-2xl shadow-2xl floating-card">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-[12px] font-bold text-zinc-400">Statistic</span>
-                    <span className="text-zinc-300">...</span>
-                  </div>
-                  <div className="h-24 flex items-end gap-2 px-2">
-                    {[30, 60, 45, 80, 50, 70, 40].map((h, i) => (
-                      <div key={i} className={`flex-1 rounded-t-sm ${i === 3 ? 'bg-cyan-400' : 'bg-rose-400 opacity-80'}`} style={{ height: `${h}%` }}></div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white p-5 rounded-2xl shadow-2xl floating-card translate-y-12">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[13px] font-bold text-zinc-800">$4.658</span>
-                  </div>
-                  <span className="text-[10px] text-zinc-400">Earned This Month</span>
-                  <div className="mt-4 flex gap-2">
-                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                      <div className="w-4 h-4 rounded-full bg-purple-500"></div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white p-5 rounded-3xl shadow-2xl floating-card col-span-2 -translate-y-4">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
-                      <h4 className="text-[14px] font-bold">Global Statistic</h4>
-                      <p className="text-[10px] text-zinc-400">Sale (75%)</p>
-                    </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <div className="w-32 h-32 rounded-full border-[15px] border-zinc-50 relative flex items-center justify-center">
-                      <div className="absolute inset-0 rounded-full border-[15px] border-t-purple-400 border-r-rose-400 border-b-amber-400 border-l-transparent rotate-45"></div>
-                      <span className="text-[14px] font-bold">75%</span>
-                    </div>
-                  </div>
-                </div>
+              {/* Right Column - Empty space for the background image to show through */}
+              <div className="hero-cards relative hidden lg:block h-[500px]">
+                {/* Background image shows the dashboard cards */}
               </div>
             </div>
           </div>
@@ -215,38 +188,39 @@ export default function Home() {
 
         {/* About Us Section */}
         <section id="about" ref={sectionRefs.about} className="py-28 bg-white overflow-hidden">
-          <div className="max-w-7xl mx-auto px-6 text-center mb-20 reveal-up">
+          <div className="max-w-7xl mx-auto px-6 text-center mb-16 reveal-up">
             <h2 className="text-[44px] font-extrabold text-[#111111] mb-6">About Us</h2>
             <p className="text-zinc-500 max-w-2xl mx-auto text-[17px] leading-relaxed">
-              Turn customer feedback into clear, actionable insights with AI, helping you track performance, uncover trends, and grow with confidence.
+              Turn customer feedback into clear, actionable insights with AI,<br />
+              helping you track performance, uncover trends, and grow with confidence.
             </p>
           </div>
 
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-32">
+          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
             {[
               { id: 'ai', icon: <Zap size={28} className="text-[#0066FF]" />, title: 'AI-Powered Insights', desc: 'Automatically analyze sentiment, themes, and satisfaction from every review.' },
               { id: 'reports', icon: <BarChart3 size={28} className="text-[#0066FF]" />, title: 'Monthly Reports', desc: 'Comprehensive business intelligence reports delivered automatically.' },
               { id: 'comp', icon: <Target size={28} className="text-[#0066FF]" />, title: 'Competitor Analysis', desc: 'Benchmark your performance against competitors and find opportunities.' },
               { id: 'recom', icon: <CheckCircle2 size={28} className="text-[#0066FF]" />, title: 'Actionable Recommendations', desc: 'Get specific improvement suggestions based on customer feedback.' }
             ].map((card, i) => (
-              <div key={card.id} className="bg-zinc-50/50 p-10 rounded-3xl border border-transparent hover:bg-white hover:border-zinc-100 hover:shadow-xl hover:shadow-zinc-100 transition-all duration-500 group reveal-up">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-colors">
+              <div key={card.id} className="bg-white p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300 group reveal-up">
+                <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center mb-6 transition-colors group-hover:bg-blue-100">
                   {card.icon}
                 </div>
-                <h3 className="text-[19px] font-extrabold mb-4 group-hover:text-[#0066FF] transition-colors">{card.title}</h3>
-                <p className="text-zinc-500 text-[14.5px] leading-[1.6]">
+                <h3 className="text-[17px] font-extrabold mb-3 text-gray-900">{card.title}</h3>
+                <p className="text-zinc-500 text-[14px] leading-[1.6]">
                   {card.desc}
                 </p>
               </div>
             ))}
           </div>
 
-          <div className="bg-zinc-100/30 py-24">
-            <div className="max-w-7xl mx-auto px-6 text-center mb-20 reveal-up">
+          <div className="bg-gray-50/50 py-20">
+            <div className="max-w-7xl mx-auto px-6 text-center mb-16 reveal-up">
               <h2 className="text-[38px] font-extrabold text-[#111111]">Everything You Need</h2>
             </div>
 
-            <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-10">
+            <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8">
               {[
                 { title: "Sentiment Analysis", desc: "Track positive, neutral, and negative sentiment trends" },
                 { title: "Theme Detection", desc: "Identify recurring issues and strengths automatically" },
@@ -255,12 +229,12 @@ export default function Home() {
                 { title: "Custom Alerts", desc: "Get notified of rating drops or negative review spikes" },
                 { title: "Export Reports", desc: "Download PDF and Excel reports anytime" }
               ].map((feature, idx) => (
-                <div key={idx} className="flex gap-5 items-start reveal-up">
+                <div key={idx} className="flex gap-4 items-start reveal-up">
                   <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full border-2 border-[#10B981] flex items-center justify-center">
-                    <Check size={14} className="text-[#10B981]" strokeWidth={4} />
+                    <Check size={14} className="text-[#10B981]" strokeWidth={3} />
                   </div>
                   <div className="text-left">
-                    <h4 className="text-[17px] font-bold mb-1.5 text-zinc-900">{feature.title}</h4>
+                    <h4 className="text-[16px] font-bold mb-1 text-zinc-900">{feature.title}</h4>
                     <p className="text-zinc-500 text-[14px]">{feature.desc}</p>
                   </div>
                 </div>
@@ -285,7 +259,7 @@ export default function Home() {
               { name: "Sarah Smith", role: "Marketing Lead", company: "Hospitality Company", content: "The AI insights saved us hours of manual review work and gave us clear action steps." },
               { name: "Mike Johnson", role: "Founder", company: "Multi-Location Business", content: "Easy to use, powerful reports, and incredibly helpful for tracking sentiment across locations." }
             ].map((t, idx) => (
-              <div key={idx} className="relative bg-white pt-14 pb-10 px-10 rounded-[40px] border border-zinc-100 shadow-sm hover:shadow-2xl transition-all duration-500 reveal-up group">
+              <div key={idx} className="relative bg-white pt-14 pb-10 px-10 rounded-[30px] border border-zinc-100 shadow-sm hover:shadow-xl transition-all duration-500 reveal-up group">
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-14 h-14 bg-[#0066FF] rounded-full flex items-center justify-center text-white shadow-xl shadow-blue-200">
                   <Quote size={24} fill="white" />
                 </div>
@@ -295,7 +269,7 @@ export default function Home() {
                 <p className="text-zinc-600 text-[16px] leading-[1.6] mb-10 min-h-[80px]">
                   {t.content}
                 </p>
-                <div className="pt-8 border-t border-[#0066FF]/20 flex items-center gap-4">
+                <div className="pt-8 border-t border-zinc-200 flex items-center gap-4">
                   <div className="w-12 h-12 bg-zinc-100 rounded-full overflow-hidden">
                     <div className="w-full h-full bg-[#E5E5E5] flex items-center justify-center text-zinc-400 font-bold">
                       {t.name[0]}
@@ -318,37 +292,37 @@ export default function Home() {
             <h2 className="text-[44px] font-extrabold text-[#111111]">Simple, Transparent Pricing</h2>
           </div>
 
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8 items-end">
+          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
             {/* Starter */}
-            <div className="bg-white p-12 rounded-[40px] border border-zinc-100 shadow-sm hover:shadow-xl transition-all reveal-up">
-              <h3 className="text-[22px] font-extrabold mb-8">Starter</h3>
-              <div className="flex items-baseline gap-1 mb-10">
-                <span className="text-[52px] font-extrabold">$49</span>
-                <span className="text-zinc-400 font-bold text-[18px]">/mo</span>
+            <div className="bg-white p-10 rounded-[30px] border border-zinc-200 shadow-sm hover:shadow-lg transition-all reveal-up">
+              <h3 className="text-[20px] font-extrabold mb-2">Starter</h3>
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-[48px] font-extrabold">$49</span>
+                <span className="text-zinc-400 font-medium text-[16px]">/mo</span>
               </div>
-              <ul className="space-y-5 mb-12">
+              <ul className="space-y-4 mb-10">
                 {['1 Location', 'Up to 500 reviews/mo', 'Monthly reports', 'Basic AI insights'].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-[15px] text-zinc-600 font-medium">
-                    <Star size={18} className="text-[#0066FF]" /> {item}
+                  <li key={i} className="flex items-center gap-3 text-[14px] text-zinc-600 font-medium">
+                    <Star size={16} className="text-[#0066FF]" /> {item}
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-4 px-6 rounded-xl border-2 border-zinc-100 text-[#111111] font-bold hover:bg-zinc-50 transition-all text-[15px]">
+              <button className="w-full py-3.5 px-6 rounded-xl border-2 border-zinc-200 text-[#111111] font-bold hover:bg-zinc-50 transition-all text-[14px]">
                 Get Started
               </button>
             </div>
 
-            {/* Professional */}
-            <div className="bg-[#0066FF] p-12 rounded-[40px] shadow-2xl shadow-blue-200 lg:scale-[1.08] z-10 relative overflow-hidden reveal-up">
-              <div className="absolute top-6 left-0 w-full text-center">
-                <span className="text-[10px] text-white/70 font-bold uppercase tracking-[2px]">Most Popular</span>
+            {/* Professional - Featured */}
+            <div className="bg-[#0066FF] p-10 rounded-[30px] shadow-2xl shadow-blue-200 lg:scale-105 z-10 relative overflow-hidden reveal-up">
+              <div className="absolute top-4 left-0 w-full text-center">
+                <span className="text-[10px] text-white/80 font-bold uppercase tracking-[2px]">Most Popular</span>
               </div>
-              <h3 className="text-[22px] font-extrabold mb-8 text-white mt-4">Professional</h3>
-              <div className="flex items-baseline gap-1 mb-10">
-                <span className="text-[52px] font-extrabold text-white">$149</span>
-                <span className="text-white/60 font-bold text-[18px]">/mo</span>
+              <h3 className="text-[20px] font-extrabold text-white mt-6 mb-2">Professional</h3>
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-[48px] font-extrabold text-white">$149</span>
+                <span className="text-white/70 font-medium text-[16px]">/mo</span>
               </div>
-              <ul className="space-y-5 mb-12">
+              <ul className="space-y-4 mb-10">
                 {[
                   'Up to 5 Locations',
                   'Unlimited reviews',
@@ -356,23 +330,23 @@ export default function Home() {
                   'Advanced AI insights',
                   'Competitor analysis'
                 ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-[15px] text-white font-medium">
-                    <Star size={18} fill="white" className="text-white" /> {item}
+                  <li key={i} className="flex items-center gap-3 text-[14px] text-white font-medium">
+                    <Star size={16} fill="white" className="text-white" /> {item}
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-4 px-6 rounded-xl bg-white text-[#0066FF] font-extrabold hover:bg-blue-50 transition-all text-[15px]">
+              <button className="w-full py-3.5 px-6 rounded-xl bg-white text-[#0066FF] font-extrabold hover:bg-blue-50 transition-all text-[14px]">
                 Get Started
               </button>
             </div>
 
             {/* Enterprise */}
-            <div className="bg-white p-12 rounded-[40px] border border-zinc-100 shadow-sm hover:shadow-xl transition-all reveal-up">
-              <h3 className="text-[22px] font-extrabold mb-8">Enterprise</h3>
-              <div className="flex items-baseline gap-1 mb-10">
-                <span className="text-[52px] font-extrabold">Custom</span>
+            <div className="bg-white p-10 rounded-[30px] border border-zinc-200 shadow-sm hover:shadow-lg transition-all reveal-up">
+              <h3 className="text-[20px] font-extrabold mb-2">Enterprise</h3>
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-[48px] font-extrabold">Custom</span>
               </div>
-              <ul className="space-y-5 mb-12">
+              <ul className="space-y-4 mb-10">
                 {[
                   'Unlimited Locations',
                   'Unlimited reviews',
@@ -380,12 +354,12 @@ export default function Home() {
                   'API access',
                   'Dedicated support'
                 ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-[15px] text-zinc-600 font-medium">
-                    <Star size={18} className="text-[#0066FF]" /> {item}
+                  <li key={i} className="flex items-center gap-3 text-[14px] text-zinc-600 font-medium">
+                    <Star size={16} className="text-[#0066FF]" /> {item}
                   </li>
                 ))}
               </ul>
-              <button className="w-full py-4 px-6 rounded-xl border-2 border-zinc-100 text-[#111111] font-bold hover:bg-zinc-50 transition-all text-[15px]">
+              <button className="w-full py-3.5 px-6 rounded-xl border-2 border-zinc-200 text-[#111111] font-bold hover:bg-zinc-50 transition-all text-[14px]">
                 Contact Sales
               </button>
             </div>
@@ -394,60 +368,7 @@ export default function Home() {
 
         {/* Contact Section */}
         <section id="contact" ref={sectionRefs.contact} className="py-28 bg-white">
-          <div className="max-w-7xl mx-auto px-6 text-center mb-20 reveal-up">
-            <h2 className="text-[52px] font-extrabold text-[#111111] mb-6">Get In Touch</h2>
-            <p className="text-zinc-500 max-w-2xl mx-auto text-[17px]">
-              Have questions or need help getting started? Our team is here to assist you.
-            </p>
-          </div>
 
-          <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-5 gap-12">
-            <div className="lg:col-span-2 space-y-6 reveal-up">
-              {[
-                { icon: <Mail className="text-white" size={24} />, title: 'Email Us', text: 'support@yourwebsite.com', color: 'bg-blue-600' },
-                { icon: <Phone className="text-zinc-600" size={24} />, title: 'Call Us', text: '+880XXXXXXXXXX', color: 'bg-blue-100' },
-                { icon: <MapPin className="text-zinc-600" size={24} />, title: 'Office', text: 'Available 24/7 Worldwide', color: 'bg-blue-100' }
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-8 p-10 bg-white border border-zinc-100 rounded-[30px] shadow-sm hover:shadow-md transition-all">
-                  <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center flex-shrink-0`}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-[17px] mb-1">{item.title}</h4>
-                    <p className="text-zinc-500 text-[14px]">{item.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="lg:col-span-3 bg-white p-12 rounded-[40px] border border-zinc-100 shadow-sm reveal-up">
-              <form className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[15px] font-extrabold text-zinc-800">Name</label>
-                    <input type="text" placeholder="Your full name" className="w-full px-6 py-4 rounded-xl border border-zinc-100 bg-[#FAFAFA] focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[15px] font-extrabold text-zinc-800">Email</label>
-                    <input type="email" placeholder="your@email.com" className="w-full px-6 py-4 rounded-xl border border-zinc-100 bg-[#FAFAFA] focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[15px] font-extrabold text-zinc-800">Message</label>
-                  <textarea rows={5} placeholder="Tell us how we can help you..." className="w-full px-6 py-4 rounded-xl border border-zinc-100 bg-[#FAFAFA] focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"></textarea>
-                </div>
-                <div>
-                  <button className="bg-[#0066FF] text-white px-10 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-3 w-full">
-                    Send Message
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M22 2L11 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
         </section>
       </main>
 

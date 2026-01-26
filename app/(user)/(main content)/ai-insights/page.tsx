@@ -1,0 +1,332 @@
+"use client";
+
+import {
+    Radar,
+    RadarChart,
+    PolarGrid,
+    PolarAngleAxis,
+    PolarRadiusAxis,
+    ResponsiveContainer,
+} from "recharts";
+import {
+    TrendingUp,
+    TrendingDown,
+    Lightbulb,
+    Zap,
+    Users,
+    Settings,
+    Briefcase,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// --- Mock Data ---
+
+const radarData = [
+    { subject: "Service", A: 120, fullMark: 150 },
+    { subject: "Quality", A: 98, fullMark: 150 },
+    { subject: "Atmosphere", A: 86, fullMark: 150 },
+    { subject: "Value", A: 99, fullMark: 150 },
+    { subject: "Cleanliness", A: 85, fullMark: 150 },
+];
+
+const emergingTrends = [
+    { label: "Increased demand for fish burger options", mentions: "24 mentions" },
+    { label: "Requests for healthier food options", mentions: "34 mentions" },
+    { label: "Interest in outdoor seating", mentions: "58 mentions" },
+];
+
+const decliningAreas = [
+    { label: "WiFi speed satisfaction", mentions: "65 mentions" },
+    { label: "Weekend availability", mentions: "62 mentions" },
+    { label: "Service Timely", mentions: "42 mentions" },
+];
+
+const actionPlans = [
+    {
+        title: "Slow Service During Peak Hours",
+        priority: "High Priority",
+        description: "Peak hours (11am-1pm, 5pm-7pm) show consistent complaints about wait times. Consider hiring 2 additional staff members during these windows or implementing a pre-order system.",
+        evidence: "23 mentions in last 30 days (+15% vs previous month)",
+        impact: "High - Affecting 18% of negative reviews",
+        improvement: "+12% satisfaction",
+        steps: [
+            "Analyze current staff scheduling patterns",
+            "Implement time-slot based staffing",
+            "Consider mobile ordering to reduce queue time",
+            "Train staff on efficiency techniques",
+        ],
+    },
+    {
+        title: "Limited Parking Availability",
+        priority: "Medium Priority",
+        description: "Peak hours (11am-1pm, 5pm-7pm) show consistent complaints about wait times. Consider hiring 2 additional staff members during these windows or implementing a pre-order system.",
+        evidence: "23 mentions in last 30 days (+15% vs previous month)",
+        impact: "High - Affecting 18% of negative reviews",
+        improvement: "+12% satisfaction",
+        steps: [
+            "Analyze current staff scheduling patterns",
+            "Implement time-slot based staffing",
+            "Consider mobile ordering to reduce queue time",
+            "Train staff on efficiency techniques",
+        ],
+    },
+];
+
+export default function AIInsightsPage() {
+    return (
+        <div className="space-y-8 pb-12">
+            {/* Header */}
+            <div>
+                <h1 className="text-2xl font-bold text-gray-900">AI Insights & Recommendations</h1>
+                <p className="text-gray-500 text-sm">Data-driven insights to improve your business</p>
+            </div>
+
+            {/* Overall Business Health Score */}
+            <div className="bg-blue-50/50 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-100">
+                <div className="flex-1 space-y-4">
+                    <div className="flex items-start gap-4">
+                        <div className="p-3 bg-white rounded-xl shadow-sm">
+                            <Zap className="size-6 text-blue-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-gray-900">Overall Business Health Score</h2>
+                            <p className="text-sm text-gray-500 mt-1">Based on customer feedback, sentiment analysis, and performance trends</p>
+                        </div>
+                    </div>
+                    <div className="flex items-end gap-3 mt-4">
+                        <span className="text-6xl font-bold text-gray-900">87</span>
+                        <span className="text-xl font-medium text-gray-400 mb-2">/100</span>
+                    </div>
+                    <div className="flex items-center text-sm font-medium text-blue-600 bg-blue-100/50 w-fit px-3 py-1 rounded-full">
+                        <TrendingUp className="size-4 mr-1.5" />
+                        +5 vs last month
+                    </div>
+                </div>
+                {/* Image Placeholder - making it responsive */}
+                <div className="w-full md:w-[400px] h-48 rounded-2xl overflow-hidden shadow-lg relative group">
+                    <img
+                        src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop"
+                        alt="Restaurant Interior"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-4 flex items-end">
+                        <div className="flex gap-1">
+                            {[1, 2, 3, 4].map((_, i) => <Star key={i} className="size-4 fill-amber-400 text-amber-400" />)}
+                            <Star className="size-4 fill-amber-400 text-amber-400 opacity-75" />
+                            <span className="text-white text-xs font-bold ml-1">4.8</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Performance & Quick Insights Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                {/* Radar Chart */}
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm min-h-[400px]">
+                    <h3 className="text-lg font-bold text-gray-900 mb-6">Performance by Category</h3>
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                                <PolarGrid stroke="#e5e7eb" />
+                                <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 500 }} />
+                                <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
+                                <Radar
+                                    name="Performance"
+                                    dataKey="A"
+                                    stroke="#3b82f6"
+                                    strokeWidth={2}
+                                    fill="#3b82f6"
+                                    fillOpacity={0.3}
+                                />
+                            </RadarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* Quick Insights */}
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">Quick Insights</h3>
+
+                    {/* Love */}
+                    <div className="p-4 bg-green-50 rounded-2xl border border-green-100">
+                        <div className="flex items-center gap-2 mb-2">
+                            <TrendingUp className="size-4 text-green-600" />
+                            <h4 className="font-bold text-gray-900 text-sm">What Customers Love</h4>
+                        </div>
+                        <p className="text-sm text-green-800 leading-relaxed">
+                            Your coffee quality and friendly staff are your biggest strengths, mentioned in 92% of positive reviews.
+                        </p>
+                    </div>
+
+                    {/* Dislike */}
+                    <div className="p-4 bg-red-50 rounded-2xl border border-red-100">
+                        <div className="flex items-center gap-2 mb-2">
+                            <TrendingDown className="size-4 text-red-600" />
+                            <h4 className="font-bold text-gray-900 text-sm">What Customers Dislike</h4>
+                        </div>
+                        <p className="text-sm text-red-800 leading-relaxed">
+                            Service speed during peak hours is the primary pain point, affecting customer satisfaction significantly.
+                        </p>
+                    </div>
+
+                    {/* Opportunities */}
+                    <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Lightbulb className="size-4 text-blue-600" />
+                            <h4 className="font-bold text-gray-900 text-sm">Emerging Opportunities</h4>
+                        </div>
+                        <p className="text-sm text-blue-800 leading-relaxed">
+                            Requests for healthier food options could be a new revenue stream, mentioned in 15+ recent reviews.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Trends Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Emerging Trends */}
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-900 mb-6">Emerging Trends</h3>
+                    <div className="space-y-3">
+                        {emergingTrends.map((trend, i) => (
+                            <div key={i} className="flex flex-col p-4 bg-green-50/50 rounded-2xl border border-green-100/50">
+                                <span className="text-sm font-semibold text-gray-900">{trend.label}</span>
+                                <span className="text-xs text-green-600 font-medium mt-1">{trend.mentions}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Declining Areas */}
+                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                    <h3 className="text-lg font-bold text-gray-900 mb-6">Declining Areas</h3>
+                    <div className="space-y-3">
+                        {decliningAreas.map((area, i) => (
+                            <div key={i} className="flex flex-col p-4 bg-red-50/50 rounded-2xl border border-red-100/50">
+                                <span className="text-sm font-semibold text-gray-900">{area.label}</span>
+                                <span className="text-xs text-red-600 font-medium mt-1">{area.mentions}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Actionable Recommendations */}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 bg-gray-100 rounded-lg">
+                            <Settings className="size-5 text-gray-700" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900">Actionable Recommendations</h3>
+                    </div>
+                    <button className="text-sm font-medium text-blue-600 hover:text-blue-700">View All</button>
+                </div>
+
+                {actionPlans.map((plan, i) => (
+                    <div key={i} className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-4 mb-4">
+                            <h4 className="text-lg font-bold text-gray-900">{plan.title}</h4>
+                            <span className={cn(
+                                "px-3 py-1 rounded-full text-xs font-semibold",
+                                plan.priority.includes("High") ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
+                            )}>
+                                {plan.priority}
+                            </span>
+                        </div>
+
+                        <p className="text-sm text-gray-600 mb-6 max-w-4xl leading-relaxed">
+                            {plan.description}
+                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                            <div className="p-4 bg-gray-50 rounded-2xl">
+                                <span className="text-xs text-gray-500 font-medium">Evidence</span>
+                                <p className="text-sm text-gray-900 font-semibold mt-1">{plan.evidence}</p>
+                            </div>
+                            <div className="p-4 bg-amber-50 rounded-2xl">
+                                <span className="text-xs text-amber-600/80 font-medium">Business Impact</span>
+                                <p className="text-sm text-amber-900 font-semibold mt-1">{plan.impact}</p>
+                            </div>
+                            <div className="p-4 bg-green-50 rounded-2xl">
+                                <span className="text-xs text-green-600/80 font-medium">Improvement</span>
+                                <p className="text-sm text-green-900 font-semibold mt-1">{plan.improvement}</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-50/30 p-6 rounded-2xl border border-blue-100">
+                            <h5 className="font-bold text-blue-900 text-sm mb-4">Recommended Solution: Staff Scheduling Optimization</h5>
+                            <div className="space-y-3 mb-6">
+                                {plan.steps.map((step, j) => (
+                                    <div key={j} className="flex items-center gap-3">
+                                        <div className="flex items-center justify-center size-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold shrink-0">
+                                            {j + 1}
+                                        </div>
+                                        <span className="text-sm text-gray-700">{step}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]">
+                                Mark as Addressed
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Help Banner */}
+            <div className="relative overflow-hidden rounded-3xl bg-[#8B5CF6] p-8 md:p-12 text-white">
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="max-w-2xl">
+                        <h3 className="text-2xl md:text-3xl font-bold mb-3">Need Help Implementing These Changes?</h3>
+                        <p className="text-purple-100 text-sm md:text-base leading-relaxed">
+                            Our expert consultants can help you implement these recommendations with tailored training programs, operational improvements, and ongoing support.
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
+                            <div className="flex items-start gap-3">
+                                <Users className="size-5 text-white shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-sm">Staff Training</p>
+                                    <p className="text-[10px] text-purple-200 mt-0.5">Customer service & efficiency programs</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <Settings className="size-5 text-white shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-sm">Operations Consulting</p>
+                                    <p className="text-[10px] text-purple-200 mt-0.5">Process optimization & workflows</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <Briefcase className="size-5 text-white shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-sm">Performance Programs</p>
+                                    <p className="text-[10px] text-purple-200 mt-0.5">Ongoing improvement support</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button className="flex-shrink-0 px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-purple-50 transition-all shadow-xl">
+                        Request Solution
+                    </button>
+                </div>
+
+                {/* Decorative background circles */}
+                <div className="absolute top-0 right-0 -mr-20 -mt-20 size-96 rounded-full bg-white/10 blur-3xl" />
+                <div className="absolute bottom-0 left-0 -ml-20 -mb-20 size-96 rounded-full bg-white/10 blur-3xl" />
+            </div>
+        </div>
+    );
+}
+
+// Internal Star Icon for the image overlay
+function Star({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+    )
+}
