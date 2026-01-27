@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 export default function LandingNavbar() {
@@ -28,12 +29,7 @@ export default function LandingNavbar() {
         <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-zinc-100 px-6 py-3">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 bg-[#0066FF] rounded-lg flex items-center justify-center p-1.5 shadow-md shadow-blue-100">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 18V9M4 18H7M4 18C3.44772 18 3 17.5523 3 17V10C3 9.44772 3.44772 9 4 9H7M20 18V7M20 18H17M20 18C20.5523 18 21 17.5523 21 17V8C21 7.44772 20.5523 7 20 7H17M12 18V4M12 18H9M12 18C11.4477 18 11 17.5523 11 17V5C11 4.44772 11.4477 4 12 4H9M12 18H15M12 18C12.5523 18 13 17.5523 13 17V5C13 4.44772 12.5523 4 12 4H15" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </div>
-                    <span className="text-[22px] font-bold tracking-tight text-zinc-900">ReviewIQ</span>
+                    <Image src="/logo.svg" alt="Logo" width={160} height={60} />
                 </div>
 
                 <div className="hidden lg:flex items-center gap-10 text-[15px] font-medium text-zinc-600">

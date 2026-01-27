@@ -16,9 +16,11 @@ import {
     Store,
     MapPin,
     ChevronDown,
+    HistoryIcon,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import Image from "next/image";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -58,16 +60,8 @@ export default function Sidebar() {
             )}
         >
             {/* Logo Section */}
-            <div className="flex h-20 items-center px-4 overflow-hidden">
-                <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20 flex-shrink-0">
-                    <LayoutDashboard className="size-6 text-white" />
-                </div>
-                <span className={cn(
-                    "ml-4 text-xl font-bold tracking-tight transition-all duration-300 whitespace-nowrap text-gray-900",
-                    isSmallScreen ? "opacity-0 group-hover:opacity-100" : "opacity-100"
-                )}>
-                    ReviewIQ
-                </span>
+            <div className="flex h-20 items-center px-4 overflow-hidden mb-2">
+                <Image src="/logo.svg" alt="Logo" width={180} height={60} />
             </div>
 
             {/* Context Selectors (Mocked) */}
