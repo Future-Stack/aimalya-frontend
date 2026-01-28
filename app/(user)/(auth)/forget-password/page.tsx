@@ -1,0 +1,75 @@
+"use client";
+
+import React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+export default function ForgotPasswordPage() {
+    const router = useRouter();
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        // In a real app, you would send the OTP to the email here
+        router.push("/verify-code");
+    };
+
+    return (
+        <div className="min-h-screen w-full relative content-center flex items-center justify-center overflow-hidden bg-[#E0F2FE]">
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
+                <Image
+                    src="/forgot-bg.png"
+                    alt="Background"
+                    fill
+                    className="object-cover"
+                    priority
+                    quality={100}
+                />
+            </div>
+
+            {/* Brand Logo (Top Left) */}
+            <div className="absolute top-8 left-8 z-10 flex items-center gap-2">
+                <Image src="/logo.svg" alt="Logo" width={207} height={60} />
+            </div>
+
+            {/* Forgot Password Card */}
+            <div className="relative z-10 w-full max-w-[600px] bg-white/60 backdrop-blur-xl rounded-[30px] p-8 md:p-12 shadow-xl border border-white/50 space-y-8">
+                <div className="text-center space-y-4">
+                    <h1 className="text-[32px] font-bold text-[#1A1A1A]">Forgot Password!</h1>
+                    <p className="text-zinc-500 text-[15px] max-w-[400px] mx-auto leading-relaxed">
+                        Do you forgot your password. It's ease to reset, just provide your email
+                        address. We'll send you a OTP code.
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="space-y-2">
+                        <label className="text-[15px] font-medium text-zinc-700 block">E-mail:</label>
+                        <input
+                            type="email"
+                            placeholder="e.g. example@email.com"
+                            required
+                            className="w-full bg-slate-50/50 h-12 rounded-xl px-4 text-[15px] border border-zinc-200 focus:border-[#0066FF] focus:ring-4 focus:ring-blue-50 outline-none transition-all placeholder:text-zinc-400"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <Link
+                            href="/login"
+                            className="w-full h-12 bg-[#DCEAF8] text-[#0055D4] rounded-xl font-bold text-[15px] hover:bg-[#cbe0f5] transition-all flex items-center justify-center"
+                        >
+                            Cancel
+                        </Link>
+                        <button
+                            type="submit"
+                            className="w-full h-12 bg-[#0055D4] text-white rounded-xl font-bold text-[15px] hover:bg-[#0044AA] transition-all shadow-lg shadow-blue-200"
+                        >
+                            Send OTP
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
