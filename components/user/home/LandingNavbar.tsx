@@ -2,6 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function LandingNavbar() {
@@ -72,12 +73,12 @@ export default function LandingNavbar() {
                         )}
                     </div>
 
-                    <button className="hidden sm:block text-[#0066FF] border border-[#0066FF] px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-50 transition-all">
+                    <Link href="/login" className="hidden sm:block text-[#0066FF] border border-[#0066FF] px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-50 transition-all cursor-pointer">
                         Login
-                    </button>
-                    <button className="bg-[#0066FF] text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+                    </Link>
+                    <Link href="/signup" className="bg-[#0066FF] text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 cursor-pointer">
                         Start Free Trial
-                    </button>
+                    </Link>
                 </div>
             </div>
         </nav>

@@ -219,9 +219,9 @@ export default function AIInsightsPage() {
                         <div className="p-2 bg-gray-100 rounded-lg">
                             <Settings className="size-5 text-gray-700" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900">Actionable Recommendations</h3>
+                        <h3 className="sm:text-xl text-lg font-bold text-gray-900">Actionable Recommendations</h3>
                     </div>
-                    <button className="text-sm font-medium text-blue-600 hover:text-blue-700">View All</button>
+                    <button className="sm:text-sm text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer text-nowrap">View All</button>
                 </div>
 
                 {actionPlans.map((plan, i) => (
@@ -229,7 +229,7 @@ export default function AIInsightsPage() {
                         <div className="flex items-center gap-4 mb-4">
                             <h4 className="text-lg font-bold text-gray-900">{plan.title}</h4>
                             <span className={cn(
-                                "px-3 py-1 rounded-full text-xs font-semibold",
+                                "px-3 py-1 rounded-full text-xs font-semibold text-nowrap",
                                 plan.priority.includes("High") ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
                             )}>
                                 {plan.priority}

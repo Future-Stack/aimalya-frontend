@@ -17,6 +17,8 @@ import {
     MapPin,
     ChevronDown,
     HistoryIcon,
+    Menu,
+    X,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -40,6 +42,7 @@ const menuItems = [
 export default function Sidebar() {
     const pathname = usePathname();
     const [isSmallScreen, setIsSmallScreen] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -53,21 +56,48 @@ export default function Sidebar() {
     return (
         <aside
             className={cn(
-                "group fixed left-0 top-0 z-50 h-screen transition-all duration-300 ease-in-out border-r border-[#E2E8F0] bg-white text-gray-800 flex flex-col",
+                "group fixed left-0 top-0 bottom-0 z-50 transition-all duration-300 ease-in-out border-r border-[#E2E8F0] bg-white text-gray-800 flex flex-col overflow-hidden",
                 // On Desktop: Always 256px
-                // On Small Device: 72px by default, 256px on hover (as overlay)
-                !isSmallScreen ? "w-64" : "w-[72px] hover:w-64 shadow-2xl"
+                // On Small Device: 72px by default, 256px on toggle (as overlay)
+                !isSmallScreen ? "w-64" : (isExpanded ? "w-64 shadow-2xl" : "w-[72px]")
             )}
         >
-            {/* Logo Section */}
-            <div className="flex h-20 items-center px-4 overflow-hidden mb-2">
-                <Image src="/logo.svg" alt="Logo" width={180} height={60} />
+            {/* Header Section */}
+            <div className="flex h-20 items-center px-4 overflow-hidden mb-2 shrink-0 justify-between">
+                <div className={cn(
+                    "flex items-center transition-all duration-300",
+                    isSmallScreen && !isExpanded ? "w-0 opacity-0" : "w-auto opacity-100"
+                )}>
+                    <Image src="/logo.svg" alt="Logo" width={150} height={50} priority />
+                </div>
+
+                {isSmallScreen && (
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="flex items-center justify-center size-10 rounded-xl text-gray-500 hover:bg-gray-100 transition-all border border-gray-100 shadow-sm"
+                    >
+                        {isExpanded ? <X size={20} /> : <Menu size={20} />}
+                    </button>
+                )}
+
+                {!isSmallScreen && (
+                    <div className="flex items-center justify-center size-10">
+                        {/* Placeholder to match spacing if needed, or just leave it */}
+                    </div>
+                )}
             </div>
+
+            {/* Collapsed Logo (only when small screen and not expanded) */}
+            {isSmallScreen && !isExpanded && (
+                <div className="absolute top-5 left-4 z-10 pointer-events-none transition-all duration-300">
+                    <Image src="/short-logo.svg" alt="Logo" width={40} height={40} priority />
+                </div>
+            )}
 
             {/* Context Selectors (Mocked) */}
             <div className={cn(
-                "px-4 mb-2 space-y-2 transition-all duration-300 overflow-hidden",
-                isSmallScreen ? "h-0 opacity-0 group-hover:h-auto group-hover:opacity-100" : "h-auto opacity-100"
+                "px-4 mb-2 space-y-2 transition-all duration-300 overflow-hidden shrink-0",
+                isSmallScreen && !isExpanded ? "h-0 opacity-0 pointer-events-none" : "h-auto opacity-100"
             )}>
                 <button className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-2 overflow-hidden">
@@ -86,10 +116,13 @@ export default function Sidebar() {
             </div>
 
             {/* Divider */}
-            <div className="mx-4 my-2 h-px bg-gray-100" />
+            <div className={cn(
+                "mx-4 my-2 h-px bg-gray-100 shrink-0",
+                isSmallScreen && !isExpanded ? "opacity-0" : "opacity-100"
+            )} />
 
             {/* Navigation Items */}
-            <nav className="flex-1 px-3 space-y-1.5 overflow-x-hidden overflow-y-auto custom-scrollbar">
+            <nav className="flex-1 min-h-0 px-3 space-y-1.5 overflow-x-hidden overflow-y-auto custom-scrollbar">
                 {menuItems.map((item) => {
                     const isActive = pathname.startsWith(item.href);
                     return (
@@ -108,7 +141,7 @@ export default function Sidebar() {
                             </div>
                             <span className={cn(
                                 "ml-1 text-sm font-medium transition-all duration-300 whitespace-nowrap",
-                                isSmallScreen ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+                                isSmallScreen && !isExpanded ? "opacity-0" : "opacity-100"
                             )}>
                                 {item.label}
                             </span>
@@ -118,13 +151,23 @@ export default function Sidebar() {
             </nav>
 
             {/* Bottom Actions */}
-            <div className="mt-auto border-t border-gray-100 bg-gray-50/50 p-4">
-                <div className={cn(
-                    "transition-all duration-300 overflow-hidden",
-                    isSmallScreen ? "opacity-0 group-hover:opacity-100" : "opacity-100"
-                )}>
-                    {/* Add any bottom actions or credits here if needed */}
-                </div>
+            <div className="mt-auto border-t border-gray-100 bg-gray-50/50 p-4 shrink-0">
+                <Link href="/login" className="block">
+                    <button className={cn(
+                        "w-full flex items-center h-11 rounded-xl transition-all duration-200 cursor-pointer text-red-500 hover:bg-red-50 hover:text-red-600",
+                        isSmallScreen && !isExpanded ? "justify-center" : "px-3"
+                    )}>
+                        <div className="flex items-center justify-center w-11 h-11 flex-shrink-0">
+                            <LogOut className="size-5" />
+                        </div>
+                        <span className={cn(
+                            "ml-1 text-sm font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden whitespace-nowrap",
+                            (!isSmallScreen || isExpanded) && "opacity-100 w-auto ml-1"
+                        )}>
+                            Logout
+                        </span>
+                    </button>
+                </Link>
             </div>
         </aside>
     );

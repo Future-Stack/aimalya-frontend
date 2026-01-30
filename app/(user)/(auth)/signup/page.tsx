@@ -31,15 +31,15 @@ export default function SignupPage() {
             </div>
 
             {/* Brand Logo (Top Left) */}
-            <div className="absolute top-8 left-8 z-10 flex items-center gap-2">
+            <div className="hidden md:flex absolute top-8 left-8 z-10 items-center gap-2">
                 <Image src="/logo.svg" alt="Logo" width={207} height={60} />
             </div>
 
             {/* Signup Card */}
-            <div className="relative z-10 w-full max-w-[550px] bg-white/60 backdrop-blur-xl rounded-[30px] p-8 md:p-12 shadow-xl border border-white/50 space-y-8">
+            <div className="relative z-10 w-[calc(100%-2rem)] max-w-[550px] bg-white/60 backdrop-blur-xl rounded-[30px] p-6 sm:p-10 md:p-12 shadow-xl border border-white/50 space-y-6 sm:space-y-8">
                 <div className="text-center space-y-2">
-                    <h1 className="text-[32px] font-bold text-[#1A1A1A]">Create Account</h1>
-                    <p className="text-[#0066FF] font-medium text-[15px]">Start analysing your reviews today</p>
+                    <h1 className="text-2xl sm:text-[32px] font-bold text-[#1A1A1A]">Create Account</h1>
+                    <p className="text-[#0066FF] font-medium text-sm sm:text-[15px]">Start analysing your reviews today</p>
                 </div>
 
                 <form className="space-y-4" onSubmit={handleSignup}>

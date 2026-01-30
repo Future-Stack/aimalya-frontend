@@ -27,16 +27,16 @@ export default function UserLayout({ children }: UserLayoutProps) {
     }
 
     return (
-        <div className="flex min-h-screen bg-[#F8FAFC]">
+        <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
             <Sidebar />
 
             <div
-                className="flex-1 flex flex-col min-h-screen transition-all duration-300"
+                className="flex-1 flex flex-col h-full overflow-y-auto overflow-x-hidden transition-all duration-300"
                 style={{ paddingLeft: `${sidebarOffset}px` }}
             >
                 <Navbar />
 
-                <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
+                <main className="flex-1 p-4 md:p-6 lg:p-8">
                     <div className="max-w-[1600px] mx-auto">
                         {children}
                     </div>

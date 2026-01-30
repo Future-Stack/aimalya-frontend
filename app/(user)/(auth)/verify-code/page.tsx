@@ -61,15 +61,15 @@ export default function VerifyCodePage() {
             </div>
 
             {/* Brand Logo (Top Left) */}
-            <div className="absolute top-8 left-8 z-10 flex items-center gap-2">
+            <div className="hidden md:flex absolute top-8 left-8 z-10 items-center gap-2">
                 <Image src="/logo.svg" alt="Logo" width={207} height={60} />
             </div>
 
             {/* Verify Code Card */}
-            <div className="relative z-10 w-full max-w-[600px] bg-white/60 backdrop-blur-xl rounded-[30px] p-8 md:p-12 shadow-xl border border-white/50 space-y-8">
+            <div className="relative z-10 w-[calc(100%-2rem)] max-w-[600px] bg-white/60 backdrop-blur-xl rounded-[30px] p-6 sm:p-10 md:p-12 shadow-xl border border-white/50 space-y-6 sm:space-y-8">
                 <div className="text-center space-y-4">
-                    <h1 className="text-[32px] font-bold text-[#1A1A1A]">Verify OTP</h1>
-                    <p className="text-zinc-500 text-[15px] max-w-[450px] mx-auto leading-relaxed">
+                    <h1 className="text-2xl sm:text-[32px] font-bold text-[#1A1A1A]">Verify OTP</h1>
+                    <p className="text-zinc-500 text-sm sm:text-[15px] max-w-[450px] mx-auto leading-relaxed">
                         We have sent you a 6 digit OTP code to your provided email:
                         <br />
                         <span className="font-bold text-zinc-800">example@email.com</span> please input that code here to proceed.

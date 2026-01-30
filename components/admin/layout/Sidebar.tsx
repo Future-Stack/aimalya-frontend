@@ -46,7 +46,7 @@ export default function Sidebar() {
     return (
         <aside
             className={cn(
-                "group fixed left-0 top-0 z-50 h-screen transition-all duration-300 ease-in-out border-r border-[#1E293B] bg-[#0F172A] text-white flex flex-col",
+                "group fixed left-0 top-0 bottom-0 z-50 transition-all duration-300 ease-in-out border-r border-[#1E293B] bg-[#0F172A] text-white flex flex-col overflow-hidden",
                 // On Desktop: Always 256px
                 // On Small Device: 72px by default, 256px on hover (as overlay)
                 !isSmallScreen ? "w-64" : "w-[72px] hover:w-64 shadow-2xl"
@@ -69,7 +69,7 @@ export default function Sidebar() {
             <div className="mx-4 mb-4 h-px bg-[#1E293B]" />
 
             {/* Navigation Items */}
-            <nav className="flex-1 px-3 space-y-1.5 overflow-x-hidden overflow-y-auto custom-scrollbar">
+            <nav className="flex-1 min-h-0 px-3 space-y-1.5 overflow-x-hidden overflow-y-auto custom-scrollbar">
                 {menuItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
@@ -106,29 +106,22 @@ export default function Sidebar() {
 
             {/* Profile Section */}
             <div className="mt-auto border-t border-[#1E293B] bg-[#111827]/50 p-4">
-                <Link href="/admin/signin">
-                    <button className="w-full flex items-center justify-center gap-2 text-red-500 hover:text-red-600 cursor-pointer">
-                        <LogOut className="size-5" />
-                        <span className="text-sm font-medium">Logout</span>
+                <Link href="/admin/signin" className="block">
+                    <button className={cn(
+                        "w-full flex items-center h-11 rounded-xl transition-all duration-200 cursor-pointer text-red-500 hover:bg-[#1E293B] hover:text-red-400",
+                        isSmallScreen ? "justify-center group-hover:justify-start" : "px-3"
+                    )}>
+                        <div className="flex items-center justify-center w-11 h-11 flex-shrink-0 ml-[-12px]">
+                            <LogOut className="size-5" />
+                        </div>
+                        <span className={cn(
+                            "text-sm font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden whitespace-nowrap",
+                            isSmallScreen ? "group-hover:opacity-100 group-hover:w-auto group-hover:ml-1" : "opacity-100 w-auto ml-1"
+                        )}>
+                            Logout
+                        </span>
                     </button>
                 </Link>
-                {/* <div className="flex items-center gap-3">
-                    <div className="relative size-10 flex-shrink-0">
-                        <img
-                            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                            alt="Admin"
-                            className="size-full rounded-xl object-cover ring-2 ring-blue-600/20"
-                        />
-                        <div className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[#0F172A] bg-green-500" />
-                    </div>
-                    <div className={cn(
-                        "flex-1 min-w-0 transition-all duration-300",
-                        isSmallScreen ? "opacity-0 group-hover:opacity-100" : "opacity-100"
-                    )}>
-                        <p className="truncate text-sm font-semibold leading-none">John Doe</p>
-                        <p className="truncate text-[10px] text-gray-500 font-medium mt-1">Administrator</p>
-                    </div>
-                </div> */}
             </div>
         </aside>
     );

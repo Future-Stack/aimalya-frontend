@@ -312,33 +312,35 @@ export default function ReviewPage() {
                         <div
                             key={review.id}
                             onClick={() => handleCardClick(review)}
-                            className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group active:scale-[0.99]"
+                            className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group active:scale-[0.99]"
                         >
-                            <div className="flex items-start justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                                 <div className="flex gap-3">
                                     {review.avatar ? (
-                                        <img src={review.avatar} alt={review.user} className="size-10 rounded-full object-cover" />
+                                        <img src={review.avatar} alt={review.user} className="size-10 sm:size-12 rounded-full object-cover shrink-0" />
                                     ) : (
-                                        <div className={cn("size-10 rounded-full flex items-center justify-center text-sm font-bold", review.color)}>
+                                        <div className={cn("size-10 sm:size-12 rounded-full flex items-center justify-center text-sm font-bold shrink-0", review.color)}>
                                             {review.initials}
                                         </div>
                                     )}
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{review.user}</h3>
-                                            <div className="flex items-center gap-0.5">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <Star
-                                                        key={i}
-                                                        className={cn(
-                                                            "size-3.5",
-                                                            i < Math.floor(review.rating) ? "fill-amber-400 text-amber-400" :
-                                                                (i === Math.floor(review.rating) && review.rating % 1 !== 0) ? "fill-amber-400 text-amber-400 opacity-50" : "text-gray-200"
-                                                        )}
-                                                    />
-                                                ))}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{review.user}</h3>
+                                                <div className="flex items-center gap-0.5 shrink-0">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star
+                                                            key={i}
+                                                            className={cn(
+                                                                "size-3.5",
+                                                                i < Math.floor(review.rating) ? "fill-amber-400 text-amber-400" :
+                                                                    (i === Math.floor(review.rating) && review.rating % 1 !== 0) ? "fill-amber-400 text-amber-400 opacity-50" : "text-gray-200"
+                                                            )}
+                                                        />
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div className="flex items-center text-xs text-gray-400 ml-1">
+                                            <div className="flex items-center text-xs text-gray-400">
                                                 <Calendar className="size-3 mr-1" />
                                                 {review.date}
                                             </div>
@@ -346,16 +348,16 @@ export default function ReviewPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2 sm:justify-end">
                                     <span className={cn(
-                                        "px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5",
+                                        "px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-medium flex items-center gap-1.5",
                                         review.sentiment === "positive" ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"
                                     )}>
                                         {review.sentiment === "positive" ? <ThumbsUp className="size-3" /> : <ThumbsDown className="size-3" />}
-                                        {review.sentiment}
+                                        <span className="capitalize">{review.sentiment}</span>
                                     </span>
                                     <span className={cn(
-                                        "px-3 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5",
+                                        "px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-medium flex items-center gap-1.5",
                                         review.status === "Replied" ? "bg-amber-50 text-amber-600 border border-amber-100" : "bg-orange-50 text-orange-600 border border-orange-100"
                                     )}>
                                         {review.status === "Replied" ? <CheckCircleIcon className="size-3" /> : <AlertCircle className="size-3" />}
@@ -364,18 +366,18 @@ export default function ReviewPage() {
                                 </div>
                             </div>
 
-                            <p className="mt-3 text-sm text-gray-600 leading-relaxed font-medium">
+                            <p className="mt-4 text-[13px] sm:text-sm text-gray-600 leading-relaxed font-medium line-clamp-3 sm:line-clamp-none">
                                 {review.content}
                             </p>
 
                             <div className="mt-4 flex flex-wrap gap-2">
                                 {review.tags.map((tag: string, i: number) => (
                                     <span key={i} className={cn(
-                                        "px-3 py-1.5 rounded-lg text-xs font-medium",
-                                        tag === "Quality" ? "bg-blue-100 text-blue-600" :
-                                            tag === "Service" ? "bg-indigo-100 text-indigo-600" :
-                                                tag === "Atmosphere" ? "bg-blue-100 text-blue-600" :
-                                                    "bg-purple-100 text-purple-600"
+                                        "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors",
+                                        tag === "Quality" ? "bg-blue-50 text-blue-600 hover:bg-blue-100" :
+                                            tag === "Service" ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" :
+                                                tag === "Atmosphere" ? "bg-cyan-50 text-cyan-600 hover:bg-cyan-100" :
+                                                    "bg-purple-50 text-purple-600 hover:bg-purple-100"
                                     )}>
                                         {tag}
                                     </span>

@@ -5,7 +5,7 @@ import { Search, Bell } from "lucide-react";
 
 export default function Navbar() {
     return (
-        <nav className="sticky top-0 z-30 flex h-20 w-full items-center justify-between border-b border-[#E2E8F0] bg-white/80 backdrop-blur-md px-4 md:px-6 lg:px-8 transition-all">
+        <nav className="sticky top-0 z-30 flex h-20 py-4 w-full items-center justify-between border-b border-[#E2E8F0] bg-white/80 backdrop-blur-md px-4 md:px-6 lg:px-8 transition-all">
             <div className="flex items-center gap-4">
                 {/* Search bar visible on most screens */}
                 <div className="flex relative items-center">
