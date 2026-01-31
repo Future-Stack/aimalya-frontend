@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Search, Bell } from "lucide-react";
+import Link from "next/link";
 
 export default function Navbar() {
     return (
@@ -22,10 +23,10 @@ export default function Navbar() {
 
             <div className="flex items-center gap-2 sm:gap-4">
                 {/* Notifications */}
-                <button className="relative flex items-center justify-center size-10 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all cursor-pointer">
+                <Link href="/notification" className="relative flex items-center justify-center size-10 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all cursor-pointer">
                     <Bell className="size-5" />
                     <span className="absolute right-2 top-2 size-2.5 rounded-full border-2 border-white bg-red-500 ring-4 ring-transparent animate-pulse" />
-                </button>
+                </Link>
 
                 {/* Profile Section */}
                 <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-100 h-10">

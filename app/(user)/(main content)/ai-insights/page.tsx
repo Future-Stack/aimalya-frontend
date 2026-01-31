@@ -18,6 +18,7 @@ import {
     Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 // --- Mock Data ---
 
@@ -82,11 +83,11 @@ export default function AIInsightsPage() {
             </div>
 
             {/* Overall Business Health Score */}
-            <div className="bg-blue-50/50 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-100">
+            <div className="bg-blue-100/50 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-100">
                 <div className="flex-1 space-y-4">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-white rounded-xl shadow-sm">
-                            <Zap className="size-6 text-blue-600" />
+                        <div className="p-3">
+                            <Image src="/magicpen.svg" alt="Magic Pen" width={34} height={34} />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-gray-900">Overall Business Health Score</h2>
@@ -255,7 +256,7 @@ export default function AIInsightsPage() {
                             </div>
                         </div>
 
-                        <div className="bg-blue-50/30 p-6 rounded-2xl border border-blue-100">
+                        <div className="bg-blue-100/50 p-6 rounded-2xl border border-blue-100">
                             <h5 className="font-bold text-blue-900 text-sm mb-4">Recommended Solution: Staff Scheduling Optimization</h5>
                             <div className="space-y-3 mb-6">
                                 {plan.steps.map((step, j) => (

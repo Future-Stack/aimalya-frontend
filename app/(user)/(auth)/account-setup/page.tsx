@@ -13,7 +13,8 @@ import {
     TrendingUp,
     Globe,
     Target,
-    User
+    User,
+    Pencil
 } from "lucide-react";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 
@@ -269,90 +270,199 @@ const StepStructure = ({ businesses, setBusinesses, onNext, onBack }: { business
     );
 };
 
-const StepGoal = ({ goals, setGoals, businesses, onNext, onBack }: { goals: any, setGoals: (g: any) => void, businesses: Business[], onNext: () => void, onBack: () => void }) => (
-    <div>
-        <div className="text-center mb-8">
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="text-[#0066FF]" size={24} />
-            </div>
-            <h2 className="text-[24px] font-bold text-[#1A1A1A]">Business Profile Setup</h2>
-        </div>
+const StepGoal = ({
+    goals,
+    setGoals,
+    businesses,
+    onNext,
+    onBack,
+    savedGoals,
+    setSavedGoals
+}: {
+    goals: any,
+    setGoals: (g: any) => void,
+    businesses: Business[],
+    onNext: () => void,
+    onBack: () => void,
+    savedGoals: any[],
+    setSavedGoals: (g: any[]) => void
+}) => {
+    const handleSave = () => {
+        if (!goals.businessName) return;
+        setSavedGoals([...savedGoals, { ...goals, id: Date.now().toString() }]);
+        setGoals({
+            businessName: '',
+            competitors: '',
+            frequency: 'Monthly',
+            selectedGoals: []
+        });
+    };
 
-        <div className="space-y-6 mb-10">
-            <h3 className="font-bold text-[#1A1A1A] border-b border-zinc-100 pb-2">Goals & Preferences</h3>
+    const handleEdit = (id: string) => {
+        const goalToEdit = savedGoals.find(g => g.id === id);
+        if (goalToEdit) {
+            setGoals({
+                businessName: goalToEdit.businessName,
+                competitors: goalToEdit.competitors,
+                frequency: goalToEdit.frequency,
+                selectedGoals: goalToEdit.selectedGoals
+            });
+            setSavedGoals(savedGoals.filter(g => g.id !== id));
+        }
+    };
 
-            <div className="space-y-4">
-                <div>
-                    <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Business Name</label>
-                    <StylishDropdown
-                        options={businesses
-                            .filter(b => b.name.trim() !== '')
-                            .map(b => ({ label: b.name, value: b.name }))}
-                        value={goals.businessName}
-                        onChange={(val) => setGoals({ ...goals, businessName: val as string })}
-                        placeholder="Select business"
-                        icon={<Building2 size={18} />}
-                    />
-                </div>
+    const handleDelete = (id: string) => {
+        setSavedGoals(savedGoals.filter(g => g.id !== id));
+    };
 
-                <div>
-                    <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Competitors (Optional)</label>
-                    <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Enter competitor names, separated by commas"
-                            className="w-full h-12 bg-blue-50/50 border border-transparent focus:bg-white focus:border-[#0066FF] rounded-xl pl-12 pr-4 text-[14px] outline-none transition-all placeholder:text-zinc-400"
-                            value={goals.competitors}
-                            onChange={(e) => setGoals({ ...goals, competitors: e.target.value })}
-                        />
+    return (
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+            <div className="flex-1 w-full">
+                <div className="mb-8">
+                    <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
+                        <CheckCircle2 className="text-[#0066FF]" size={24} />
                     </div>
-                    <p className="text-[11px] text-zinc-400 mt-1 pl-1">You can add more later</p>
+                    <h2 className="text-[24px] font-bold text-[#1A1A1A]">Business Profile Setup</h2>
                 </div>
 
-                <div>
-                    <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Report Frequency</label>
-                    <StylishDropdown
-                        options={[
-                            { label: "Monthly", value: "Monthly" },
-                            { label: "Weekly", value: "Weekly" },
-                            { label: "Daily", value: "Daily" }
-                        ]}
-                        value={goals.frequency}
-                        onChange={(val) => setGoals({ ...goals, frequency: val as string })}
-                        placeholder="Select frequency"
-                        icon={<TrendingUp size={18} />}
-                    />
+                <div className="space-y-6">
+                    <h3 className="font-bold text-[#1A1A1A] border-b border-zinc-100 pb-2">Goals & Preferences</h3>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Business Name</label>
+                            <StylishDropdown
+                                options={businesses
+                                    .filter(b => b.name.trim() !== '' && !savedGoals.some(sg => sg.businessName === b.name))
+                                    .map(b => ({ label: b.name, value: b.name }))}
+                                value={goals.businessName}
+                                onChange={(val) => setGoals({ ...goals, businessName: val as string })}
+                                placeholder="Select business"
+                                icon={<Building2 size={18} />}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Competitors (Optional)</label>
+                            <div className="relative">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Enter competitor names, separated by commas"
+                                    className="w-full h-12 bg-blue-50/50 border border-transparent focus:bg-white focus:border-[#0066FF] rounded-xl pl-12 pr-4 text-[14px] outline-none transition-all placeholder:text-zinc-400"
+                                    value={goals.competitors}
+                                    onChange={(e) => setGoals({ ...goals, competitors: e.target.value })}
+                                />
+                            </div>
+                            <p className="text-[11px] text-zinc-400 mt-1 pl-1">You can add more later</p>
+                        </div>
+
+                        {/* <div>
+                            <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Report Frequency</label>
+                            <StylishDropdown
+                                options={[
+                                    { label: "Monthly", value: "Monthly" },
+                                    { label: "Weekly", value: "Weekly" },
+                                ]}
+                                value={goals.frequency}
+                                onChange={(val) => setGoals({ ...goals, frequency: val as string })}
+                                placeholder="Select frequency"
+                                icon={<TrendingUp size={18} />}
+                            />
+                        </div> */}
+
+                        <div>
+                            <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Your Goals (Select all that apply)</label>
+                            <StylishDropdown
+                                multiSelect
+                                options={[
+                                    { label: "Improve customer satisfaction", value: "Improve customer satisfaction" },
+                                    { label: "Increase review volume", value: "Increase review volume" },
+                                    { label: "Monitor competitors", value: "Monitor competitors" }
+                                ]}
+                                value={goals.selectedGoals}
+                                onChange={(val) => setGoals({ ...goals, selectedGoals: val as string[] })}
+                                placeholder="Select goals"
+                                icon={<Target size={18} />}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end mt-4">
+                        <button
+                            onClick={handleSave}
+                            disabled={!goals.businessName}
+                            className="bg-[#0066FF] text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-100 text-[14px] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Plus size={18} /> Save Goal
+                        </button>
+                    </div>
                 </div>
 
-                <div>
-                    <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Your Goals (Select all that apply)</label>
-                    <StylishDropdown
-                        multiSelect
-                        options={[
-                            { label: "Improve customer satisfaction", value: "Improve customer satisfaction" },
-                            { label: "Increase review volume", value: "Increase review volume" },
-                            { label: "Monitor competitors", value: "Monitor competitors" }
-                        ]}
-                        value={goals.selectedGoals}
-                        onChange={(val) => setGoals({ ...goals, selectedGoals: val as string[] })}
-                        placeholder="Select goals"
-                        icon={<Target size={18} />}
-                    />
+                <div className="flex justify-between mt-12 pt-6 border-t border-zinc-100">
+                    <button onClick={onBack} className="px-8 py-3 rounded-xl border border-zinc-200 text-zinc-600 font-bold hover:bg-zinc-50 transition-all text-[14px]">
+                        Back
+                    </button>
+                    <button
+                        onClick={onNext}
+                        className="bg-[#0066FF] text-white px-10 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 text-[14px]"
+                    >
+                        Start Analysis
+                    </button>
                 </div>
             </div>
-        </div>
 
-        <div className="flex justify-between mt-8">
-            <button onClick={onBack} className="px-8 py-3 rounded-xl border border-zinc-200 text-zinc-600 font-bold hover:bg-zinc-50 transition-all text-[14px]">
-                Back
-            </button>
-            <button onClick={onNext} className="bg-[#0066FF] text-white px-10 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 text-[14px]">
-                Start Analysis
-            </button>
+            {/* Saved Goals Side Panel */}
+            {savedGoals.length > 0 && (
+                <div className="w-full lg:w-[320px] lg:sticky lg:top-0 space-y-4">
+                    <div className="flex items-center justify-between border-b border-zinc-100 pb-2">
+                        <h3 className="font-bold text-[#1A1A1A]">Saved Goals</h3>
+                        <span className="bg-blue-50 text-[#0066FF] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            {savedGoals.length}
+                        </span>
+                    </div>
+                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        {savedGoals.map((goal) => (
+                            <div key={goal.id} className="bg-white border border-zinc-100 rounded-xl p-4 shadow-sm flex flex-col gap-3 group transition-all hover:border-[#0066FF]/30">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                        <Building2 size={14} className="text-[#0066FF] shrink-0" />
+                                        <span className="font-bold text-[14px] text-gray-700 truncate">{goal.businessName}</span>
+                                    </div>
+                                    <div className="flex gap-1 shrink-0">
+                                        <button
+                                            onClick={() => handleEdit(goal.id)}
+                                            className="p-1.5 text-zinc-400 hover:text-[#0066FF] hover:bg-blue-50 rounded-lg transition-all"
+                                        >
+                                            <Pencil size={14} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(goal.id)}
+                                            className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-wrap gap-1.5">
+                                    <div className="flex items-center gap-1 bg-blue-50 text-[#0066FF] px-2 py-0.5 rounded-full text-[10px] font-medium">
+                                        <TrendingUp size={10} /> {goal.frequency}
+                                    </div>
+                                    {goal.selectedGoals.map((g: string, i: number) => (
+                                        <div key={i} className="flex items-center gap-1 bg-zinc-50 text-zinc-600 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                                            <Target size={10} /> {g}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
-    </div>
-);
+    );
+};
 
 const StepSync = ({ router }: { router: any }) => {
     useEffect(() => {
@@ -405,6 +515,7 @@ export default function AccountSetupPage() {
         frequency: 'Monthly',
         selectedGoals: [] as string[]
     });
+    const [savedGoals, setSavedGoals] = useState<any[]>([]);
 
     return (
         <div className="min-h-screen w-full relative content-center flex items-center justify-center overflow-hidden bg-[#E0F2FE]">
@@ -426,7 +537,7 @@ export default function AccountSetupPage() {
             </div>
 
             {/* Content Container */}
-            <div className="relative z-10 w-full max-w-4xl flex flex-col items-center">
+            <div className={`relative z-10 w-full ${step === 4 ? "max-w-5xl" : "max-w-4xl"} flex flex-col items-center transition-all duration-500`}>
                 <Stepper currentStep={step} />
 
                 <div className="w-[calc(100%-2rem)] sm:w-full bg-white/80 backdrop-blur-xl rounded-[30px] p-6 sm:p-10 md:p-12 shadow-2xl border border-white/60 min-h-[500px] flex flex-col justify-center">
@@ -447,6 +558,8 @@ export default function AccountSetupPage() {
                             businesses={businesses}
                             onNext={() => setStep(5)}
                             onBack={() => setStep(3)}
+                            savedGoals={savedGoals}
+                            setSavedGoals={setSavedGoals}
                         />
                     )}
                     {step === 5 && <StepSync router={router} />}

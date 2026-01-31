@@ -3,13 +3,14 @@
 import React from "react";
 import { Star, ThumbsUp, MessageSquare, Reply, TrendingUp, TrendingDown, AlertCircle, CheckCircle } from "lucide-react";
 import {
-    LineChart,
-    Line,
+    AreaChart,
+    Area,
     XAxis,
     YAxis,
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
+    Legend
 } from "recharts";
 
 // Mock Data for Charts
@@ -19,6 +20,13 @@ const sentimentData = [
     { month: "Mar", positive: 75, neutral: 18, negative: 7 },
     { month: "Apr", positive: 82, neutral: 12, negative: 6 },
     { month: "May", positive: 85, neutral: 10, negative: 5 },
+    { month: "Jun", positive: 80, neutral: 14, negative: 6 },
+    { month: "Jul", positive: 88, neutral: 8, negative: 4 },
+    { month: "Aug", positive: 90, neutral: 7, negative: 3 },
+    { month: "Sep", positive: 86, neutral: 9, negative: 5 },
+    { month: "Oct", positive: 84, neutral: 10, negative: 6 },
+    { month: "Nov", positive: 89, neutral: 7, negative: 4 },
+    { month: "Dec", positive: 92, neutral: 5, negative: 3 },
 ];
 
 const performanceData = [
@@ -133,56 +141,88 @@ export default function DashboardPage() {
                     <h3 className="text-lg font-semibold text-gray-900">Sentiment Trend</h3>
 
                     {/* Floating Legend / Stats Mockup similar to image */}
-                    <div className="hidden sm:flex items-center gap-4 bg-white border border-gray-100 px-3 py-2 rounded-lg shadow-sm text-xs">
-                        <div className="font-semibold text-gray-700">Mar</div>
+                    {/* <div className="hidden sm:flex items-center gap-4 bg-white border border-gray-100 px-3 py-2 rounded-lg shadow-sm text-xs">
                         <div className="text-red-500">Negative: 10%</div>
                         <div className="text-gray-500">Neutral: 22%</div>
                         <div className="text-blue-500">Positive: 68%</div>
-                    </div>
+                    </div> */}
                 </div>
 
-                <div className="h-[300px] w-full">
+                <div className="h-[350px] w-full mt-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={sentimentData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                        <AreaChart data={sentimentData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="colorPositive" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.1} />
+                                    <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                                </linearGradient>
+                                <linearGradient id="colorNeutral" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#94A3B8" stopOpacity={0.1} />
+                                    <stop offset="95%" stopColor="#94A3B8" stopOpacity={0} />
+                                </linearGradient>
+                                <linearGradient id="colorNegative" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.1} />
+                                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis
                                 dataKey="month"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#94A3B8', fontSize: 12 }}
+                                tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
                                 dy={10}
                             />
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#94A3B8', fontSize: 12 }}
+                                tick={{ fill: '#64748b', fontSize: 12 }}
+                                unit="%"
                             />
                             <Tooltip
-                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                contentStyle={{
+                                    borderRadius: '16px',
+                                    border: '1px solid #f1f5f9',
+                                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                                    padding: '12px'
+                                }}
+                                cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
                             />
-                            <Line
+                            <Legend
+                                verticalAlign="top"
+                                align="right"
+                                height={36}
+                                iconType="circle"
+                                formatter={(value) => <span className="text-xs font-semibold text-gray-600 capitalize">{value}</span>}
+                            />
+                            <Area
                                 type="monotone"
                                 dataKey="positive"
                                 stroke="#10B981"
-                                strokeWidth={2}
-                                dot={{ fill: '#10B981', r: 4, strokeWidth: 2, stroke: '#fff' }}
-                                activeDot={{ r: 6 }}
+                                strokeWidth={3}
+                                fillOpacity={1}
+                                fill="url(#colorPositive)"
+                                animationDuration={1500}
                             />
-                            <Line
+                            <Area
                                 type="monotone"
                                 dataKey="neutral"
                                 stroke="#94A3B8"
-                                strokeWidth={2}
-                                dot={{ fill: '#94A3B8', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                                strokeWidth={3}
+                                fillOpacity={1}
+                                fill="url(#colorNeutral)"
+                                animationDuration={1500}
                             />
-                            <Line
+                            <Area
                                 type="monotone"
                                 dataKey="negative"
                                 stroke="#EF4444"
-                                strokeWidth={2}
-                                dot={{ fill: '#EF4444', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                                strokeWidth={3}
+                                fillOpacity={1}
+                                fill="url(#colorNegative)"
+                                animationDuration={1500}
                             />
-                        </LineChart>
+                        </AreaChart>
                     </ResponsiveContainer>
                 </div>
             </div>

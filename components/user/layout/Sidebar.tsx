@@ -68,7 +68,9 @@ export default function Sidebar() {
                     "flex items-center transition-all duration-300",
                     isSmallScreen && !isExpanded ? "w-0 opacity-0" : "w-auto opacity-100"
                 )}>
-                    <Image src="/logo.svg" alt="Logo" width={150} height={50} priority />
+                    <Link href="/dashboard">
+                        <Image src="/logo.svg" alt="Logo" width={150} height={50} priority />
+                    </Link>
                 </div>
 
                 {isSmallScreen && (
@@ -90,7 +92,9 @@ export default function Sidebar() {
             {/* Collapsed Logo (only when small screen and not expanded) */}
             {isSmallScreen && !isExpanded && (
                 <div className="absolute top-5 left-4 z-10 pointer-events-none transition-all duration-300">
-                    <Image src="/short-logo.svg" alt="Logo" width={40} height={40} priority />
+                    <Link href="/dashboard">
+                        <Image src="/short-logo.svg" alt="Logo" width={40} height={40} priority />
+                    </Link>
                 </div>
             )}
 
