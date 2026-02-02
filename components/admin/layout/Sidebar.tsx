@@ -53,17 +53,19 @@ export default function Sidebar() {
             )}
         >
             {/* Logo Section */}
-            <div className="flex h-20 items-center px-4 overflow-hidden">
-                <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20 flex-shrink-0">
-                    <BarChart3 className="size-6 text-white" />
+            <Link href="/admin/dashboard">
+                <div className="flex h-20 items-center px-4 overflow-hidden">
+                    <div className="flex aspect-square size-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-500/20 flex-shrink-0">
+                        <BarChart3 className="size-6 text-white" />
+                    </div>
+                    <span className={cn(
+                        "ml-2 text-xl font-bold tracking-tight transition-all duration-300 whitespace-nowrap",
+                        isSmallScreen ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+                    )}>
+                        ReviewIQ
+                    </span>
                 </div>
-                <span className={cn(
-                    "ml-4 text-xl font-bold tracking-tight transition-all duration-300 whitespace-nowrap",
-                    isSmallScreen ? "opacity-0 group-hover:opacity-100" : "opacity-100"
-                )}>
-                    ReviewIQ
-                </span>
-            </div>
+            </Link>
 
             {/* Divider */}
             <div className="mx-4 mb-4 h-px bg-[#1E293B]" />
@@ -93,12 +95,12 @@ export default function Sidebar() {
                                 {item.label}
                             </span>
 
-                            {isActive && (
+                            {/* {isActive && (
                                 <div className={cn(
                                     "absolute right-3 size-1.5 rounded-full bg-white transition-opacity duration-300",
                                     isSmallScreen ? "opacity-0 group-hover:opacity-100" : "opacity-100"
                                 )} />
-                            )}
+                            )} */}
                         </Link>
                     );
                 })}

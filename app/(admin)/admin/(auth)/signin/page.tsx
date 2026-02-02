@@ -1,10 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import AuthLayout from "@/components/admin/auth/AuthLayout";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 const SignInPage = () => {
+    const [showPassword, setShowPassword] = useState(false);
     return (
         <AuthLayout title="Admin Portal" subtitle="ReviewIQ Management System">
             <form className="space-y-6">
@@ -20,7 +22,7 @@ const SignInPage = () => {
                             </svg>
                         </div>
                         <input
-                            className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
+                            className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 !text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
                             id="email"
                             type="email"
                             placeholder="admin@reviewiq.com"
@@ -40,11 +42,22 @@ const SignInPage = () => {
                             </svg>
                         </div>
                         <input
-                            className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
+                            className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-12 !text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
                             id="password"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-blue-300/50 hover:text-blue-400 transition-colors cursor-pointer"
+                        >
+                            {showPassword ? (
+                                <EyeOff size={20} />
+                            ) : (
+                                <Eye size={20} />
+                            )}
+                        </button>
                     </div>
                     <div className="flex justify-end mt-2">
                         <Link
@@ -56,15 +69,17 @@ const SignInPage = () => {
                     </div>
                 </div>
 
-                <button
-                    className="w-full bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 group"
-                    type="submit"
-                >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" />
-                    </svg>
-                    Sign In to Admin Panel
-                </button>
+                <Link href="/admin/dashboard">
+                    <button
+                        className="w-full bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 group"
+                        type="submit"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" />
+                        </svg>
+                        Sign In
+                    </button>
+                </Link>
             </form>
         </AuthLayout>
     );

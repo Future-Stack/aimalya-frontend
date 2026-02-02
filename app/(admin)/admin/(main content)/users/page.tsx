@@ -299,7 +299,7 @@ export default function UserManagement() {
             className="flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E2E8F0] bg-white px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer shadow-sm md:w-auto min-w-[140px]"
           >
             <span className="flex items-center gap-2">
-              <span className="size-2 rounded-full bg-blue-500" />
+              {/* <span className="size-2 rounded-full bg-blue-500" /> */}
               {statusFilter}
             </span>
             <ChevronDown
@@ -609,7 +609,7 @@ export default function UserManagement() {
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="flex items-center justify-center size-9 rounded-xl border border-[#E2E8F0] bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 transition-all cursor-pointer shadow-sm disabled:cursor-not-allowed"
+              className="flex items-center justify-center size-9 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 transition-all cursor-pointer shadow-sm disabled:cursor-not-allowed"
             >
               <ChevronLeft className="size-5" />
             </button>
@@ -634,7 +634,7 @@ export default function UserManagement() {
             <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="flex items-center justify-center size-9 rounded-xl border border-[#E2E8F0] bg-white text-gray-400 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 transition-all cursor-pointer shadow-sm disabled:cursor-not-allowed"
+              className="flex items-center justify-center size-9 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 transition-all cursor-pointer shadow-sm disabled:cursor-not-allowed"
             >
               <ChevronRight className="size-5" />
             </button>

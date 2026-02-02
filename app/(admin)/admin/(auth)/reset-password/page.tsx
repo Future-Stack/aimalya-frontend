@@ -1,9 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import AuthLayout from "@/components/admin/auth/AuthLayout";
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 const ResetPasswordPage = () => {
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     return (
         <AuthLayout
             title="Reset Password"
@@ -30,11 +34,22 @@ const ResetPasswordPage = () => {
                             </svg>
                         </div>
                         <input
-                            className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
+                            className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-12 !text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
                             id="new-password"
-                            type="password"
+                            type={showNewPassword ? "text" : "password"}
                             placeholder="admin123"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-blue-300/50 hover:text-blue-400 transition-colors cursor-pointer"
+                        >
+                            {showNewPassword ? (
+                                <EyeOff size={20} />
+                            ) : (
+                                <Eye size={20} />
+                            )}
+                        </button>
                     </div>
                 </div>
 
@@ -50,20 +65,33 @@ const ResetPasswordPage = () => {
                             </svg>
                         </div>
                         <input
-                            className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
+                            className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-12 !text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
                             id="confirm-password"
-                            type="password"
+                            type={showConfirmPassword ? "text" : "password"}
                             placeholder="admin123"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-blue-300/50 hover:text-blue-400 transition-colors cursor-pointer"
+                        >
+                            {showConfirmPassword ? (
+                                <EyeOff size={20} />
+                            ) : (
+                                <Eye size={20} />
+                            )}
+                        </button>
                     </div>
                 </div>
 
-                <button
-                    className="w-full bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 group"
-                    type="submit"
-                >
-                    Reset
-                </button>
+                <Link href="/admin/signin">
+                    <button
+                        className="w-full bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 group"
+                        type="submit"
+                    >
+                        Reset
+                    </button>
+                </Link>
             </form>
         </AuthLayout>
     );

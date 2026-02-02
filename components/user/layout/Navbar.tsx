@@ -37,7 +37,7 @@ export default function Navbar() {
                     <img
                         src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
                         alt="Profile"
-                        className="size-10 rounded-xl object-cover ring-2 ring-gray-100"
+                        className="size-10 rounded-full object-cover ring-2 ring-gray-100"
                     />
                 </div>
             </div>

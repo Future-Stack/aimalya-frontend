@@ -40,7 +40,7 @@ export default function BusinessManagement() {
     const [searchTerm, setSearchTerm] = useState("");
     const [cityFilter, setCityFilter] = useState("All location");
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 4;
+    const itemsPerPage = 8;
 
     const [selectedBusiness, setSelectedBusiness] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
