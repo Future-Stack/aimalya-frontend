@@ -25,7 +25,7 @@ const PricingSection = forwardRef<HTMLDivElement>((props, ref) => {
                             </li>
                         ))}
                     </ul>
-                    <button className="w-full py-3.5 px-6 rounded-xl border-2 border-zinc-200 text-[#111111] font-bold hover:bg-zinc-50 transition-all text-[14px]">
+                    <button className="w-full cursor-pointer py-3.5 px-6 rounded-xl border-2 border-zinc-200 text-[#111111] font-bold hover:bg-zinc-50 transition-all text-[14px]">
                         Get Started
                     </button>
                 </div>
@@ -53,7 +53,7 @@ const PricingSection = forwardRef<HTMLDivElement>((props, ref) => {
                             </li>
                         ))}
                     </ul>
-                    <button className="w-full py-3.5 px-6 rounded-xl bg-white text-[#0066FF] font-extrabold hover:bg-blue-50 transition-all text-[14px]">
+                    <button className="w-full cursor-pointer py-3.5 px-6 rounded-xl bg-white text-[#0066FF] font-extrabold hover:bg-blue-50 transition-all text-[14px]">
                         Get Started
                     </button>
                 </div>
@@ -77,7 +77,7 @@ const PricingSection = forwardRef<HTMLDivElement>((props, ref) => {
                             </li>
                         ))}
                     </ul>
-                    <button className="w-full py-3.5 px-6 rounded-xl border-2 border-zinc-200 text-[#111111] font-bold hover:bg-zinc-50 transition-all text-[14px]">
+                    <button className="w-full cursor-pointer py-3.5 px-6 rounded-xl border-2 border-zinc-200 text-[#111111] font-bold hover:bg-zinc-50 transition-all text-[14px]">
                         Contact Sales
                     </button>
                 </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+
 import { forwardRef } from "react";
 
 const HeroSection = forwardRef<HTMLDivElement>((props, ref) => {
@@ -30,12 +31,26 @@ const HeroSection = forwardRef<HTMLDivElement>((props, ref) => {
                             AI-powered insights from your Google reviews. Understand your customers, outperform competitors, and make data-driven improvements.
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            <button className="bg-[#0066FF] text-white px-8 py-3.5 rounded-lg font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 text-[15px]">
+                            <a
+                                href="#pricing"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                className="bg-[#0066FF] text-white px-8 py-3.5 rounded-lg font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 text-[15px] cursor-pointer"
+                            >
                                 Start Free Trial
-                            </button>
-                            <button className="bg-white text-zinc-700 border-2 border-zinc-200 px-8 py-3.5 rounded-lg font-bold hover:bg-zinc-50 transition-all text-[15px]">
+                            </a>
+                            <a
+                                href="#contact"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                className="bg-white text-zinc-700 border-2 border-zinc-200 px-8 py-3.5 rounded-lg font-bold hover:bg-zinc-50 transition-all text-[15px] cursor-pointer"
+                            >
                                 Request Demo
-                            </button>
+                            </a>
                         </div>
                     </div>
 

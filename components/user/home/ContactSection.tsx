@@ -86,7 +86,7 @@ export default function ContactSection() {
 
                         <button
                             type="submit"
-                            className="w-full bg-[#0066FF] text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-blue-300 transition-all flex items-center justify-center gap-2"
+                            className="w-full cursor-pointer bg-[#0066FF] text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-blue-300 transition-all flex items-center justify-center gap-2"
                         >
                             Send Message
                             <Send size={18} />
