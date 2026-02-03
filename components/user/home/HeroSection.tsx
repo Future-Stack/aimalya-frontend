@@ -9,7 +9,7 @@ const HeroSection = forwardRef<HTMLDivElement>((props, ref) => {
             {/* Full Width Background Image */}
             <div className="absolute inset-0 w-full h-full">
                 <Image
-                    src="/hero-bg.png"
+                    src="/landing_img.svg"
                     alt="Hero Background"
                     fill
                     className="object-cover"

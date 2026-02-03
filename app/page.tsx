@@ -7,6 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import LandingNavbar from "@/components/user/home/LandingNavbar";
 import HeroSection from "@/components/user/home/HeroSection";
 import AboutSection from "@/components/user/home/AboutSection";
+import EverythingSection from "@/components/user/home/EverythingSection";
 import TestimonialsSection from "@/components/user/home/TestimonialsSection";
 import PricingSection from "@/components/user/home/PricingSection";
 import ContactSection from "@/components/user/home/ContactSection";
@@ -19,106 +20,120 @@ export default function Home() {
   const sectionRefs = {
     hero: useRef<HTMLDivElement>(null),
     about: useRef<HTMLDivElement>(null),
+    everything: useRef<HTMLDivElement>(null),
     testimonials: useRef<HTMLDivElement>(null),
     pricing: useRef<HTMLDivElement>(null),
     contact: useRef<HTMLDivElement>(null),
   };
 
-  // Note: Animation logic is kept commented out as per original file state, 
-  // but refs are hooked up if you wish to re-enable it.
+  useEffect(() => {
+    // Helper for robust batch animations
+    const animateBatch = (selector: string | NodeListOf<Element> | HTMLCollection | Element[], vars: gsap.TweenVars) => {
+      const items = typeof selector === "string" ? document.querySelectorAll(selector) : selector;
+      if (items.length === 0) return;
 
-  // useEffect(() => {
-  //   const ctx = gsap.context(() => {
-  //     // Hero Entrance
-  //     const heroTl = gsap.timeline();
-  //     heroTl.from(".hero-text", {
-  //       x: -100,
-  //       opacity: 0,
-  //       duration: 1,
-  //       ease: "power4.out",
-  //     })
-  //       .from(".hero-cards", {
-  //         x: 100,
-  //         opacity: 0,
-  //         duration: 1,
-  //         ease: "power4.out",
-  //       }, "-=0.8");
-  //
-  //     // Section to Section Scroll Transitions
-  //     const sections = Object.values(sectionRefs);
-  //     sections.forEach((section, i) => {
-  //       if (section.current) {
-  //         // Reveal children on scroll
-  //         gsap.from(section.current.querySelectorAll(".reveal-up"), {
-  //           scrollTrigger: {
-  //             trigger: section.current,
-  //             start: "top 80%",
-  //             toggleActions: "play none none none",
-  //           },
-  //           y: 60,
-  //           opacity: 0,
-  //           duration: 1,
-  //           stagger: 0.15,
-  //           ease: "power3.out",
-  //         });
-  //
-  //         // Section transition (slight scale or background shift)
-  //         if (i > 0) {
-  //           gsap.from(section.current, {
-  //             scrollTrigger: {
-  //               trigger: section.current,
-  //               start: "top bottom",
-  //               end: "top top",
-  //               scrub: 1,
-  //             },
-  //             backgroundColor: i % 2 === 0 ? "#f8fafc" : "#ffffff",
-  //             ease: "none",
-  //           });
-  //         }
-  //       }
-  //     });
-  //
-  //     // Special animation for dashboard cards in hero
-  //     gsap.to(".floating-card", {
-  //       y: -15,
-  //       duration: 2,
-  //       repeat: -1,
-  //       yoyo: true,
-  //       ease: "sine.inOut",
-  //       stagger: 0.3
-  //     });
-  //   }, containerRef);
-  //
-  //   return () => ctx.revert();
-  // }, []);
+      // Set initial state explicitly
+      gsap.set(items, { opacity: 0, y: 50, ...vars.from });
+
+      ScrollTrigger.batch(items, {
+        start: "top 85%",
+        onEnter: (batch) => {
+          gsap.to(batch, {
+            opacity: 1,
+            y: 0,
+            x: 0,
+            scale: 1,
+            rotationX: 0,
+            stagger: 0.1,
+            duration: 0.8,
+            ease: "power3.out",
+            overwrite: true, // IMPORTANT: Prevent conflicts
+          });
+        },
+        onLeave: (batch) => {
+          // Optional: Fade out if scrolling WAY past? Usually not needed.
+        },
+        onEnterBack: (batch) => {
+          gsap.to(batch, {
+            opacity: 1,
+            y: 0,
+            x: 0,
+            scale: 1,
+            rotationX: 0,
+            stagger: 0.1,
+            duration: 0.8,
+            ease: "power3.out",
+            overwrite: true
+          });
+        },
+        onLeaveBack: (batch) => {
+          // The "Reverse Animation" the user wants when moving footer -> nav
+          gsap.to(batch, {
+            opacity: 0,
+            y: 50, // Move back down
+            ...vars.from, // Reset other props (x, scale)
+            stagger: 0.05,
+            duration: 0.6,
+            ease: "power2.in",
+            overwrite: true
+          });
+        }
+      });
+    };
+
+    const ctx = gsap.context(() => {
+      // 1. Hero (Keep simple)
+      gsap.fromTo(".hero-text > *",
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: "power3.out", delay: 0.1 }
+      );
+
+      // 2. About Cards
+      animateBatch(".gsap-about-card", {
+        from: { y: 30 } // Clean slide up
+      });
+
+      // 3. Everything Section - 3D Effect
+      animateBatch(".gsap-everything-item", {
+        from: { y: 40, scale: 0.9 }
+      });
+
+      // 4. Testimonials
+      animateBatch(".gsap-testimonial-card", {
+        from: { y: 60, scale: 0.9 }
+      });
+
+      // 5. Pricing Cards
+      animateBatch(".gsap-pricing-card", {
+        from: { y: 60, scale: 0.95 }
+      });
+
+      // 6. Contact Section
+      if (sectionRefs.contact.current) {
+        // Batch the children
+        animateBatch(sectionRefs.contact.current.children, {
+          from: { y: 30 }
+        });
+      }
+
+    }); // End context
+
+    return () => ctx.revert();
+  }, []);
 
   return (
     <div ref={containerRef} className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-blue-100 selection:text-blue-900 overflow-x-hidden">
       <LandingNavbar />
-
       <main>
         <HeroSection ref={sectionRefs.hero} />
         <AboutSection ref={sectionRefs.about} />
+        <EverythingSection ref={sectionRefs.everything} />
         <TestimonialsSection ref={sectionRefs.testimonials} />
         <PricingSection ref={sectionRefs.pricing} />
-
-        {/* Contact Section - Note: ContactSection already has id="contact" but not ref. 
-            If you need ref, ContactSection needs forwardRef like others. 
-            For now, wrapping it to maintain structure or updating ContactSection.
-            Since ContactSection was just made by me without forwardRef, I will wrap it 
-            or assume ref isn't critical since GSAP is off. 
-            However, for consistency with other sections, let's keep the section wrapper 
-            OR update ContactSection. 
-            
-            Actually, the previous implementation of ContactSection didn't have the <section> wrapper inside it,
-            it was in page.tsx.
-            Wait, let me check ContactSection.tsx again.
-        */}
         <section id="contact" ref={sectionRefs.contact} className="py-28 bg-white">
           <ContactSection />
         </section>
       </main>
-
       <LandingFooter />
     </div>
   );

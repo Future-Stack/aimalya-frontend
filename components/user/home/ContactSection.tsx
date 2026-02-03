@@ -4,7 +4,7 @@ import { Mail, Phone, MapPin, Send } from "lucide-react";
 
 export default function ContactSection() {
     return (
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-6">
             <div className="text-center mb-16 reveal-up">
                 <h2 className="text-[44px] font-extrabold text-[#111111] mb-6">
                     Get In Touch
@@ -14,7 +14,7 @@ export default function ContactSection() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 {/* Left Column: Contact Info Cards */}
                 <div className="space-y-6">
                     {/* Email Card */}
@@ -46,7 +46,7 @@ export default function ContactSection() {
                 </div>
 
                 {/* Right Column: Contact Form */}
-                <div className="bg-white p-8 lg:p-10 rounded-[30px] border border-zinc-200 shadow-sm reveal-up">
+                <div className="bg-white p-8 lg:p-10 rounded-2xl border border-zinc-200 reveal-up">
                     <form className="space-y-6">
                         <div>
                             <label htmlFor="name" className="block text-[15px] font-bold text-zinc-700 mb-2">

@@ -12,7 +12,7 @@ const PricingSection = forwardRef<HTMLDivElement>((props, ref) => {
 
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                 {/* Starter */}
-                <div className="bg-white p-10 rounded-[30px] border border-zinc-200 shadow-sm hover:shadow-lg transition-all reveal-up">
+                <div className="gsap-pricing-card bg-white p-10 rounded-[30px] border border-zinc-200 shadow-sm hover:shadow-lg transition-all reveal-up">
                     <h3 className="text-[20px] font-extrabold mb-2">Starter</h3>
                     <div className="flex items-baseline gap-1 mb-8">
                         <span className="text-[48px] font-extrabold">$49</span>
@@ -31,7 +31,7 @@ const PricingSection = forwardRef<HTMLDivElement>((props, ref) => {
                 </div>
 
                 {/* Professional - Featured */}
-                <div className="bg-[#0066FF] p-10 rounded-[30px] shadow-2xl shadow-blue-200 lg:scale-105 z-10 relative overflow-hidden reveal-up">
+                <div className="gsap-pricing-card bg-[#0066FF] p-10 rounded-[30px] shadow-2xl shadow-blue-200 lg:scale-105 z-10 relative overflow-hidden reveal-up">
                     <div className="absolute top-4 left-0 w-full text-center">
                         <span className="text-[10px] text-white/80 font-bold uppercase tracking-[2px]">Most Popular</span>
                     </div>
@@ -59,7 +59,7 @@ const PricingSection = forwardRef<HTMLDivElement>((props, ref) => {
                 </div>
 
                 {/* Enterprise */}
-                <div className="bg-white p-10 rounded-[30px] border border-zinc-200 shadow-sm hover:shadow-lg transition-all reveal-up">
+                <div className="gsap-pricing-card bg-white p-10 rounded-[30px] border border-zinc-200 shadow-sm hover:shadow-lg transition-all reveal-up">
                     <h3 className="text-[20px] font-extrabold mb-2">Enterprise</h3>
                     <div className="flex items-baseline gap-1 mb-8">
                         <span className="text-[48px] font-extrabold">Custom</span>

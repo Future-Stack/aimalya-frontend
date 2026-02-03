@@ -3,18 +3,45 @@
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function LandingNavbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
     const [language, setLanguage] = useState<'en' | 'ar'>('en');
 
+    const [activeSection, setActiveSection] = useState('home');
+
+    // Scrollspy effect
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        setActiveSection(entry.target.id);
+                    }
+                });
+            },
+            {
+                rootMargin: '-50% 0px -50% 0px' // Check center of viewport
+            }
+        );
+
+        const sections = ['home', 'about', 'testimonials', 'pricing', 'contact'];
+        sections.forEach((id) => {
+            const element = document.getElementById(id);
+            if (element) observer.observe(element);
+        });
+
+        return () => observer.disconnect();
+    }, []);
+
     const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
         e.preventDefault();
         const element = document.getElementById(id);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth' });
+            setActiveSection(id);
         }
     };
 
@@ -26,6 +53,14 @@ export default function LandingNavbar() {
         // Here you would typically trigger your i18n change
     };
 
+    const navLinks = [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About' },
+        { id: 'testimonials', label: 'Testimonials' },
+        { id: 'pricing', label: 'Pricing' },
+        { id: 'contact', label: 'Contact' },
+    ];
+
     return (
         <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-zinc-100 px-6 py-3">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -34,11 +69,16 @@ export default function LandingNavbar() {
                 </div>
 
                 <div className="hidden lg:flex items-center gap-10 text-[15px] font-medium text-zinc-600">
-                    <a href="#" onClick={(e) => scrollToSection(e, 'home')} className="text-[#0066FF]">Home</a>
-                    <a href="#" onClick={(e) => scrollToSection(e, 'about')} className="hover:text-[#0066FF] transition-colors">About</a>
-                    <a href="#" onClick={(e) => scrollToSection(e, 'testimonials')} className="hover:text-[#0066FF] transition-colors">Testimonials</a>
-                    <a href="#" onClick={(e) => scrollToSection(e, 'pricing')} className="hover:text-[#0066FF] transition-colors">Pricing</a>
-                    <a href="#" onClick={(e) => scrollToSection(e, 'contact')} className="hover:text-[#0066FF] transition-colors">Contact</a>
+                    {navLinks.map((link) => (
+                        <a
+                            key={link.id}
+                            href={`#${link.id}`}
+                            onClick={(e) => scrollToSection(e, link.id)}
+                            className={`transition-colors ${activeSection === link.id ? 'text-[#0066FF] font-bold' : 'hover:text-[#0066FF]'}`}
+                        >
+                            {link.label}
+                        </a>
+                    ))}
                 </div>
 
                 <div className="flex items-center gap-6">

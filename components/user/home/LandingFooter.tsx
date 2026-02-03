@@ -15,7 +15,7 @@ export default function LandingFooter() {
                             </div>
                             <span className="text-[22px] font-bold tracking-tight">ReviewIQ</span>
                         </div>
-                        <p className="text-zinc-500 text-[15px] mb-10 leading-relaxed">
+                        <p className="text-gray-400 text-[15px] mb-10 leading-relaxed">
                             The complete platform for analyzing reviews and customer feedback. Simple, fast, and helpful.
                         </p>
                         <div className="flex gap-4">
@@ -28,28 +28,28 @@ export default function LandingFooter() {
                     <div className="grid grid-cols-2 gap-20">
                         <div>
                             <h5 className="font-extrabold text-[17px] mb-8">Quick Links</h5>
-                            <ul className="space-y-4 text-zinc-500 text-[15px]">
-                                <li><a href="#about" className="hover:text-white transition-colors">About Us</a></li>
-                                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                                <li><a href="#contact" className="hover:text-white transition-colors">Contact</a></li>
+                            <ul className="space-y-4 text-gray-400 text-[15px]">
+                                <li><a href="#about" className="text-gray-400 hover:text-blue-500 transition-colors">About Us</a></li>
+                                <li><a href="#pricing" className="text-gray-400 hover:text-blue-500 transition-colors">Pricing</a></li>
+                                <li><a href="#contact" className="text-gray-400 hover:text-blue-500 transition-colors">Contact</a></li>
                             </ul>
                         </div>
                         <div>
                             <h5 className="font-extrabold text-[17px] mb-8">Contact</h5>
-                            <ul className="space-y-4 text-zinc-500 text-[15px]">
-                                <li className="flex gap-3"><MapPin size={18} className="text-[#0066FF] flex-shrink-0" /> Dublin, Ireland</li>
-                                <li className="flex gap-3"><Phone size={18} className="text-[#0066FF] flex-shrink-0" /> +44 1234 567 890</li>
-                                <li className="flex gap-3"><Mail size={18} className="text-[#0066FF] flex-shrink-0" /> info@company.com</li>
+                            <ul className="space-y-4 text-gray-400 text-[15px]">
+                                <li className="flex gap-3 text-gray-400"><MapPin size={18} className=" flex-shrink-0" /> Dubai, UAE</li>
+                                <li className="flex gap-3 text-gray-400"><Phone size={18} className=" flex-shrink-0" /> +44 1234 567 890</li>
+                                <li className="flex gap-3 text-gray-400"><Mail size={18} className=" flex-shrink-0" /> info@company.com</li>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <div className="pt-10 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-6 text-zinc-600 text-[12px] font-bold">
+                <div className="pt-10 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-6 text-gray-400 text-[12px] font-bold">
                     <p>&copy; 2026 ReviewIQ. All rights reserved.</p>
                     <div className="flex gap-8">
-                        <a href="#" className="hover:text-zinc-400">Terms</a>
-                        <a href="#" className="hover:text-zinc-400">Privacy Policy</a>
+                        <a href="#" className="hover:text-gray-400">Terms</a>
+                        <a href="#" className="hover:text-gray-400">Privacy Policy</a>
                     </div>
                 </div>
             </div>
