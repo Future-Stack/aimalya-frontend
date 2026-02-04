@@ -301,10 +301,10 @@ export default function ReportsPage() {
                         </div>
                         <div className="h-8 w-[1px] bg-gray-200 mx-1 hidden sm:block" />
                         <div className="flex gap-2">
-                            <button className="p-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors" title="Download PDF">
+                            <button className="text-nowrap cursor-pointer p-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors" title="Download PDF">
                                 <Download className="size-4" />
                             </button>
-                            <button className="p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm" title="Download Excel">
+                            <button className="text-nowrap cursor-pointer p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm" title="Download Excel">
                                 <Download className="size-4" />
                             </button>
                         </div>
@@ -434,7 +434,9 @@ export default function ReportsPage() {
                         <div className="space-y-2">
                             {getActionPlan(activeIndex).map((step, i) => (
                                 <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                                    <div className="flex items-center justify-center size-5 rounded-full bg-blue-600 text-white text-xs font-bold flex-shrink-0" />
+                                    <div className="flex items-center justify-center size-5 rounded-full bg-blue-600 text-white text-xs flex-shrink-0">
+                                        {i + 1}
+                                    </div>
                                     <span className="text-sm text-gray-700 font-medium">{step}</span>
                                 </div>
                             ))}

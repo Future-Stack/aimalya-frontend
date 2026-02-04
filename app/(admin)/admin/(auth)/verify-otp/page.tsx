@@ -69,7 +69,7 @@ const VerifyOTPPage = () => {
 
                 <button
                     type="button"
-                    className="text-blue-200/60 text-sm hover:text-white transition-colors mb-8"
+                    className="text-blue-200/60 text-sm hover:text-white transition-colors mb-8 cursor-pointer"
                 >
                     Resend
                 </button>
@@ -77,12 +77,12 @@ const VerifyOTPPage = () => {
                 <div className="flex gap-4 w-full">
                     <Link
                         href="/admin/signin"
-                        className="flex-1 border border-white/20 text-white font-semibold py-4 rounded-xl hover:bg-white/5 transition-all text-center flex items-center justify-center"
+                        className="flex-1 border border-white/20 text-white font-semibold py-4 rounded-xl hover:bg-white/5 transition-all text-center flex items-center justify-center cursor-pointer"
                     >
                         Cancel
                     </Link>
                     <button
-                        className="flex-[1.5] bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center"
+                        className="flex-[1.5] bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center cursor-pointer"
                         type="submit"
                     >
                         Verify

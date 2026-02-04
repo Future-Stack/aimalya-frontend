@@ -68,7 +68,7 @@ export default function Sidebar() {
             </Link>
 
             {/* Divider */}
-            <div className="mx-4 mb-4 h-px bg-[#1E293B]" />
+            <div className="mx-4 mb-4 h-px bg-gray-500/50" />
 
             {/* Navigation Items */}
             <nav className="flex-1 min-h-0 px-3 space-y-1.5 overflow-x-hidden overflow-y-auto custom-scrollbar">
@@ -107,7 +107,7 @@ export default function Sidebar() {
             </nav>
 
             {/* Profile Section */}
-            <div className="mt-auto border-t border-[#1E293B] bg-[#111827]/50 p-4">
+            <div className="mt-auto border-t border-gray-500/50 bg-[#111827]/50 m-4 pt-4">
                 <Link href="/admin/signin" className="block">
                     <button className={cn(
                         "w-full flex items-center h-11 rounded-xl transition-all duration-200 cursor-pointer text-red-500 hover:bg-[#1E293B] hover:text-red-400",

@@ -129,8 +129,8 @@ export default function SubscriptionManagement() {
             </div>
 
             {/* Search and Filters */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="relative w-full max-w-xl">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-[#E2E8F0] p-3 rounded-xl bg-white">
+                <div className="relative w-full max-w-8xl">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <Search className="size-4 text-gray-400" />
                     </div>
@@ -141,7 +141,7 @@ export default function SubscriptionManagement() {
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="block w-full rounded-lg border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                        className="block w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                         placeholder="Search users by name or email..."
                     />
                 </div>
@@ -149,14 +149,14 @@ export default function SubscriptionManagement() {
                 <div className="relative">
                     <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex items-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                        className="flex items-center text-nowrap gap-2 rounded-lg border border-[#E2E8F0] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                         {statusFilter}
                         <ChevronDown className="size-4 text-gray-500" />
                     </button>
 
                     {isDropdownOpen && (
-                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-[#E2E8F0] bg-white p-1 shadow-lg">
+                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-lg">
                             {["All Status", "Active", "Trial", "Past due"].map((status) => (
                                 <button
                                     key={status}
@@ -165,7 +165,7 @@ export default function SubscriptionManagement() {
                                         setCurrentPage(1);
                                         setIsDropdownOpen(false);
                                     }}
-                                    className="w-full rounded-md px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                                    className="w-full text-nowrap rounded-md px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                                 >
                                     {status}
                                 </button>

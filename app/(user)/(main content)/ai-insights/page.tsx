@@ -79,11 +79,11 @@ export default function AIInsightsPage() {
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">AI Insights & Recommendations</h1>
-                <p className="text-gray-500 text-sm">Data-driven insights to improve your business</p>
+                <p className="text-gray-500 text-sm mt-1">Data-driven insights to improve your business</p>
             </div>
 
             {/* Overall Business Health Score */}
-            <div className="bg-blue-100/50 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-100">
+            <div className="bg-blue-100/50 rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-100">
                 <div className="flex-1 space-y-4">
                     <div className="flex items-start gap-4">
                         <div className="p-3">
@@ -98,7 +98,7 @@ export default function AIInsightsPage() {
                         <span className="text-6xl font-bold text-gray-900">87</span>
                         <span className="text-xl font-medium text-gray-400 mb-2">/100</span>
                     </div>
-                    <div className="flex items-center text-sm font-medium text-blue-600 bg-blue-100/50 w-fit px-3 py-1 rounded-full">
+                    <div className="flex items-center text-sm font-medium text-blue-600 w-fit rounded-full">
                         <TrendingUp className="size-4 mr-1.5" />
                         +5 vs last month
                     </div>
@@ -268,10 +268,10 @@ export default function AIInsightsPage() {
                                     </div>
                                 ))}
                             </div>
-                            <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]">
-                                Mark as Addressed
-                            </button>
                         </div>
+                        <button className="cursor-pointer px-6 py-2.5 bg-blue-600 mt-4 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]">
+                            Mark as Addressed
+                        </button>
                     </div>
                 ))}
             </div>

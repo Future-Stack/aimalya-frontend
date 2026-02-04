@@ -45,7 +45,7 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
             <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                     <h3 className="text-xl font-bold text-gray-900">Change Password</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
                         <X className="size-5 text-gray-500" />
                     </button>
                 </div>
@@ -61,7 +61,7 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                             <button
                                 type="button"
                                 onClick={() => setShowCurrent(!showCurrent)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
                             >
                                 {showCurrent ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
                             </button>
@@ -78,7 +78,7 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                             <button
                                 type="button"
                                 onClick={() => setShowNew(!showNew)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
                             >
                                 {showNew ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
                             </button>
@@ -95,7 +95,7 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                             <button
                                 type="button"
                                 onClick={() => setShowConfirm(!showConfirm)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
                             >
                                 {showConfirm ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
                             </button>
@@ -105,13 +105,13 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                 <div className="p-6 bg-gray-50 flex gap-3">
                     <button
                         onClick={onClose}
-                        className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={onClose}
-                        className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
                     >
                         Update Password
                     </button>
@@ -135,7 +135,7 @@ const DeleteAccountModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                         </div>
                         <h3 className="text-xl font-bold text-gray-900">Delete Account</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
                         <X className="size-5 text-gray-500" />
                     </button>
                 </div>
@@ -157,14 +157,14 @@ const DeleteAccountModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 <div className="p-6 bg-red-50 flex gap-3">
                     <button
                         onClick={onClose}
-                        className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         disabled={confirmText !== "DELETE"}
                         onClick={onClose}
-                        className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Delete Permanently
                     </button>
@@ -192,7 +192,7 @@ const ConfirmSaveModal = ({ isOpen, onClose, onConfirm }: { isOpen: boolean, onC
                 <div className="p-6 bg-gray-50 flex gap-3">
                     <button
                         onClick={onClose}
-                        className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
                     >
                         Cancel
                     </button>
@@ -201,7 +201,7 @@ const ConfirmSaveModal = ({ isOpen, onClose, onConfirm }: { isOpen: boolean, onC
                             onConfirm();
                             onClose();
                         }}
-                        className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
                     >
                         Save
                     </button>
@@ -259,7 +259,7 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
                             />
                             <button
                                 onClick={onOpenPassword}
-                                className="px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors whitespace-nowrap"
+                                className="cursor-pointer px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors whitespace-nowrap"
                             >
                                 Change Password
                             </button>
@@ -272,7 +272,7 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
                 <h3 className="text-sm font-bold text-red-500 mb-4">Danger Zone</h3>
                 <button
                     onClick={onOpenDelete}
-                    className="px-5 py-2.5 text-sm font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors shadow-sm"
+                    className="cursor-pointer px-5 py-2.5 text-sm font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors shadow-sm"
                 >
                     Delete Account
                 </button>
@@ -281,7 +281,7 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
             <div className="flex justify-end pt-4">
                 <button
                     onClick={() => onOpenSave(handleSave)}
-                    className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
+                    className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
                 >
                     <Save className="size-4" />
                     Save Changes
@@ -363,7 +363,7 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
                             <label className="text-sm font-medium text-gray-700">Locations</label>
                             <button
                                 onClick={handleAddLocation}
-                                className="flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
+                                className="cursor-pointer flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
                             >
                                 <Plus className="size-3.5" />
                                 Add new
@@ -385,7 +385,7 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
                                     {locations.length > 1 && (
                                         <button
                                             onClick={() => handleRemoveLocation(index)}
-                                            className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
+                                            className="cursor-pointer p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
                                         >
                                             <Trash2 className="size-5" />
                                         </button>
@@ -422,7 +422,7 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
             <div className="flex justify-end pt-4">
                 <button
                     onClick={() => onOpenSave(handleSave)}
-                    className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
+                    className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
                 >
                     <Save className="size-4" />
                     Save Changes
@@ -459,13 +459,13 @@ const IntegrationsSettings = () => {
                         </div> */}
                     </div>
                 </div>
-                <button className="px-4 py-2 text-xs font-medium text-red-600 bg-white border border-gray-200 rounded-lg hover:bg-red-50 transition-colors">
+                <button className="cursor-pointer px-4 py-2 text-xs font-medium text-red-600 bg-white border border-gray-200 rounded-lg hover:bg-red-50 transition-colors">
                     Disconnect
                 </button>
             </div>
 
             {/* Yelp */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* <div className="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                     <div className="size-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 text-gray-400">
                         <Shield className="size-5" />
@@ -479,10 +479,10 @@ const IntegrationsSettings = () => {
                 <button disabled className="px-4 py-2 text-xs font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
                     Connect
                 </button>
-            </div>
+            </div> */}
 
             {/* TripAdvisor */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* <div className="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                     <div className="size-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 text-gray-400">
                         <Shield className="size-5" />
@@ -496,7 +496,7 @@ const IntegrationsSettings = () => {
                 <button disabled className="px-4 py-2 text-xs font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed">
                     Connect
                 </button>
-            </div>
+            </div> */}
         </div>
     );
 };
@@ -608,7 +608,7 @@ const NotificationSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">)
             <div className="flex justify-end pt-4">
                 <button
                     onClick={() => onOpenSave(handleSave)}
-                    className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
+                    className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
                 >
                     <Save className="size-4" />
                     Save Preferences
@@ -635,10 +635,10 @@ const BillingSettings = () => {
                             </div>
                             <p className="text-sm text-gray-500 mt-1">Up to 5 locations, unlimited reviews</p>
                             <div className="flex items-center gap-3 mt-4">
-                                <button className="px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                                <button className="cursor-pointer px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                                     Upgrade Plan
                                 </button>
-                                <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <button className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                                     Change Plan
                                 </button>
                             </div>
@@ -688,7 +688,7 @@ const BillingSettings = () => {
                                 <p className="text-xs text-gray-500">Expires 12/2026</p>
                             </div>
                         </div>
-                        <button className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+                        <button className="cursor-pointer px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
                             Update
                         </button>
                     </div>
@@ -710,7 +710,7 @@ const BillingSettings = () => {
                                         {invoice.status}
                                     </span>
                                 </div>
-                                <button className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                                <button className="cursor-pointer text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
                                     Download
                                 </button>
                             </div>
@@ -795,7 +795,7 @@ export default function SettingsPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as Tab)}
                                     className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 mb-3",
+                                        "cursor-pointer w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 mb-3",
                                         isActive
                                             ? "bg-blue-600 text-white shadow-md shadow-blue-600/20 translate-x-1"
                                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"

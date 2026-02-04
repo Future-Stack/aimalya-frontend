@@ -34,7 +34,7 @@ export default function SubscriptionDetailsModal({ isOpen, onClose, subscription
                     </div>
                     <button
                         onClick={onClose}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors"
+                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                         <X className="size-6" />
                     </button>

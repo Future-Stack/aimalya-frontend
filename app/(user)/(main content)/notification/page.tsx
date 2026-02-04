@@ -187,14 +187,14 @@ export default function NotificationPage() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={markAllRead}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="cursor-pointer flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                         <CheckCheck className="size-4" />
                         Mark All Read
                     </button>
                     <button
                         onClick={clearAll}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="cursor-pointer flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                         <X className="size-4" />
                         Clear All
@@ -209,7 +209,7 @@ export default function NotificationPage() {
                         key={cat}
                         onClick={() => setActiveTab(cat)}
                         className={cn(
-                            "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                            "px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                             activeTab === cat
                                 ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
                                 : "bg-white text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200"
@@ -260,7 +260,7 @@ export default function NotificationPage() {
                                     <div className="flex items-center gap-3 shrink-0 self-end md:self-center mt-4 md:mt-0 ml-auto md:ml-0">
                                         {/* "View Details" or "View Report" button */}
                                         <button className={cn(
-                                            "px-4 py-1.5 text-xs font-semibold text-white rounded-lg transition-colors shadow-sm",
+                                            "px-4 py-1.5 text-xs font-semibold text-white rounded-lg transition-colors shadow-sm cursor-pointer",
                                             style.btn
                                         )}>
                                             {notification.type === 'report' ? 'View Report' : 'View Details'}
@@ -269,7 +269,7 @@ export default function NotificationPage() {
                                         {notification.unread && (
                                             <button
                                                 onClick={() => markAsRead(notification.id)}
-                                                className="hidden sm:block px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                                className="cursor-pointer hidden sm:block px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                                             >
                                                 Mark as Read
                                             </button>
@@ -280,7 +280,7 @@ export default function NotificationPage() {
                                                 e.stopPropagation();
                                                 removeNotification(notification.id);
                                             }}
-                                            className="text-gray-400 hover:text-gray-600 p-1"
+                                            className="cursor-pointer text-gray-400 hover:text-gray-600 p-1"
                                         >
                                             <X className="size-4" />
                                         </button>

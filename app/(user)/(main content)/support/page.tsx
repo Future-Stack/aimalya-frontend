@@ -90,7 +90,7 @@ function StatusDropdown({
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between px-3 py-2.5 text-sm bg-white border border-gray-100 rounded-lg min-w-[140px] hover:bg-gray-50 transition-all text-gray-500"
+                className="cursor-pointer flex items-center justify-between px-3 py-2.5 text-sm bg-white border border-gray-100 rounded-lg min-w-[140px] hover:bg-gray-50 transition-all text-gray-500"
             >
                 <span>{value || "Status"}</span>
                 <ChevronDown className={cn("size-4 transition-transform", isOpen && "rotate-180")} />
@@ -106,7 +106,7 @@ function StatusDropdown({
                                 setIsOpen(false);
                             }}
                             className={cn(
-                                "w-full text-left px-4 py-2 text-sm transition-colors hover:bg-gray-50",
+                                "w-full text-left px-4 py-2 text-sm transition-colors hover:bg-gray-50 cursor-pointer",
                                 (value === option || (value === "" && option === "All")) ? "text-blue-600 font-medium" : "text-gray-700"
                             )}
                         >
@@ -156,7 +156,7 @@ export default function SupportPage() {
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                    className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                 >
                     <Plus className="size-4" />
                     New Ticket
@@ -252,7 +252,7 @@ export default function SupportPage() {
                             <button
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                 disabled={currentPage === 1}
-                                className="flex items-center px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="cursor-pointer flex items-center px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <ChevronLeft className="size-3 mr-1" />
                                 Previous
@@ -276,7 +276,7 @@ export default function SupportPage() {
                             <button
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                 disabled={currentPage === totalPages}
-                                className="flex items-center px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="cursor-pointer flex items-center px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Next
                                 <ChevronRight className="size-3 ml-1" />

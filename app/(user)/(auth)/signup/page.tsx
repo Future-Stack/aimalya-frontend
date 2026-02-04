@@ -32,88 +32,88 @@ export default function SignupPage() {
 
             {/* Brand Logo (Top Left) */}
             <div className="hidden md:flex absolute top-8 left-8 z-10 items-center gap-2">
-                <Image src="/logo.svg" alt="Logo" width={207} height={60} />
+                <Image src="/auth_icon.svg" alt="Logo" width={207} height={60} />
             </div>
 
             {/* Signup Card */}
-            <div className="relative z-10 w-[calc(100%-2rem)] max-w-[550px] bg-white/60 backdrop-blur-xl rounded-[30px] p-6 sm:p-10 md:p-12 shadow-xl border border-white/50 space-y-6 sm:space-y-8">
+            <div className="relative z-10 w-[calc(100%-2rem)] max-w-[550px] user-auth-bg rounded-3xl p-6 sm:p-10 md:p-12 border border-white/50 space-y-6 sm:space-y-8">
                 <div className="text-center space-y-2">
                     <h1 className="text-2xl sm:text-[32px] font-bold text-[#1A1A1A]">Create Account</h1>
-                    <p className="text-[#0066FF] font-medium text-sm sm:text-[15px]">Start analysing your reviews today</p>
+                    <p className="text-auth-subtitle-color font-medium text-sm sm:text-[15px]">Start analysing your reviews today</p>
                 </div>
 
                 <form className="space-y-4" onSubmit={handleSignup}>
                     {/* Full Name */}
                     <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#0066FF] transition-colors pl-1">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-auth-subtitle-color transition-colors pl-1">
                             <User size={20} />
                         </div>
                         <input
                             type="text"
                             placeholder="Full Name"
-                            className="w-full bg-white h-12 rounded-xl pl-12 pr-4 text-[15px] border border-transparent focus:border-[#0066FF] focus:ring-4 focus:ring-blue-50 outline-none transition-all placeholder:text-zinc-400 shadow-sm"
+                            className="w-full bg-white h-12 rounded-xl pl-12 pr-4 text-[15px] border border-transparent focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400 shadow-sm"
                         />
                     </div>
 
                     {/* Business Email */}
                     <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#0066FF] transition-colors pl-1">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-auth-subtitle-color transition-colors pl-1">
                             <Mail size={20} />
                         </div>
                         <input
                             type="email"
                             placeholder="Business Email"
-                            className="w-full bg-white h-12 rounded-xl pl-12 pr-4 text-[15px] border border-transparent focus:border-[#0066FF] focus:ring-4 focus:ring-blue-50 outline-none transition-all placeholder:text-zinc-400 shadow-sm"
+                            className="w-full bg-white h-12 rounded-xl pl-12 pr-4 text-[15px] border border-transparent focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400 shadow-sm"
                         />
                     </div>
 
                     {/* Business Name */}
                     <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#0066FF] transition-colors pl-1">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-auth-subtitle-color transition-colors pl-1">
                             <Briefcase size={20} />
                         </div>
                         <input
                             type="text"
                             placeholder="Business Name"
-                            className="w-full bg-white h-12 rounded-xl pl-12 pr-4 text-[15px] border border-transparent focus:border-[#0066FF] focus:ring-4 focus:ring-blue-50 outline-none transition-all placeholder:text-zinc-400 shadow-sm"
+                            className="w-full bg-white h-12 rounded-xl pl-12 pr-4 text-[15px] border border-transparent focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400 shadow-sm"
                         />
                     </div>
 
                     {/* Password */}
                     <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#0066FF] transition-colors pl-1">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-auth-subtitle-color transition-colors pl-1">
                             <Lock size={20} />
                         </div>
                         <input
                             type={showPassword ? "text" : "password"}
                             placeholder="Password"
-                            className="w-full bg-white h-12 rounded-xl pl-12 pr-12 text-[15px] border border-transparent focus:border-[#0066FF] focus:ring-4 focus:ring-blue-50 outline-none transition-all placeholder:text-zinc-400 shadow-sm"
+                            className="w-full bg-white h-12 rounded-xl pl-12 pr-12 text-[15px] border border-transparent focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400 shadow-sm"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
                         >
-                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            {showPassword ? <EyeOff size={20} className="text-cyan-300 cursor-pointer" /> : <Eye size={20} className="text-cyan-300 cursor-pointer" />}
                         </button>
                     </div>
 
                     {/* Confirm Password */}
                     <div className="relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#0066FF] transition-colors pl-1">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-auth-subtitle-color transition-colors pl-1">
                             <Lock size={20} />
                         </div>
                         <input
                             type={showConfirmPassword ? "text" : "password"}
                             placeholder="Confirm Password"
-                            className="w-full bg-white h-12 rounded-xl pl-12 pr-12 text-[15px] border border-transparent focus:border-[#0066FF] focus:ring-4 focus:ring-blue-50 outline-none transition-all placeholder:text-zinc-400 shadow-sm"
+                            className="w-full bg-white h-12 rounded-xl pl-12 pr-12 text-[15px] border border-transparent focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400 shadow-sm"
                         />
                         <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
                         >
-                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            {showConfirmPassword ? <EyeOff size={20} className="text-cyan-300 cursor-pointer" /> : <Eye size={20} className="text-cyan-300 cursor-pointer" />}
                         </button>
                     </div>
 
@@ -121,16 +121,17 @@ export default function SignupPage() {
                         <input
                             type="checkbox"
                             id="terms"
-                            className="w-4 h-4 rounded border-gray-300 text-[#0066FF] focus:ring-[#0066FF]"
+                            className="w-4 h-4 rounded cursor-pointer"
+                            style={{ accentColor: '#22D3EE' }}
                         />
                         <label htmlFor="terms" className="text-[14px] text-zinc-500 font-medium">
-                            I accept the <Link href="#" className="text-[#0066FF] font-bold hover:underline">Terms & Privacy Policy</Link>
+                            I accept the <Link href="#" className="text-auth-subtitle-color font-bold hover:underline">Terms & Privacy Policy</Link>
                         </label>
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full h-12 bg-[#0055D4] text-white rounded-xl font-bold text-[15px] hover:bg-[#0044AA] transition-all shadow-lg shadow-blue-200 mt-4"
+                        className="cursor-pointer w-full h-12 bg-auth-subtitle-color hover:bg-cyan-300 text-white rounded-xl font-bold text-[15px] transition-all shadow-lg shadow-blue-200 mt-4"
                     >
                         Create Account
                     </button>
@@ -138,7 +139,7 @@ export default function SignupPage() {
 
                 <p className="text-center text-[14px] text-zinc-500 font-medium">
                     Already have an account?{' '}
-                    <Link href="/login" className="text-[#0066FF] font-bold hover:underline">
+                    <Link href="/login" className="text-auth-subtitle-color font-bold hover:underline">
                         Sign In
                     </Link>
                 </p>

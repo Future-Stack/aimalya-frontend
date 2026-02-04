@@ -56,7 +56,7 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
                     </div>
                     <button
                         onClick={onClose}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors"
+                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                         <X className="size-6" />
                     </button>
@@ -69,7 +69,7 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
                             key={tab}
                             onClick={() => setActiveTab(tab.startsWith("Overview") ? "Overview" : tab.startsWith("Locations") ? "Locations" : "Analytics")}
                             className={cn(
-                                "pb-4 text-sm font-semibold transition-all relative",
+                                "pb-4 text-sm font-semibold transition-all relative cursor-pointer",
                                 (activeTab === "Overview" && tab.startsWith("Overview")) ||
                                     (activeTab === "Locations" && tab.startsWith("Locations")) ||
                                     (activeTab === "Analytics" && tab.startsWith("Analytics"))
@@ -182,7 +182,7 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
                                         </div>
                                         <div>
                                             <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Action</p>
-                                            <button className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                                            <button className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
                                                 View Details
                                                 <ChevronRight className="size-3.5" />
                                             </button>
@@ -271,12 +271,12 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
 
                 {/* Footer Actions */}
                 <div className="flex gap-4 p-6 border-t border-gray-100">
-                    <button className="rounded-lg border border-red-500 px-6 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors">
+                    <button className="rounded-lg border border-red-500 px-6 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer">
                         Suspend Account
                     </button>
                     <button
                         onClick={onClose}
-                        className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                        className="rounded-lg border border-gray-200 px-6 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                         Close
                     </button>

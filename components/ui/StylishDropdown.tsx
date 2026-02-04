@@ -23,6 +23,8 @@ interface StylishDropdownProps {
     icon?: React.ReactNode;
     className?: string;
     multiSelect?: boolean;
+    selectedColor?: string; // Color for selected text and checkbox
+    selectedBgColor?: string; // Background color for selected items
 }
 
 const StylishDropdown = ({
@@ -32,7 +34,9 @@ const StylishDropdown = ({
     placeholder = "Select option",
     icon,
     className,
-    multiSelect = false
+    multiSelect = false,
+    selectedColor = "#0066FF",
+    selectedBgColor = "rgb(239 246 255)"
 }: StylishDropdownProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -82,13 +86,13 @@ const StylishDropdown = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={cn(
-                    "w-full min-h-[48px] h-auto py-2 bg-blue-50/50 border border-transparent focus:bg-white focus:border-[#0066FF] rounded-xl px-4 flex items-center justify-between transition-all outline-none group",
-                    isOpen && "bg-white border-[#0066FF] shadow-sm"
-                )}
+                className="w-full h-auto py-3 bg-white border border-zinc-200 focus:bg-white rounded-xl px-4 flex items-center justify-between transition-all outline-none group"
+                style={{
+                    ...(isOpen && { backgroundColor: 'white', borderColor: selectedColor, boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' })
+                }}
             >
                 <div className="flex items-center gap-3 overflow-hidden">
-                    {icon && <div className="text-zinc-400 group-focus:text-[#0066FF] shrink-0">{icon}</div>}
+                    {icon && <div className="text-zinc-400 shrink-0" style={{ color: isOpen ? selectedColor : undefined }}>{icon}</div>}
                     <span className={cn(
                         "text-[14px] leading-tight text-left",
                         (Array.isArray(value) ? value.length > 0 : value) ? "text-[#1A1A1A] font-medium" : "text-zinc-400"
@@ -97,17 +101,18 @@ const StylishDropdown = ({
                     </span>
                 </div>
                 <ChevronDown
-                    className={cn(
-                        "text-zinc-400 transition-transform duration-200 shrink-0 ml-2",
-                        isOpen && "rotate-180 text-[#0066FF]"
-                    )}
+                    className="text-zinc-400 transition-transform duration-200 shrink-0 ml-2"
+                    style={{
+                        transform: isOpen ? 'rotate(180deg)' : undefined,
+                        color: isOpen ? selectedColor : undefined
+                    }}
                     size={18}
                 />
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-100 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="max-h-60 overflow-y-auto custom-scrollbar p-1">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="max-h-60 overflow-y-auto p-1.5">
                         {options.length > 0 ? (
                             options.map((option) => {
                                 const active = isSelected(option.value);
@@ -116,18 +121,34 @@ const StylishDropdown = ({
                                         key={option.value}
                                         type="button"
                                         onClick={() => handleSelect(option.value)}
+                                        onMouseEnter={(e) => {
+                                            if (!active) {
+                                                e.currentTarget.style.color = selectedColor;
+                                            }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!active) {
+                                                e.currentTarget.style.color = '';
+                                            }
+                                        }}
                                         className={cn(
-                                            "w-full px-4 py-2.5 rounded-lg flex items-center gap-3 transition-colors text-left",
+                                            "w-full px-4 py-2.5 my-1 rounded-lg flex items-center gap-3 transition-colors text-left",
                                             active
-                                                ? "bg-blue-50 text-[#0066FF] font-medium"
-                                                : "text-zinc-600 hover:bg-zinc-50 hover:text-[#0066FF]"
+                                                ? "font-medium"
+                                                : "text-zinc-600 hover:bg-zinc-50"
                                         )}
+                                        style={{
+                                            ...(active && { backgroundColor: selectedBgColor, color: selectedColor })
+                                        }}
                                     >
                                         {multiSelect && (
-                                            <div className={cn(
-                                                "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors",
-                                                active ? "bg-[#0066FF] border-[#0066FF]" : "border-zinc-300 bg-white"
-                                            )}>
+                                            <div
+                                                className="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors"
+                                                style={{
+                                                    backgroundColor: active ? selectedColor : 'white',
+                                                    borderColor: active ? selectedColor : 'rgb(212 212 212)'
+                                                }}
+                                            >
                                                 {active && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                                             </div>
                                         )}

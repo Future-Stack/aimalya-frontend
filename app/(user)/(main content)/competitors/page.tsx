@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Plus, Zap, AlertCircle, CheckCircle } from "lucide-react";
+import { Plus, Zap, AlertCircle, CheckCircle, Award, Target } from "lucide-react";
 import {
     BarChart,
     Bar,
@@ -43,7 +43,7 @@ const radarData = [
 ];
 
 const criteria = [
-    { label: "Service Quality", score: 4.5, competitorAvg: 4.3, leader: "Bean & Brew (4.7)" },
+    { label: "Service Quality", score: 4.5, competitorAvg: 4.7, leader: "Bean & Brew (4.7)" },
     { label: "Product Quality", score: 4.7, competitorAvg: 4.4, leader: "You" },
     { label: "Atmosphere", score: 4.3, competitorAvg: 4.5, leader: "Bean & Brew (4.8)" },
     { label: "Value for Money", score: 4.2, competitorAvg: 4.1, leader: "The Daily Grind (4.6)" },
@@ -114,7 +114,7 @@ export default function CompetitorsPage() {
                     <h1 className="text-2xl font-bold text-gray-900">Competitor Analysis</h1>
                     <p className="text-sm text-gray-500 mt-1">Benchmark your performance against competitors</p>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                <button className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                     <Plus className="size-4" />
                     Add Competitor
                 </button>
@@ -135,7 +135,14 @@ export default function CompetitorsPage() {
                                 <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full uppercase">Your Business</span>
                             </div>
                         )} */}
-                        <h3 className="font-bold text-gray-900 mb-4">{comp.name}</h3>
+                        <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-gray-900 mb-4">{comp.name}</h3>
+                            {comp.isBusiness && (
+                                <div className="mb-2">
+                                    <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-1.5 rounded-full uppercase">Your Business</span>
+                                </div>
+                            )}
+                        </div>
                         <div className="space-y-2">
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-500 flex items-center gap-1"><span className="text-amber-400">★</span> Rating</span>
@@ -154,7 +161,7 @@ export default function CompetitorsPage() {
                                 <span className="font-bold text-gray-900">{comp.response}</span>
                             </div>
                         </div>
-                        <button className="w-full mt-4 py-2 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <button className="cursor-pointer w-full mt-4 py-2 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                             Show on Google
                         </button>
                     </div>
@@ -249,7 +256,7 @@ export default function CompetitorsPage() {
                 {/* Your Competitive Advantages */}
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                     <div className="flex items-center gap-2 mb-6">
-                        <Zap className="size-5 text-green-500" />
+                        <Award className="size-5 text-green-500" />
                         <h3 className="font-bold text-gray-900">Your Competitive Advantages</h3>
                     </div>
                     <div className="space-y-4">
@@ -268,7 +275,7 @@ export default function CompetitorsPage() {
             <div className="bg-[#9333EA] p-6 md:p-8 rounded-3xl text-white">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-white/20 rounded-lg">
-                        <Zap className="size-5 text-white" />
+                        <Target className="size-5 text-white" />
                     </div>
                     <h3 className="text-xl font-bold">Strategic Recommendations</h3>
                 </div>

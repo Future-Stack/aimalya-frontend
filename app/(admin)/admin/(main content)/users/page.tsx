@@ -276,8 +276,8 @@ export default function UserManagement() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full max-w-md">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border border-[#E2E8F0] p-3 rounded-xl bg-white">
+        <div className="relative w-full max-w-8xl">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
             <Search className="size-4 text-gray-400" />
           </div>
@@ -327,7 +327,7 @@ export default function UserManagement() {
                         setIsDropdownOpen(false);
                       }}
                       className={cn(
-                        "w-full rounded-lg px-3 py-2 text-left text-sm font-medium transition-all cursor-pointer",
+                        "w-full rounded-lg px-3 py-2 gap-2 my-0.5 flex items-center text-left text-sm font-medium transition-all cursor-pointer",
                         statusFilter === status
                           ? "bg-blue-50 text-blue-600"
                           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",

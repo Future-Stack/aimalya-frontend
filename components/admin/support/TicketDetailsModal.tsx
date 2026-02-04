@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
+import StylishDropdown from "@/components/ui/StylishDropdown";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -28,7 +29,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 transition-opacity">
-            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col">
+            <div className="relative w-full max-w-lg overflow-visible rounded-2xl bg-white shadow-2xl flex flex-col">
                 {/* Header */}
                 <div className="flex items-start justify-between p-6 pb-4">
                     <div>
@@ -37,7 +38,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
                     </div>
                     <button
                         onClick={onClose}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors"
+                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                         <X className="size-6" />
                     </button>
@@ -85,20 +86,17 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
                     {/* Update Status */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-600">Update Status</label>
-                        <div className="relative">
-                            <select
-                                value={selectedStatus}
-                                onChange={(e) => setSelectedStatus(e.target.value)}
-                                className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-[#0F172A] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                            >
-                                <option value="Open">Open</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Resolved">Resolved</option>
-                            </select>
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
-                                <ChevronDown className="size-4 text-gray-400" />
-                            </div>
-                        </div>
+                        <StylishDropdown
+                            value={selectedStatus}
+                            onChange={(val) => setSelectedStatus(val as string)}
+                            options={[
+                                { label: "Open", value: "Open" },
+                                { label: "In Progress", value: "In Progress" },
+                                { label: "Resolved", value: "Resolved" }
+                            ]}
+                            selectedColor="#22D3EE"
+                            selectedBgColor="#ecf9fb"
+                        />
                     </div>
 
                     {/* Actions */}
@@ -108,13 +106,13 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
                                 // Logic to save status
                                 onClose();
                             }}
-                            className="flex-1 rounded-xl bg-[#0062C4] py-3 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-sm"
+                            className="flex-1 rounded-xl bg-cyan-600 py-3 text-sm font-bold text-white hover:bg-cyan-700 transition-colors shadow-sm cursor-pointer"
                         >
                             Save Changes
                         </button>
                         <button
                             onClick={onClose}
-                            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                             Cancel
                         </button>

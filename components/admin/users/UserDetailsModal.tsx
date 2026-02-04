@@ -40,7 +40,7 @@ export default function UserDetailsModal({ isOpen, onClose, user }: UserDetailsM
                     </div>
                     <button
                         onClick={onClose}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors"
+                        className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                         <X className="size-6" />
                     </button>
@@ -125,7 +125,7 @@ export default function UserDetailsModal({ isOpen, onClose, user }: UserDetailsM
                 <div className="p-6 border-t border-gray-100 bg-[#F8FAFC]">
                     <button
                         onClick={onClose}
-                        className="w-full rounded-xl bg-[#0F172A] py-3.5 text-sm font-bold text-white hover:bg-black transition-all shadow-lg shadow-gray-200"
+                        className="w-full rounded-xl bg-[#0F172A] py-3.5 text-sm font-bold text-white hover:bg-black transition-all shadow-lg shadow-gray-200 cursor-pointer"
                     >
                         Close Details
                     </button>

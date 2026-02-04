@@ -13,6 +13,8 @@ import {
     Calendar,
     ThumbsUp,
     ThumbsDown,
+    MessageCircleOff,
+    MessageCircleReply,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReviewDetailsModal from "@/components/user/review/ReviewDetailsModal";
@@ -112,8 +114,8 @@ const reviewsData = [
 
 const stats = [
     { label: "Total Reviews", value: "200", sub: "Total Reviews", icon: MessageSquare, color: "bg-blue-50 text-blue-600" },
-    { label: "Replied To", value: "20", sub: "20% response rate", icon: Reply, color: "bg-blue-50 text-blue-600" },
-    { label: "No Response", value: "180", sub: "Needs attention", icon: AlertCircle, color: "bg-blue-50 text-blue-600", alert: true },
+    { label: "Replied To", value: "20", sub: "20% response rate", icon: MessageCircleReply, color: "bg-blue-50 text-blue-600" },
+    { label: "No Response", value: "180", sub: "Needs attention", icon: MessageCircleOff, color: "bg-blue-50 text-blue-600", alert: true },
     { label: "Avg. Rating", value: "4.1", sub: "Stars", icon: Star, color: "bg-blue-50 text-blue-600", stars: true },
 ];
 

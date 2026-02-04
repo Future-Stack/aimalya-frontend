@@ -30,11 +30,11 @@ export default function ForgotPasswordPage() {
 
             {/* Brand Logo (Top Left) */}
             <div className="hidden md:flex absolute top-8 left-8 z-10 items-center gap-2">
-                <Image src="/logo.svg" alt="Logo" width={207} height={60} />
+                <Image src="/auth_icon.svg" alt="Logo" width={207} height={60} />
             </div>
 
             {/* Forgot Password Card */}
-            <div className="relative z-10 w-[calc(100%-2rem)] max-w-[600px] bg-white/60 backdrop-blur-xl rounded-[30px] p-6 sm:p-10 md:p-12 shadow-xl border border-white/50 space-y-6 sm:space-y-8">
+            <div className="relative z-10 w-[calc(100%-2rem)] max-w-[600px] user-auth-bg rounded-3xl p-6 sm:p-10 md:p-12 border border-white/50 space-y-6 sm:space-y-8">
                 <div className="text-center space-y-4">
                     <h1 className="text-2xl sm:text-[32px] font-bold text-[#1A1A1A]">Forgot Password!</h1>
                     <p className="text-zinc-500 text-sm sm:text-[15px] max-w-[400px] mx-auto leading-relaxed">
@@ -50,20 +50,20 @@ export default function ForgotPasswordPage() {
                             type="email"
                             placeholder="e.g. example@email.com"
                             required
-                            className="w-full bg-slate-50/50 h-12 rounded-xl px-4 text-[15px] border border-zinc-200 focus:border-[#0066FF] focus:ring-4 focus:ring-blue-50 outline-none transition-all placeholder:text-zinc-400"
+                            className="w-full bg-slate-50/50 h-12 rounded-xl px-4 text-[15px] border border-zinc-200 focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <Link
                             href="/login"
-                            className="w-full h-12 bg-[#DCEAF8] text-[#0055D4] rounded-xl font-bold text-[15px] hover:bg-[#cbe0f5] transition-all flex items-center justify-center"
+                            className="w-full h-12 bg-white text-auth-subtitle-color rounded-xl font-bold text-[15px] hover:bg-cyan-50 transition-all flex items-center justify-center"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
-                            className="w-full h-12 bg-[#0055D4] text-white rounded-xl font-bold text-[15px] hover:bg-[#0044AA] transition-all shadow-lg shadow-blue-200"
+                            className="cursor-pointer w-full h-12 bg-auth-subtitle-color hover:bg-cyan-300 text-white rounded-xl font-bold text-[15px] transition-all shadow-lg shadow-blue-200"
                         >
                             Send OTP
                         </button>

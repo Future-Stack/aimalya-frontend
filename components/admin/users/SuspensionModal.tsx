@@ -42,7 +42,7 @@ export default function SuspensionModal({ isOpen, onClose, onConfirm, user }: Su
                     <div className="mt-8 flex gap-3">
                         <button
                             onClick={onClose}
-                            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all"
+                            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
                         >
                             Cancel
                         </button>
@@ -52,7 +52,7 @@ export default function SuspensionModal({ isOpen, onClose, onConfirm, user }: Su
                                 onClose();
                             }}
                             className={cn(
-                                "flex-1 rounded-xl py-3 text-sm font-bold text-white transition-all shadow-lg shadow-amber-100",
+                                "flex-1 rounded-xl py-3 text-sm font-bold text-white transition-all shadow-lg shadow-amber-100 cursor-pointer",
                                 isSuspended ? "bg-green-600 hover:bg-green-700 shadow-green-100" : "bg-amber-600 hover:bg-amber-700 shadow-amber-100"
                             )}
                         >
@@ -63,7 +63,7 @@ export default function SuspensionModal({ isOpen, onClose, onConfirm, user }: Su
 
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors"
+                    className="absolute top-4 right-4 rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"
                 >
                     <X className="size-5" />
                 </button>

@@ -32,7 +32,7 @@ export default function DeleteUserModal({ isOpen, onClose, onConfirm, user }: De
                     <div className="mt-8 flex gap-3">
                         <button
                             onClick={onClose}
-                            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all"
+                            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
                         >
                             Cancel
                         </button>
@@ -41,7 +41,7 @@ export default function DeleteUserModal({ isOpen, onClose, onConfirm, user }: De
                                 onConfirm();
                                 onClose();
                             }}
-                            className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white hover:bg-red-700 transition-all shadow-lg shadow-red-100"
+                            className="flex-1 rounded-xl bg-red-600 py-3 text-sm font-bold text-white hover:bg-red-700 transition-all shadow-lg shadow-red-100 cursor-pointer"
                         >
                             Delete User
                         </button>
@@ -50,7 +50,7 @@ export default function DeleteUserModal({ isOpen, onClose, onConfirm, user }: De
 
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors"
+                    className="absolute top-4 right-4 rounded-lg p-2 text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer"
                 >
                     <X className="size-5" />
                 </button>

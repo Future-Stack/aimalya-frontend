@@ -59,10 +59,10 @@ const SignInPage = () => {
                             )}
                         </button>
                     </div>
-                    <div className="flex justify-end mt-2">
+                    <div className="flex justify-end mt-4">
                         <Link
                             href="/admin/forget-password"
-                            className="text-[#ef4444] text-xs hover:underline transition-all"
+                            className="text-red-400 text-sm hover:underline transition-all"
                         >
                             Forgot Password
                         </Link>
@@ -71,7 +71,7 @@ const SignInPage = () => {
 
                 <Link href="/admin/dashboard">
                     <button
-                        className="w-full bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 group"
+                        className="w-full bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 group cursor-pointer"
                         type="submit"
                     >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -80,6 +80,13 @@ const SignInPage = () => {
                         Sign In
                     </button>
                 </Link>
+
+                <p className="text-center text-sm text-blue-200/60 mt-6">
+                    Don't have an account?{' '}
+                    <Link href="/admin/signup" className="text-blue-400 font-semibold hover:text-blue-300 hover:underline transition-all">
+                        Sign Up
+                    </Link>
+                </p>
             </form>
         </AuthLayout>
     );

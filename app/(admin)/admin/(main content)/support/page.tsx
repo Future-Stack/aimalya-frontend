@@ -21,7 +21,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const stats = [
-    { label: "Open Tickets", value: "23", icon: Inbox, color: "text-blue-600" },
+    { label: "Open Tickets", value: "23", icon: Inbox, color: "text-cyan-600" },
     { label: "In Progress", value: "12", icon: Clock, color: "text-amber-600" },
     { label: "Resolved Today", value: "18", icon: CheckCircle2, color: "text-green-600" },
     { label: "Avg Response Time", value: "2.5h", icon: Timer, color: "text-purple-600" },
@@ -94,8 +94,8 @@ export default function SupportTickets() {
             </div>
 
             {/* Search and Filters */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="relative w-full max-w-xl">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-[#E2E8F0] p-3 rounded-xl bg-white">
+                <div className="relative w-full max-w-8xl">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <Search className="size-4 text-gray-400" />
                     </div>
@@ -106,7 +106,7 @@ export default function SupportTickets() {
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="block w-full rounded-lg border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                        className="block w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                         placeholder="Search tickets by ID, name or subject..."
                     />
                 </div>
@@ -114,14 +114,14 @@ export default function SupportTickets() {
                 <div className="relative">
                     <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex items-center gap-2 rounded-lg border border-[#E2E8F0] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 text-nowrap rounded-xl border border-[#E2E8F0] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                         {statusFilter}
                         <ChevronDown className="size-4 text-gray-500" />
                     </button>
 
                     {isDropdownOpen && (
-                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-lg border border-[#E2E8F0] bg-white p-1 shadow-lg">
+                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-lg">
                             {["All Status", "Open", "In Progress", "Resolved"].map((status) => (
                                 <button
                                     key={status}
@@ -130,7 +130,10 @@ export default function SupportTickets() {
                                         setCurrentPage(1);
                                         setIsDropdownOpen(false);
                                     }}
-                                    className="w-full rounded-md px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                                    className={cn(
+                                        "w-full rounded-xl px-4 py-2 text-left text-sm transition-colors cursor-pointer",
+                                        statusFilter === status ? "bg-cyan-50 text-cyan-600" : "text-gray-700 hover:bg-gray-50"
+                                    )}
                                 >
                                     {status}
                                 </button>
@@ -182,7 +185,7 @@ export default function SupportTickets() {
                                                 "inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase",
                                                 tkt.priority === "Urgent" && "bg-red-50 text-red-700",
                                                 tkt.priority === "High" && "bg-amber-50 text-amber-700",
-                                                tkt.priority === "Medium" && "bg-blue-50 text-blue-700",
+                                                tkt.priority === "Medium" && "bg-cyan-50 text-cyan-700",
                                                 tkt.priority === "Low" && "bg-gray-50 text-gray-700",
                                             )}
                                         >
@@ -193,7 +196,7 @@ export default function SupportTickets() {
                                         <span
                                             className={cn(
                                                 "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                                                tkt.status === "Open" && "bg-blue-50 text-blue-700",
+                                                tkt.status === "Open" && "bg-cyan-50 text-cyan-700",
                                                 tkt.status === "In Progress" && "bg-amber-50 text-amber-700",
                                                 tkt.status === "Resolved" && "bg-green-50 text-green-700",
                                             )}
@@ -210,7 +213,7 @@ export default function SupportTickets() {
                                     <td className="px-4 py-4 text-right">
                                         <button
                                             onClick={() => handleViewTicket(tkt)}
-                                            className="rounded bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer"
+                                            className="rounded bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-700 hover:bg-cyan-100 transition-colors cursor-pointer"
                                         >
                                             view
                                         </button>
@@ -236,7 +239,7 @@ export default function SupportTickets() {
                 {paginatedTickets.map((tkt) => (
                     <div
                         key={tkt.id}
-                        className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4 hover:border-blue-200 transition-colors"
+                        className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4 hover:border-cyan-200 transition-colors"
                     >
                         {/* Top row: ID + Status */}
                         <div className="flex items-start justify-between gap-3">
@@ -248,7 +251,7 @@ export default function SupportTickets() {
                             <span
                                 className={cn(
                                     "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap",
-                                    tkt.status === "Open" && "bg-blue-50 text-blue-700",
+                                    tkt.status === "Open" && "bg-cyan-50 text-cyan-700",
                                     tkt.status === "In Progress" && "bg-amber-50 text-amber-700",
                                     tkt.status === "Resolved" && "bg-green-50 text-green-700",
                                 )}
@@ -273,7 +276,7 @@ export default function SupportTickets() {
                                         "inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-medium",
                                         tkt.priority === "Urgent" && "bg-red-50 text-red-700",
                                         tkt.priority === "High" && "bg-amber-50 text-amber-700",
-                                        tkt.priority === "Medium" && "bg-blue-50 text-blue-700",
+                                        tkt.priority === "Medium" && "bg-cyan-50 text-cyan-700",
                                         tkt.priority === "Low" && "bg-gray-50 text-gray-600",
                                     )}
                                 >
@@ -300,7 +303,7 @@ export default function SupportTickets() {
                         <div className="flex justify-end">
                             <button
                                 onClick={() => handleViewTicket(tkt)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-50 text-cyan-600 hover:bg-cyan-100 transition-colors cursor-pointer"
                             >
                                 <Eye className="size-4" />
                                 <span className="text-sm font-medium">View</span>

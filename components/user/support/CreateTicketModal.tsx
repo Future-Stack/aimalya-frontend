@@ -154,12 +154,12 @@ export default function CreateTicketModal({ isOpen, onClose }: CreateTicketModal
                     <div className="flex gap-3 pt-2">
                         <button
                             onClick={onClose}
-                            className="flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                            className="cursor-pointer flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+                            className="cursor-pointer flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
                         >
                             <Plus className="size-4" />
                             Create Ticket

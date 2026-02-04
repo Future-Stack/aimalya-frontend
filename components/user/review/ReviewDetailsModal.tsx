@@ -32,7 +32,7 @@ export default function ReviewDetailsModal({ isOpen, onClose, review }: ReviewDe
                     <h2 className="text-xl font-bold text-gray-900">Review Details</h2>
                     <button
                         onClick={onClose}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
                     >
                         <X className="size-5" />
                     </button>
@@ -98,7 +98,7 @@ export default function ReviewDetailsModal({ isOpen, onClose, review }: ReviewDe
                     </div>
 
                     {/* Action Button */}
-                    <button className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
+                    <button className="cursor-pointer w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
                         <LinkIcon className="size-5" />
                         View on Google
                     </button>
