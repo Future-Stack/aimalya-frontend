@@ -23,6 +23,7 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import Image from "next/image";
+import StylishDropdown from "../../ui/StylishDropdown";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -39,10 +40,24 @@ const menuItems = [
     { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
+const shopOptions = [
+    { label: "Softvence Shop", value: "softvence-shop" },
+    { label: "Omega Shop", value: "omega-shop" },
+    { label: "Future Shop", value: "future-shop" },
+];
+
+const locationOptions = [
+    { label: "All Locations", value: "all" },
+    { label: "Dhaka", value: "dhaka" },
+    { label: "Chittagong", value: "chittagong" },
+];
+
 export default function Sidebar() {
     const pathname = usePathname();
     const [isSmallScreen, setIsSmallScreen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [selectedShop, setSelectedShop] = useState<string | string[]>("softvence-shop");
+    const [selectedLocation, setSelectedLocation] = useState<string | string[]>("all");
 
     useEffect(() => {
         const handleResize = () => {
@@ -100,23 +115,23 @@ export default function Sidebar() {
 
             {/* Context Selectors (Mocked) */}
             <div className={cn(
-                "px-4 mb-2 space-y-2 transition-all duration-300 overflow-hidden shrink-0",
-                isSmallScreen && !isExpanded ? "h-0 opacity-0 pointer-events-none" : "h-auto opacity-100"
+                "relative z-20 px-4 mb-2 space-y-3 transition-all duration-300 shrink-0",
+                isSmallScreen && !isExpanded ? "h-0 opacity-0 pointer-events-none overflow-hidden" : "h-auto opacity-100 overflow-visible"
             )}>
-                <button className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <Store className="size-4 text-gray-500 shrink-0" />
-                        <span className="truncate">Softvence Shop</span>
-                    </div>
-                    <ChevronDown className="size-4 text-gray-400 shrink-0" />
-                </button>
-                <button className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <MapPin className="size-4 text-gray-500 shrink-0" />
-                        <span className="truncate">All Locations</span>
-                    </div>
-                    <ChevronDown className="size-4 text-gray-400 shrink-0" />
-                </button>
+                <StylishDropdown
+                    options={shopOptions}
+                    value={selectedShop}
+                    onChange={setSelectedShop}
+                    icon={<Store className="size-4 shrink-0" />}
+                    className="h-10"
+                />
+                <StylishDropdown
+                    options={locationOptions}
+                    value={selectedLocation}
+                    onChange={setSelectedLocation}
+                    icon={<MapPin className="size-4 shrink-0" />}
+                    className="h-10"
+                />
             </div>
 
             {/* Divider */}

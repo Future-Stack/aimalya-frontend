@@ -106,7 +106,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
                                 // Logic to save status
                                 onClose();
                             }}
-                            className="flex-1 rounded-xl bg-cyan-600 py-3 text-sm font-bold text-white hover:bg-cyan-700 transition-colors shadow-sm cursor-pointer"
+                            className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
                         >
                             Save Changes
                         </button>

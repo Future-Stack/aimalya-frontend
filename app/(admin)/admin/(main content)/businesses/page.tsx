@@ -111,7 +111,7 @@ export default function BusinessManagement() {
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="block w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                        className="block w-full rounded-xl border border-[#E2E8F0] bg-white py-2 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                         placeholder="Search business name..."
                     />
                 </div>
@@ -266,4 +266,3 @@ export default function BusinessManagement() {
         </div>
     );
 }
-  

@@ -106,7 +106,7 @@ export default function SupportTickets() {
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="block w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                        className="block w-full rounded-xl border border-[#E2E8F0] bg-white py-2 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         placeholder="Search tickets by ID, name or subject..."
                     />
                 </div>
@@ -132,7 +132,7 @@ export default function SupportTickets() {
                                     }}
                                     className={cn(
                                         "w-full rounded-xl px-4 py-2 text-left text-sm transition-colors cursor-pointer",
-                                        statusFilter === status ? "bg-cyan-50 text-cyan-600" : "text-gray-700 hover:bg-gray-50"
+                                        statusFilter === status ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"
                                     )}
                                 >
                                     {status}
@@ -213,7 +213,7 @@ export default function SupportTickets() {
                                     <td className="px-4 py-4 text-right">
                                         <button
                                             onClick={() => handleViewTicket(tkt)}
-                                            className="rounded bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-700 hover:bg-cyan-100 transition-colors cursor-pointer"
+                                            className="rounded bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer"
                                         >
                                             view
                                         </button>
@@ -303,7 +303,7 @@ export default function SupportTickets() {
                         <div className="flex justify-end">
                             <button
                                 onClick={() => handleViewTicket(tkt)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-50 text-cyan-600 hover:bg-cyan-100 transition-colors cursor-pointer"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors cursor-pointer"
                             >
                                 <Eye className="size-4" />
                                 <span className="text-sm font-medium">View</span>
@@ -382,4 +382,3 @@ export default function SupportTickets() {
         </div>
     );
 }
-   
