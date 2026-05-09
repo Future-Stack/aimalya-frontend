@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { decodeToken } from "@/lib/utils";
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -12,15 +15,29 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     const [mounted, setMounted] = useState(false);
     const [sidebarOffset, setSidebarOffset] = useState(256);
 
+    const router = useRouter();
+
     useEffect(() => {
         setMounted(true);
+        const token = Cookies.get("accessToken");
+        const decoded = token ? decodeToken(token) : null;
+        const role = decoded?.role;
+
+        if (!token) {
+            router.push("/admin/signin");
+        } else if (role === "USER") {
+            router.push("/dashboard");
+        } else if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+            router.push("/admin/signin");
+        }
+
         const handleResize = () => {
             setSidebarOffset(window.innerWidth < 1024 ? 72 : 256);
         };
         handleResize();
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
-    }, []);
+    }, [router]);
 
     if (!mounted) {
         return <div className="min-h-screen bg-[#F8FAFC]" />;

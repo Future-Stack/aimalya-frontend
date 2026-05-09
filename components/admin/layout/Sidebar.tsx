@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useAuth } from "@/hooks/useAuth";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -31,6 +32,7 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
+    const { logout } = useAuth();
     const pathname = usePathname();
     const [isSmallScreen, setIsSmallScreen] = useState(false);
 
@@ -106,24 +108,24 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            {/* Profile Section */}
             <div className="mt-auto border-t border-gray-500/50 bg-[#111827]/50 m-4 pt-4">
-                <Link href="/admin/signin" className="block">
-                    <button className={cn(
+                <button 
+                    onClick={() => logout("/admin/signin")}
+                    className={cn(
                         "w-full flex items-center h-11 rounded-xl transition-all duration-200 cursor-pointer text-red-500 hover:bg-[#1E293B] hover:text-red-400",
                         isSmallScreen ? "justify-center group-hover:justify-start" : "px-3"
+                    )}
+                >
+                    <div className="flex items-center justify-center w-11 h-11 flex-shrink-0 ml-[-12px]">
+                        <LogOut className="size-5" />
+                    </div>
+                    <span className={cn(
+                        "text-sm font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden whitespace-nowrap",
+                        isSmallScreen ? "group-hover:opacity-100 group-hover:w-auto group-hover:ml-1" : "opacity-100 w-auto ml-1"
                     )}>
-                        <div className="flex items-center justify-center w-11 h-11 flex-shrink-0 ml-[-12px]">
-                            <LogOut className="size-5" />
-                        </div>
-                        <span className={cn(
-                            "text-sm font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden whitespace-nowrap",
-                            isSmallScreen ? "group-hover:opacity-100 group-hover:w-auto group-hover:ml-1" : "opacity-100 w-auto ml-1"
-                        )}>
-                            Logout
-                        </span>
-                    </button>
-                </Link>
+                        Logout
+                    </span>
+                </button>
             </div>
         </aside>
     );

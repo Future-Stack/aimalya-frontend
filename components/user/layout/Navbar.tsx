@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { Search, Bell } from "lucide-react";
 import Link from "next/link";
 
@@ -32,7 +31,6 @@ export default function Navbar() {
                 <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-100 h-10">
                     <div className="text-right hidden md:block">
                         <p className="text-sm font-semibold text-gray-900 leading-none">Rogers</p>
-                        {/* <p className="text-[11px] text-gray-400 mt-1 font-medium">User</p> */}
                     </div>
                     <img
                         src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
