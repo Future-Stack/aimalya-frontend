@@ -3,10 +3,32 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useLoginMutation } from "@/redux/api/BE/user/authApi";
+import Cookies from "js-cookie";
 
 export default function LoginPage() {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [login, { isLoading }] = useLoginMutation();
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const result = await login({ email, password, role: "USER" }).unwrap();
+            if (result.success) {
+                Cookies.set("accessToken", result.data.accessToken, { path: "/" });
+                Cookies.set("refreshToken", result.data.refreshToken, { path: "/" });
+                router.push("/dashboard");
+            }
+        } catch (err) {
+            console.error("Login failed:", err);
+            // You might want to show a toast message here
+        }
+    };
 
     return (
         <div className="min-h-screen w-full relative content-center flex items-center justify-center overflow-hidden bg-[#E0F2FE]">
@@ -34,7 +56,7 @@ export default function LoginPage() {
                     <p className="text-auth-subtitle-color font-medium text-sm sm:text-[15px]">Please login to your account</p>
                 </div>
 
-                <form className="space-y-5">
+                <form className="space-y-5" onSubmit={handleLogin}>
                     <div className="space-y-5">
                         {/* Email Input */}
                         <div className="relative group">
@@ -44,6 +66,9 @@ export default function LoginPage() {
                             <input
                                 type="email"
                                 placeholder="Email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="w-full bg-white h-12 rounded-xl pl-12 pr-4 text-[15px] border border-transparent focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400 shadow-sm"
                             />
                         </div>
@@ -56,6 +81,9 @@ export default function LoginPage() {
                             <input
                                 type={showPassword ? "text" : "password"}
                                 placeholder="Password"
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="w-full bg-white h-12 rounded-xl pl-12 pr-12 text-[15px] border border-transparent focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400 shadow-sm"
                             />
                             <button
@@ -77,14 +105,14 @@ export default function LoginPage() {
                         </Link>
                     </div>
 
-                    <Link href="/dashboard">
-                        <button
-                            type="submit"
-                            className="w-full h-12 bg-auth-subtitle-color text-white rounded-xl font-bold text-[15px] hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 cursor-pointer"
-                        >
-                            Log In
-                        </button>
-                    </Link>
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full h-12 bg-auth-subtitle-color text-white rounded-xl font-bold text-[15px] hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 cursor-pointer flex items-center justify-center gap-2"
+                    >
+                        {isLoading && <Loader2 size={18} className="animate-spin" />}
+                        {isLoading ? "Logging In..." : "Log In"}
+                    </button>
                 </form>
 
                 <div className="relative py-2">
@@ -115,4 +143,4 @@ export default function LoginPage() {
             </div>
         </div>
     );
-}
+}

@@ -24,6 +24,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import Image from "next/image";
 import StylishDropdown from "../../ui/StylishDropdown";
+import { useAuth } from "@/hooks/useAuth";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -53,6 +54,7 @@ const locationOptions = [
 ];
 
 export default function Sidebar() {
+    const { logout } = useAuth();
     const pathname = usePathname();
     const [isSmallScreen, setIsSmallScreen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -169,24 +171,24 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            {/* Bottom Actions */}
             <div className="mt-auto border-t border-gray-100 bg-gray-50/50 p-4 shrink-0">
-                <Link href="/login" className="block">
-                    <button className={cn(
+                <button 
+                    onClick={() => logout()}
+                    className={cn(
                         "w-full flex items-center h-11 rounded-xl transition-all duration-200 cursor-pointer text-red-500 hover:bg-red-50 hover:text-red-600",
                         isSmallScreen && !isExpanded ? "justify-center" : "px-3"
+                    )}
+                >
+                    <div className="flex items-center justify-center w-11 h-11 flex-shrink-0">
+                        <LogOut className="size-5" />
+                    </div>
+                    <span className={cn(
+                        "ml-1 text-sm font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden whitespace-nowrap",
+                        (!isSmallScreen || isExpanded) && "opacity-100 w-auto ml-1"
                     )}>
-                        <div className="flex items-center justify-center w-11 h-11 flex-shrink-0">
-                            <LogOut className="size-5" />
-                        </div>
-                        <span className={cn(
-                            "ml-1 text-sm font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden whitespace-nowrap",
-                            (!isSmallScreen || isExpanded) && "opacity-100 w-auto ml-1"
-                        )}>
-                            Logout
-                        </span>
-                    </button>
-                </Link>
+                        Logout
+                    </span>
+                </button>
             </div>
         </aside>
     );

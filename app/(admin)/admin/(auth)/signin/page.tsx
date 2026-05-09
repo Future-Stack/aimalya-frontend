@@ -3,13 +3,35 @@
 import React, { useState } from "react";
 import AuthLayout from "@/components/admin/auth/AuthLayout";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useLoginMutation } from "@/redux/api/BE/user/authApi";
+import Cookies from "js-cookie";
 
 const SignInPage = () => {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [login, { isLoading }] = useLoginMutation();
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const result = await login({ email, password, role: "ADMIN" }).unwrap();
+            if (result.success) {
+                Cookies.set("accessToken", result.data.accessToken, { path: "/" });
+                Cookies.set("refreshToken", result.data.refreshToken, { path: "/" });
+                router.push("/admin/dashboard");
+            }
+        } catch (err) {
+            console.error("Login failed:", err);
+        }
+    };
+
     return (
         <AuthLayout title="Admin Portal" subtitle="ReviewIQ Management System">
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleLogin}>
                 <div>
                     <label className="block text-blue-200/80 text-sm mb-2 ml-1" htmlFor="email">
                         Admin Email
@@ -25,6 +47,9 @@ const SignInPage = () => {
                             className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 !text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
                             id="email"
                             type="email"
+                            required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             placeholder="admin@reviewiq.com"
                         />
                     </div>
@@ -45,6 +70,9 @@ const SignInPage = () => {
                             className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-12 !text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
                             id="password"
                             type={showPassword ? "text" : "password"}
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
                         />
                         <button
@@ -69,17 +97,20 @@ const SignInPage = () => {
                     </div>
                 </div>
 
-                <Link href="/admin/dashboard">
-                    <button
-                        className="w-full bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 group cursor-pointer"
-                        type="submit"
-                    >
+                <button
+                    className="w-full bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50"
+                    type="submit"
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <Loader2 size={18} className="animate-spin" />
+                    ) : (
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" />
                         </svg>
-                        Sign In
-                    </button>
-                </Link>
+                    )}
+                    {isLoading ? "Signing In..." : "Sign In"}
+                </button>
 
                 <p className="text-center text-sm text-blue-200/60 mt-6">
                     Don't have an account?{' '}
