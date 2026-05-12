@@ -26,7 +26,7 @@ export default function ReviewDetailsModal({ isOpen, onClose, review }: ReviewDe
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl w-full max-w-lg shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-white rounded-3xl w-full max-w-lg h-[80vh] max-h-[700px] shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
                     <h2 className="text-xl font-bold text-gray-900">Review Details</h2>
@@ -39,11 +39,11 @@ export default function ReviewDetailsModal({ isOpen, onClose, review }: ReviewDe
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-6">
+                <div className="p-6 space-y-6 overflow-y-auto flex-1 custom-thin-scrollbar">
                     {/* User Info & Rating */}
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="font-bold text-gray-900 text-base">{review.user}</span>
+                            <span className="font-bold text-gray-900 text-base">{review.author}</span>
                             <span className="text-gray-400 text-sm flex items-center gap-1">
                                 <CalendarIcon className="size-3" />
                                 {review.date}
@@ -65,43 +65,49 @@ export default function ReviewDetailsModal({ isOpen, onClose, review }: ReviewDe
 
                     {/* Review Text */}
                     <div className="bg-blue-50/50 p-4 rounded-2xl text-gray-700 text-sm leading-relaxed">
-                        {review.content}
+                        {review.text}
                     </div>
 
                     {/* AI Analysis */}
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">AI Analysis</h3>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3">AI Sentiment</h3>
                         <div className={cn(
                             "inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium",
-                            review.sentiment === "positive" ? "bg-green-50 text-green-600" :
-                                review.sentiment === "negative" ? "bg-red-50 text-red-600" :
+                            review.sentiment.toLowerCase() === "positive" ? "bg-green-50 text-green-600" :
+                                review.sentiment.toLowerCase() === "negative" ? "bg-red-50 text-red-600" :
                                     "bg-gray-100 text-gray-600"
                         )}>
-                            {review.sentiment === "positive" ? <ThumbsUp className="size-4" /> :
-                                review.sentiment === "negative" ? <ThumbsDown className="size-4" /> : null}
-                            {review.sentiment} sentiment
+                            {review.sentiment.toLowerCase() === "positive" ? <ThumbsUp className="size-4" /> :
+                                review.sentiment.toLowerCase() === "negative" ? <ThumbsDown className="size-4" /> : null}
+                            <span className="capitalize">{review.sentiment}</span> sentiment
                         </div>
                     </div>
 
                     {/* Emotions */}
                     <div>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Emotions</h3>
+                        <h3 className="text-sm font-semibold text-gray-900 mb-3">Detected Emotions</h3>
                         <div className="flex flex-wrap gap-2">
-                            {(review.tags || []).map((tag: string, i: number) => (
+                            {(review.emotions || []).map((emotion: string, i: number) => (
                                 <span key={i} className="px-4 py-2 bg-purple-50 text-purple-600 rounded-xl text-sm font-medium">
-                                    {tag}
+                                    {emotion}
                                 </span>
                             ))}
-                            {/* Mocking extra emotions if tags are generic */}
-                            {!review.tags?.includes("Happiness") && <span className="px-4 py-2 bg-purple-50 text-purple-600 rounded-xl text-sm font-medium">Happiness</span>}
                         </div>
                     </div>
 
-                    {/* Action Button */}
-                    <button className="cursor-pointer w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
-                        <LinkIcon className="size-5" />
-                        View on Google
-                    </button>
+                    {/* Strengths */}
+                    {review.strengths && review.strengths.length > 0 && (
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900 mb-3">Key Strengths</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {review.strengths.map((strength: string, i: number) => (
+                                    <span key={i} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium capitalize">
+                                        {strength}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -25,6 +25,10 @@ import { twMerge } from "tailwind-merge";
 import Image from "next/image";
 import StylishDropdown from "../../ui/StylishDropdown";
 import { useAuth } from "@/hooks/useAuth";
+import { useGetBusinessNamesQuery, useGetBusinessLocationsQuery } from "@/redux/api/AI/nameFatchingApi";
+import { getUserIdFromToken } from "@/utils/authUtils";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedBusiness, setSelectedLocation, setSelectedAddress } from "@/redux/slices/businessSlice";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -41,25 +45,56 @@ const menuItems = [
     { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
-const shopOptions = [
-    { label: "Softvence Shop", value: "softvence-shop" },
-    { label: "Omega Shop", value: "omega-shop" },
-    { label: "Future Shop", value: "future-shop" },
-];
-
-const locationOptions = [
-    { label: "All Locations", value: "all" },
-    { label: "Dhaka", value: "dhaka" },
-    { label: "Chittagong", value: "chittagong" },
-];
 
 export default function Sidebar() {
     const { logout } = useAuth();
     const pathname = usePathname();
+    const userId = getUserIdFromToken();
+    const dispatch = useDispatch();
+
+    const selectedShop = useSelector((state: any) => state.business.selectedBusiness);
+    const selectedLocation = useSelector((state: any) => state.business.selectedLocation);
+
     const [isSmallScreen, setIsSmallScreen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [selectedShop, setSelectedShop] = useState<string | string[]>("softvence-shop");
-    const [selectedLocation, setSelectedLocation] = useState<string | string[]>("all");
+
+    // Fetch Business Names
+    const { data: namesData, isLoading: isLoadingNames } = useGetBusinessNamesQuery(userId || "", {
+        skip: !userId,
+    });
+
+    // Fetch Business Locations when a shop is selected
+    const { data: locationsData, isLoading: isLoadingLocations } = useGetBusinessLocationsQuery(
+        { userId: userId || "", businessName: (selectedShop as string) },
+        { skip: !userId || !selectedShop }
+    );
+
+    const shopOptions = useMemo(() => namesData?.business_names.map((name) => ({
+        label: name,
+        value: name,
+    })) || [], [namesData]);
+
+    const locationOptions = useMemo(() => locationsData?.locations.map((loc) => ({
+        label: loc.address_or_city,
+        value: loc.google_maps_url,
+    })) || [], [locationsData]);
+
+    useEffect(() => {
+        if (shopOptions.length > 0 && !selectedShop) {
+            dispatch(setSelectedBusiness(shopOptions[0].value));
+        }
+    }, [shopOptions, selectedShop, dispatch]);
+
+    // Automatically select the first location whenever the shop (and thus locationOptions) changes
+    useEffect(() => {
+        if (locationOptions.length > 0) {
+            dispatch(setSelectedLocation(locationOptions[0].value));
+            dispatch(setSelectedAddress(locationOptions[0].label));
+        } else {
+            dispatch(setSelectedLocation(""));
+            dispatch(setSelectedAddress(""));
+        }
+    }, [locationOptions, dispatch]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -122,15 +157,21 @@ export default function Sidebar() {
             )}>
                 <StylishDropdown
                     options={shopOptions}
-                    value={selectedShop}
-                    onChange={setSelectedShop}
+                    value={selectedShop || ""}
+                    onChange={(val) => dispatch(setSelectedBusiness(val as string))}
                     icon={<Store className="size-4 shrink-0" />}
                     className="h-10"
                 />
                 <StylishDropdown
                     options={locationOptions}
-                    value={selectedLocation}
-                    onChange={setSelectedLocation}
+                    value={selectedLocation || ""}
+                    onChange={(val) => {
+                        dispatch(setSelectedLocation(val as string));
+                        const selectedOption = locationOptions.find(opt => opt.value === val);
+                        if (selectedOption) {
+                            dispatch(setSelectedAddress(selectedOption.label));
+                        }
+                    }}
                     icon={<MapPin className="size-4 shrink-0" />}
                     className="h-10"
                 />

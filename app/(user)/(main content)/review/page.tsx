@@ -18,107 +18,12 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReviewDetailsModal from "@/components/user/review/ReviewDetailsModal";
+import { useGetReviewAnalysisQuery } from "@/redux/api/AI/reviewApi";
+import { useSelector } from "react-redux";
+import { getUserIdFromToken } from "@/utils/authUtils";
+import { Loader2 } from "lucide-react";
 
-// Mock Data
-const reviewsData = [
-    {
-        id: 1,
-        user: "Pepper Potts",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-        rating: 4.5,
-        date: "05/01/26",
-        content: "Absolutely love this place! The coffee is amazing and the staff is so friendly. The atmosphere is perfect for working on my laptop. Will definitely come back!",
-        tags: ["Quality", "Service", "Atmosphere", "Satisfaction"],
-        status: "Replied",
-        sentiment: "positive",
-    },
-    {
-        id: 2,
-        user: "John Doe",
-        avatar: "", // No avatar usage
-        initials: "J",
-        color: "bg-blue-100 text-blue-600",
-        rating: 4.5,
-        date: "05/01/26",
-        content: "Absolutely love this place! The coffee is amazing and the staff is so friendly. The atmosphere is perfect for working on my laptop. Will definitely come back!",
-        tags: ["Quality", "Service", "Atmosphere", "Satisfaction"],
-        status: "No response",
-        sentiment: "positive",
-    },
-    {
-        id: 3,
-        user: "John Doe",
-        avatar: "",
-        initials: "J",
-        color: "bg-blue-100 text-blue-600",
-        rating: 3.0,
-        date: "05/01/26",
-        content: "The coffee was okay but the waiting time was too long. Hope you improve this.",
-        tags: ["Service", "Wait time"],
-        status: "No response",
-        sentiment: "negative",
-    },
-    {
-        id: 4,
-        user: "John Doe",
-        avatar: "",
-        initials: "J",
-        color: "bg-blue-100 text-blue-600",
-        rating: 5.0,
-        date: "05/01/26",
-        content: "Best place in town! Highly recommended.",
-        tags: ["Quality", "Satisfaction"],
-        status: "No response",
-        sentiment: "positive",
-    },
-    {
-        id: 5,
-        user: "Alice Smith",
-        avatar: "",
-        initials: "A",
-        color: "bg-purple-100 text-purple-600",
-        rating: 2.0,
-        date: "04/01/26",
-        content: "Not what I expected. The place was messy.",
-        tags: ["Cleanliness"],
-        status: "No response",
-        sentiment: "negative",
-    },
-    {
-        id: 6,
-        user: "Bob Brown",
-        avatar: "",
-        initials: "B",
-        color: "bg-green-100 text-green-600",
-        rating: 4.0,
-        date: "03/01/26",
-        content: "Good experience overall.",
-        tags: ["Service"],
-        status: "Replied",
-        sentiment: "positive",
-    },
-    {
-        id: 7,
-        user: "Charlie Day",
-        avatar: "",
-        initials: "C",
-        color: "bg-orange-100 text-orange-600",
-        rating: 4.5,
-        date: "02/01/26",
-        content: "Loved the muffins!",
-        tags: ["Food"],
-        status: "No response",
-        sentiment: "positive",
-    },
-];
-
-const stats = [
-    { label: "Total Reviews", value: "200", sub: "Total Reviews", icon: MessageSquare, color: "bg-blue-50 text-blue-600" },
-    { label: "Replied To", value: "20", sub: "20% response rate", icon: MessageCircleReply, color: "bg-blue-50 text-blue-600" },
-    { label: "No Response", value: "180", sub: "Needs attention", icon: MessageCircleOff, color: "bg-blue-50 text-blue-600", alert: true },
-    { label: "Avg. Rating", value: "4.1", sub: "Stars", icon: Star, color: "bg-blue-50 text-blue-600", stars: true },
-];
-
+// Constants
 const ITEMS_PER_PAGE = 5;
 
 // Custom Dropdown Component
@@ -182,6 +87,18 @@ function CustomDropdown({
 }
 
 export default function ReviewPage() {
+    const userId = getUserIdFromToken();
+    const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
+
+    const { data: analysisData, isLoading } = useGetReviewAnalysisQuery(
+        {
+            userId: userId || "",
+            businessName: selectedBusiness || "",
+            address: selectedAddress || ""
+        },
+        { skip: !userId || !selectedBusiness || !selectedAddress }
+    );
+
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedRating, setSelectedRating] = useState("all");
     const [selectedSentiment, setSelectedSentiment] = useState("all");
@@ -192,23 +109,29 @@ export default function ReviewPage() {
     const [selectedReview, setSelectedReview] = useState<any>(null);
 
     // Derived Data
+    const reviews = useMemo(() => analysisData?.reviews || [], [analysisData]);
+    const statsData = useMemo(() => [
+        { label: "Total Reviews", value: analysisData?.stats.total_reviews || 0, sub: "All time", icon: MessageSquare, color: "bg-blue-50 text-blue-600" },
+        { label: "Positive Sentiments", value: analysisData?.stats.Positive_sentiments || 0, sub: "Happy customers", icon: MessageCircleReply, color: "bg-green-50 text-green-600" },
+        { label: "Negative Sentiments", value: analysisData?.stats.negetive_sentiments || 0, sub: "Needs attention", icon: MessageCircleOff, color: "bg-red-50 text-red-600", alert: true },
+        { label: "Avg. Rating", value: analysisData?.stats.avg_ratings?.toFixed(1) || "0.0", sub: "Out of 5", icon: Star, color: "bg-amber-50 text-amber-600", stars: true },
+    ], [analysisData]);
+
     const filteredReviews = useMemo(() => {
-        return reviewsData.filter(review => {
+        return reviews.filter(review => {
             const matchesSearch =
-                review.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                review.user.toLowerCase().includes(searchTerm.toLowerCase());
+                review.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                review.author.toLowerCase().includes(searchTerm.toLowerCase());
 
             const matchesRating = selectedRating === "all" || Math.floor(review.rating).toString() === selectedRating;
 
-            // Using "Natural" to map to Neutral/Mixed if we had it, or just exact match
             const matchesSentiment =
                 selectedSentiment === "all" ||
-                (selectedSentiment === "natural" && review.sentiment === "neutral") ||
-                review.sentiment === selectedSentiment;
+                review.sentiment.toLowerCase() === selectedSentiment.toLowerCase();
 
             return matchesSearch && matchesRating && matchesSentiment;
         });
-    }, [searchTerm, selectedRating, selectedSentiment]);
+    }, [reviews, searchTerm, selectedRating, selectedSentiment]);
 
     const totalPages = Math.ceil(filteredReviews.length / ITEMS_PER_PAGE);
 
@@ -237,7 +160,7 @@ export default function ReviewPage() {
 
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat, i) => (
+                {statsData.map((stat, i) => (
                     <div key={i} className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-md">
                         <div className="flex justify-between items-start">
                             <div>
@@ -254,8 +177,15 @@ export default function ReviewPage() {
                         <div className="mt-4">
                             {stat.stars ? (
                                 <div className="flex gap-1">
-                                    {[1, 2, 3, 4].map((_, i) => <Star key={i} className="size-4 fill-amber-400 text-amber-400" />)}
-                                    <Star className="size-4 fill-amber-400 text-amber-400 opacity-50" />
+                                    {[1, 2, 3, 4, 5].map((_, i) => (
+                                        <Star 
+                                            key={i} 
+                                            className={cn(
+                                                "size-4",
+                                                i < Math.floor(Number(stat.value)) ? "fill-amber-400 text-amber-400" : "fill-gray-100 text-gray-200"
+                                            )} 
+                                        />
+                                    ))}
                                 </div>
                             ) : (
                                 <p className={cn("text-xs font-medium", stat.alert ? "text-red-500" : "text-gray-500")}>
@@ -300,7 +230,7 @@ export default function ReviewPage() {
                         options={[
                             { label: "All Sentiments", value: "all" },
                             { label: "Positive", value: "positive" },
-                            { label: "Natural", value: "natural" }, // "Natural" as per image
+                            { label: "Neutral", value: "neutral" },
                             { label: "Negative", value: "negative" },
                         ]}
                     />
@@ -309,34 +239,36 @@ export default function ReviewPage() {
 
             {/* Review List */}
             <div className="space-y-4 min-h-[400px]">
-                {currentReviews.length > 0 ? (
-                    currentReviews.map((review) => (
+                {isLoading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="size-8 text-blue-600 animate-spin" />
+                    </div>
+                ) : currentReviews.length > 0 ? (
+                    currentReviews.map((review, idx) => (
                         <div
-                            key={review.id}
+                            key={idx}
                             onClick={() => handleCardClick(review)}
                             className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group active:scale-[0.99]"
                         >
                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                                 <div className="flex gap-3">
-                                    {review.avatar ? (
-                                        <img src={review.avatar} alt={review.user} className="size-10 sm:size-12 rounded-full object-cover shrink-0" />
-                                    ) : (
-                                        <div className={cn("size-10 sm:size-12 rounded-full flex items-center justify-center text-sm font-bold shrink-0", review.color)}>
-                                            {review.initials}
-                                        </div>
-                                    )}
+                                    <div className={cn(
+                                        "size-10 sm:size-12 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
+                                        "bg-blue-100 text-blue-600"
+                                    )}>
+                                        {review.author.charAt(0)}
+                                    </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-col gap-1">
                                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                                <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{review.user}</h3>
+                                                <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{review.author}</h3>
                                                 <div className="flex items-center gap-0.5 shrink-0">
                                                     {[...Array(5)].map((_, i) => (
                                                         <Star
                                                             key={i}
                                                             className={cn(
                                                                 "size-3.5",
-                                                                i < Math.floor(review.rating) ? "fill-amber-400 text-amber-400" :
-                                                                    (i === Math.floor(review.rating) && review.rating % 1 !== 0) ? "fill-amber-400 text-amber-400 opacity-50" : "text-gray-200"
+                                                                i < Math.floor(review.rating) ? "fill-amber-400 text-amber-400" : "text-gray-200"
                                                             )}
                                                         />
                                                     ))}
@@ -353,35 +285,29 @@ export default function ReviewPage() {
                                 <div className="flex flex-wrap gap-2 sm:justify-end">
                                     <span className={cn(
                                         "px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-medium flex items-center gap-1.5",
-                                        review.sentiment === "positive" ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"
+                                        review.sentiment.toLowerCase() === "positive" ? "bg-green-50 text-green-600 border border-green-100" : 
+                                        review.sentiment.toLowerCase() === "negative" ? "bg-red-50 text-red-600 border border-red-100" :
+                                        "bg-gray-50 text-gray-600 border border-gray-100"
                                     )}>
-                                        {review.sentiment === "positive" ? <ThumbsUp className="size-3" /> : <ThumbsDown className="size-3" />}
+                                        {review.sentiment.toLowerCase() === "positive" ? <ThumbsUp className="size-3" /> : <ThumbsDown className="size-3" />}
                                         <span className="capitalize">{review.sentiment}</span>
-                                    </span>
-                                    <span className={cn(
-                                        "px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-medium flex items-center gap-1.5",
-                                        review.status === "Replied" ? "bg-amber-50 text-amber-600 border border-amber-100" : "bg-orange-50 text-orange-600 border border-orange-100"
-                                    )}>
-                                        {review.status === "Replied" ? <CheckCircleIcon className="size-3" /> : <AlertCircle className="size-3" />}
-                                        {review.status}
                                     </span>
                                 </div>
                             </div>
 
                             <p className="mt-4 text-[13px] sm:text-sm text-gray-600 leading-relaxed font-medium line-clamp-3 sm:line-clamp-none">
-                                {review.content}
+                                {review.text}
                             </p>
 
                             <div className="mt-4 flex flex-wrap gap-2">
-                                {review.tags.map((tag: string, i: number) => (
-                                    <span key={i} className={cn(
-                                        "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors",
-                                        tag === "Quality" ? "bg-blue-50 text-blue-600 hover:bg-blue-100" :
-                                            tag === "Service" ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" :
-                                                tag === "Atmosphere" ? "bg-cyan-50 text-cyan-600 hover:bg-cyan-100" :
-                                                    "bg-purple-50 text-purple-600 hover:bg-purple-100"
-                                    )}>
-                                        {tag}
+                                {review.emotions.map((emotion, i) => (
+                                    <span key={i} className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-purple-50 text-purple-600">
+                                        {emotion}
+                                    </span>
+                                ))}
+                                {review.strengths.slice(0, 3).map((strength, i) => (
+                                    <span key={i} className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-blue-50 text-blue-600">
+                                        {strength}
                                     </span>
                                 ))}
                             </div>

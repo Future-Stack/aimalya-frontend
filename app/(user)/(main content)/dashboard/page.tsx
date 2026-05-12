@@ -1,7 +1,11 @@
 "use client";
 
 import React from "react";
-import { Star, ThumbsUp, MessageSquare, Reply, TrendingUp, TrendingDown, AlertCircle, CheckCircle } from "lucide-react";
+import { Star, ThumbsUp, MessageSquare, Reply, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { useGetProfileQuery } from "@/redux/api/BE/user/profileApi";
+import { useGetDashboardOverviewQuery } from "@/redux/api/AI/dashboardApi";
+import { useSelector } from "react-redux";
+import { getUserIdFromToken } from "@/utils/authUtils";
 import {
     AreaChart,
     Area,
@@ -52,12 +56,38 @@ const keyStrengths = [
 ];
 
 export default function DashboardPage() {
+    const { data: profileData } = useGetProfileQuery();
+    const user = profileData?.data;
+    const userId = getUserIdFromToken();
+    const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
+
+    const { data: dashboardData, isLoading: isLoadingDashboard } = useGetDashboardOverviewQuery(
+        { 
+            userId: userId || "", 
+            businessName: selectedBusiness || "", 
+            address: selectedAddress || "" 
+        },
+        { skip: !userId || !selectedBusiness || !selectedAddress }
+    );
+
+    const overview = dashboardData?.overview;
+    const sentimentTrend = dashboardData?.sentiment_trend || [];
+    const performanceCriteria = dashboardData?.performance_criteria;
+
+    if (isLoadingDashboard) {
+        return (
+            <div className="flex h-[60vh] items-center justify-center">
+                <Loader2 className="size-8 text-blue-600 animate-spin" />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6 pb-8">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Welcome back, Rogers</h1>
-                <p className="text-gray-500">Softvence Shop - Overview Dashboard</p>
+                <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name || "User"}</h1>
+                <p className="text-gray-500">{selectedBusiness || "Select a Business"} - {selectedAddress || "Overview Dashboard"}</p>
             </div>
 
             {/* Stats Cards */}
@@ -67,7 +97,7 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-sm font-medium text-gray-500">Overall Rating</p>
-                            <h3 className="text-3xl font-bold text-gray-900 mt-2">4.6</h3>
+                            <h3 className="text-3xl font-bold text-gray-900 mt-2">{overview?.overall_rating || "0.0"}</h3>
                         </div>
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                             <Star className="size-5 fill-blue-600" />
@@ -75,7 +105,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center mt-4 text-xs font-medium text-green-600">
                         <TrendingUp className="size-3 mr-1" />
-                        <span>+0.2</span>
+                        <span>+0.0</span>
                         <span className="text-gray-400 ml-1">vs last month</span>
                     </div>
                 </div>
@@ -85,7 +115,7 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-sm font-medium text-gray-500">Satisfaction Index</p>
-                            <h3 className="text-3xl font-bold text-gray-900 mt-2">87%</h3>
+                            <h3 className="text-3xl font-bold text-gray-900 mt-2">{overview?.satisfaction_index || "0"}%</h3>
                         </div>
                         <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                             <ThumbsUp className="size-5" />
@@ -93,7 +123,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center mt-4 text-xs font-medium text-green-600">
                         <TrendingUp className="size-3 mr-1" />
-                        <span>+5%</span>
+                        <span>+0%</span>
                         <span className="text-gray-400 ml-1">vs last month</span>
                     </div>
                 </div>
@@ -103,7 +133,7 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-sm font-medium text-gray-500">Review Volume</p>
-                            <h3 className="text-3xl font-bold text-gray-900 mt-2">234</h3>
+                            <h3 className="text-3xl font-bold text-gray-900 mt-2">{overview?.review_volume || "0"}</h3>
                         </div>
                         <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
                             <MessageSquare className="size-5" />
@@ -111,7 +141,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex items-center mt-4 text-xs font-medium text-green-600">
                         <TrendingUp className="size-3 mr-1" />
-                        <span>+18</span>
+                        <span>+0</span>
                         <span className="text-gray-400 ml-1">vs last month</span>
                     </div>
                 </div>
@@ -121,15 +151,15 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-sm font-medium text-gray-500">Response Rate</p>
-                            <h3 className="text-3xl font-bold text-gray-900 mt-2">68%</h3>
+                            <h3 className="text-3xl font-bold text-gray-900 mt-2">{overview?.response_rate || "0"}%</h3>
                         </div>
                         <div className="p-2 bg-rose-50 text-rose-600 rounded-lg">
                             <Reply className="size-5" />
                         </div>
                     </div>
-                    <div className="flex items-center mt-4 text-xs font-medium text-red-500">
-                        <TrendingDown className="size-3 mr-1" />
-                        <span>-5%</span>
+                    <div className="flex items-center mt-4 text-xs font-medium text-green-500">
+                        <TrendingUp className="size-3 mr-1" />
+                        <span>0%</span>
                         <span className="text-gray-400 ml-1">vs last month</span>
                     </div>
                 </div>
@@ -150,7 +180,7 @@ export default function DashboardPage() {
 
                 <div className="h-[350px] w-full mt-4">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={sentimentData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <AreaChart data={sentimentTrend.length > 0 ? sentimentTrend : sentimentData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorPositive" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#10B981" stopOpacity={0.1} />
@@ -167,7 +197,7 @@ export default function DashboardPage() {
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis
-                                dataKey="month"
+                                dataKey="period"
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fill: '#64748b', fontSize: 12, fontWeight: 500 }}
@@ -231,20 +261,17 @@ export default function DashboardPage() {
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Performance by Criteria</h3>
                 <div className="space-y-6">
-                    {performanceData.map((item) => (
-                        <div key={item.label} className="grid grid-cols-[100px_1fr_60px_60px] gap-4 items-center text-sm">
-                            <span className="font-medium text-gray-700">{item.label}</span>
+                    {(performanceCriteria ? Object.entries(performanceCriteria) : performanceData.map(d => [d.label, d.value])).map(([label, value]: any) => (
+                        <div key={label} className="grid grid-cols-[100px_1fr_60px_60px] gap-4 items-center text-sm">
+                            <span className="font-medium text-gray-700">{label}</span>
                             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-blue-600 rounded-full"
-                                    style={{ width: `${(item.value / 5) * 100}%` }}
+                                    style={{ width: `${(value / 5) * 100}%` }}
                                 />
                             </div>
-                            <span className="font-bold text-gray-900 text-right">{item.value}</span>
-                            <span className={cn(
-                                "text-xs text-right font-medium",
-                                item.change.startsWith('+') ? "text-green-500" : "text-red-500"
-                            )}>{item.change}</span>
+                            <span className="font-bold text-gray-900 text-right">{value}</span>
+                            <span className="text-xs text-right font-medium text-green-500">+0.0</span>
                         </div>
                     ))}
                 </div>
@@ -259,31 +286,24 @@ export default function DashboardPage() {
                         <h3 className="text-lg font-semibold text-gray-900">Key Issues</h3>
                     </div>
                     <div className="space-y-4">
-                        {keyIssues.map((issue, i) => (
+                        {(overview?.key_issues || []).map((issue: any, i: number) => (
                             <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-900">{issue.label}</p>
+                                    <p className="text-sm font-medium text-gray-900">{issue.issue}</p>
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-xs text-gray-500">{issue.mentions} mentions</span>
-                                        <span className={cn(
-                                            "text-[10px] px-2 py-0.5 rounded-full font-medium",
-                                            issue.severity === 'High' ? "bg-red-100 text-red-600" :
-                                                issue.severity === 'Medium' ? "bg-amber-100 text-amber-600" :
-                                                    "bg-gray-200 text-gray-600"
-                                        )}>
-                                            {issue.severity}
+                                        <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-medium">
+                                            High
                                         </span>
                                     </div>
                                 </div>
-                                <div className={cn(
-                                    "flex items-center text-xs font-medium",
-                                    issue.trend === 'up' ? "text-red-500" : "text-green-500"
-                                )}>
-                                    {issue.trend === 'up' ? <TrendingUp className="size-3 mr-1" /> : <TrendingDown className="size-3 mr-1" />}
-                                    {issue.change}
+                                <div className="flex items-center text-xs font-medium text-red-500">
+                                    <TrendingUp className="size-3 mr-1" />
+                                    15%
                                 </div>
                             </div>
                         ))}
+                        {!overview?.key_issues?.length && <p className="text-sm text-gray-500 text-center py-4">No significant issues found.</p>}
                     </div>
                 </div>
 
@@ -294,20 +314,18 @@ export default function DashboardPage() {
                         <h3 className="text-lg font-semibold text-gray-900">Key Strengths</h3>
                     </div>
                     <div className="space-y-4">
-                        {keyStrengths.map((strength, i) => (
+                        {(overview?.key_strengths || []).map((strength: any, i: number) => (
                             <div key={i} className="flex items-center justify-between p-3 bg-green-50/50 rounded-xl hover:bg-green-50 transition-colors">
                                 <div>
-                                    <p className="text-sm font-medium text-gray-900">{strength.label}</p>
+                                    <p className="text-sm font-medium text-gray-900 capitalize">{strength.strength}</p>
                                     <p className="text-xs text-gray-500 mt-1">{strength.mentions} mentions</p>
                                 </div>
-                                <div className={cn(
-                                    "flex items-center text-xs font-medium",
-                                    strength.trend === 'up' ? "text-green-600" : "text-red-500"
-                                )}>
+                                <div className="flex items-center text-xs font-medium text-green-600">
                                     <TrendingUp className="size-3 mr-1" />
                                 </div>
                             </div>
                         ))}
+                        {!overview?.key_strengths?.length && <p className="text-sm text-gray-500 text-center py-4">No specific strengths listed.</p>}
                     </div>
                 </div>
             </div>

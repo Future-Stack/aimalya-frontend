@@ -17,6 +17,10 @@ import {
     Pencil
 } from "lucide-react";
 import StylishDropdown from "@/components/ui/StylishDropdown";
+import { useFetchBusinessDataMutation, useSetGoalsMutation } from "@/redux/api/AI/signupflowApi";
+import { getUserIdFromToken } from "@/utils/authUtils";
+
+// --- Helpers ---
 
 // --- Types ---
 
@@ -126,7 +130,7 @@ const StepConnect = ({ onNext, onBack }: { onNext: () => void, onBack: () => voi
     </div>
 );
 
-const StepStructure = ({ businesses, setBusinesses, onNext, onBack }: { businesses: Business[], setBusinesses: React.Dispatch<React.SetStateAction<Business[]>>, onNext: () => void, onBack: () => void }) => {
+const StepStructure = ({ businesses, setBusinesses, onNext, onBack, isLoading }: { businesses: Business[], setBusinesses: React.Dispatch<React.SetStateAction<Business[]>>, onNext: () => void, onBack: () => void, isLoading: boolean }) => {
     const addBusiness = () => {
         setBusinesses([...businesses, { id: Date.now().toString(), name: '', category: '', locations: [{ id: Date.now().toString() + 'l', name: '', address: '' }] }]);
     };
@@ -263,8 +267,8 @@ const StepStructure = ({ businesses, setBusinesses, onNext, onBack }: { business
                 <button onClick={onBack} className="cursor-pointer px-8 py-3 rounded-xl border border-zinc-200 text-zinc-600 font-bold hover:bg-zinc-50 transition-all text-[14px]">
                     Back
                 </button>
-                <button onClick={onNext} className="cursor-pointer bg-auth-subtitle-color text-white px-10 py-3 rounded-xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 text-[14px]">
-                    Continue
+                <button onClick={onNext} disabled={isLoading} className="cursor-pointer bg-auth-subtitle-color text-white px-10 py-3 rounded-xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 text-[14px] disabled:opacity-50">
+                    {isLoading ? "Saving..." : "Continue"}
                 </button>
             </div>
         </div>
@@ -278,7 +282,8 @@ const StepGoal = ({
     onNext,
     onBack,
     savedGoals,
-    setSavedGoals
+    setSavedGoals,
+    isLoading
 }: {
     goals: any,
     setGoals: (g: any) => void,
@@ -286,7 +291,8 @@ const StepGoal = ({
     onNext: () => void,
     onBack: () => void,
     savedGoals: any[],
-    setSavedGoals: (g: any[]) => void
+    setSavedGoals: (g: any[]) => void,
+    isLoading: boolean
 }) => {
     const handleSave = () => {
         if (!goals.businessName) return;
@@ -347,12 +353,12 @@ const StepGoal = ({
                         </div>
 
                         <div>
-                            <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Competitors (Optional)</label>
+                            <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Competitors Google Maps URLs (Optional)</label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="Enter competitor names, separated by commas"
+                                    placeholder="Enter competitor Google Maps URLs, separated by commas"
                                     className="w-full h-12 bg-white border border-zinc-200 focus:bg-white focus:border-auth-subtitle-color rounded-xl pl-12 pr-4 text-[14px] outline-none transition-all placeholder:text-zinc-400"
                                     value={goals.competitors}
                                     onChange={(e) => setGoals({ ...goals, competitors: e.target.value })}
@@ -380,9 +386,9 @@ const StepGoal = ({
                             <StylishDropdown
                                 multiSelect
                                 options={[
-                                    { label: "Improve customer satisfaction", value: "Improve customer satisfaction" },
-                                    { label: "Increase review volume", value: "Increase review volume" },
-                                    { label: "Monitor competitors", value: "Monitor competitors" }
+                                    { label: "Improve customer satisfaction", value: "improve_customer_satisfaction" },
+                                    { label: "Improve service speed", value: "improve_service_speed" },
+                                    { label: "Increase ratings", value: "increase_ratings" }
                                 ]}
                                 value={goals.selectedGoals}
                                 onChange={(val) => setGoals({ ...goals, selectedGoals: val as string[] })}
@@ -411,9 +417,10 @@ const StepGoal = ({
                     </button>
                     <button
                         onClick={onNext}
-                        className="bg-auth-subtitle-color text-white px-10 py-3 rounded-xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 text-[14px] cursor-pointer"
+                        disabled={isLoading}
+                        className="bg-auth-subtitle-color text-white px-10 py-3 rounded-xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 text-[14px] cursor-pointer disabled:opacity-50"
                     >
-                        Start Analysis
+                        {isLoading ? "Starting Analysis..." : "Start Analysis"}
                     </button>
                 </div>
             </div>
@@ -470,13 +477,15 @@ const StepGoal = ({
     );
 };
 
-const StepSync = ({ router }: { router: any }) => {
+const StepSync = ({ router, isLoading }: { router: any, isLoading: boolean }) => {
     useEffect(() => {
-        const timer = setTimeout(() => {
-            router.push('/login');
-        }, 4000);
-        return () => clearTimeout(timer);
-    }, [router]);
+        if (!isLoading) {
+            const timer = setTimeout(() => {
+                router.push('/dashboard');
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [router, isLoading]);
 
     return (
         <div className="text-center py-10">
@@ -522,6 +531,90 @@ export default function AccountSetupPage() {
         selectedGoals: [] as string[]
     });
     const [savedGoals, setSavedGoals] = useState<any[]>([]);
+    
+    // Mutations
+    const [fetchBusinessData, { isLoading: isFetchingBusiness }] = useFetchBusinessDataMutation();
+    const [setGoalsApi, { isLoading: isSettingGoals }] = useSetGoalsMutation();
+
+    const handleStep3Next = async () => {
+        const userId = getUserIdFromToken();
+        if (!userId) {
+            alert("Session expired. Please login again.");
+            router.push("/login");
+            return;
+        }
+
+        const payload = {
+            user_id: userId,
+            businesses: businesses.map(b => ({
+                name: b.name,
+                category: b.category.toLowerCase(),
+                locations: b.locations.map(l => ({
+                    address_or_city: l.address,
+                    google_maps_url: l.name
+                }))
+            }))
+        };
+
+        try {
+            await fetchBusinessData(payload).unwrap();
+            setStep(4);
+        } catch (err: any) {
+            console.error("Error fetching business data:", err);
+            const errorMessage = err?.data?.detail?.[0]?.msg || err?.data?.message || err?.message || "Failed to save business data. Please try again.";
+            alert(errorMessage);
+        }
+    };
+
+    const handleStep4Next = async () => {
+        if (savedGoals.length === 0) {
+            alert("Please save at least one goal.");
+            return;
+        }
+
+        const userId = getUserIdFromToken();
+        if (!userId) return;
+
+        setStep(5);
+
+        try {
+            // Goal mapping fallback to ensure snake_case
+            const goalMapping: { [key: string]: string } = {
+                "Improve customer satisfaction": "improve_customer_satisfaction",
+                "Increase review volume": "increase_ratings",
+                "Monitor competitors": "monitor_competitors",
+                "Improve service speed": "improve_service_speed",
+                "Increase ratings": "increase_ratings"
+            };
+
+            const businessesPayload = savedGoals.map(goal => ({
+                business_name: goal.businessName,
+                competitors_urls: goal.competitors.split(',')
+                    .map((c: string) => c.trim())
+                    .filter((c: string) => c !== "")
+                    .map((c: string) => c.replace(/^https?:\/\//, '')), // Strip http:// and https://
+                goals: goal.selectedGoals.map((g: string) => goalMapping[g] || g)
+            }));
+
+            const payload = {
+                businesses: businessesPayload,
+                user_id: userId
+            };
+
+            console.log("Sending bulk goals payload:", JSON.stringify(payload, null, 2));
+            await setGoalsApi(payload).unwrap();
+            
+            router.push("/dashboard");
+        } catch (err: any) {
+            console.error("Error setting goals:", err);
+            const detail = err?.data?.detail;
+            const errorMessage = typeof detail === 'string' 
+                ? detail 
+                : detail?.[0]?.msg || err?.data?.message || err?.message || "Failed to save goals. Please try again.";
+            alert(errorMessage);
+            setStep(4);
+        }
+    };
 
     return (
         <div className="min-h-screen w-full relative content-center flex items-center justify-center overflow-hidden bg-[#E0F2FE]">
@@ -553,8 +646,9 @@ export default function AccountSetupPage() {
                         <StepStructure
                             businesses={businesses}
                             setBusinesses={setBusinesses}
-                            onNext={() => setStep(4)}
+                            onNext={handleStep3Next}
                             onBack={() => setStep(2)}
+                            isLoading={isFetchingBusiness}
                         />
                     )}
                     {step === 4 && (
@@ -562,13 +656,14 @@ export default function AccountSetupPage() {
                             goals={goals}
                             setGoals={setGoals}
                             businesses={businesses}
-                            onNext={() => setStep(5)}
+                            onNext={handleStep4Next}
                             onBack={() => setStep(3)}
                             savedGoals={savedGoals}
                             setSavedGoals={setSavedGoals}
+                            isLoading={isSettingGoals}
                         />
                     )}
-                    {step === 5 && <StepSync router={router} />}
+                    {step === 5 && <StepSync router={router} isLoading={isSettingGoals} />}
                 </div>
             </div>
         </div>
