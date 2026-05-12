@@ -69,15 +69,26 @@ export default function Sidebar() {
         { skip: !userId || !selectedShop }
     );
 
-    const shopOptions = useMemo(() => namesData?.business_names.map((name) => ({
-        label: name,
-        value: name,
-    })) || [], [namesData]);
+    const shopOptions = useMemo(() => {
+        const names = namesData?.business_names || [];
+        const uniqueNames = Array.from(new Set(names));
+        return uniqueNames.map((name) => ({
+            label: name,
+            value: name,
+        }));
+    }, [namesData]);
 
-    const locationOptions = useMemo(() => locationsData?.locations.map((loc) => ({
-        label: loc.address_or_city,
-        value: loc.google_maps_url,
-    })) || [], [locationsData]);
+    const locationOptions = useMemo(() => {
+        const locations = locationsData?.locations || [];
+        // Filter unique by google_maps_url to avoid duplicate keys in dropdown
+        const uniqueLocations = locations.filter((loc, index, self) =>
+            index === self.findIndex((t) => t.google_maps_url === loc.google_maps_url)
+        );
+        return uniqueLocations.map((loc) => ({
+            label: loc.address_or_city,
+            value: loc.google_maps_url,
+        }));
+    }, [locationsData]);
 
     useEffect(() => {
         if (shopOptions.length > 0 && !selectedShop) {
