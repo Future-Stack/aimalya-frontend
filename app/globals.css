@@ -68,3 +68,26 @@ select {
   display: none;
   /* Chrome, Safari, Opera */
 }
+
+/* Custom thin scrollbar */
+.custom-thin-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #E2E8F0 transparent !important;
+}
+
+.custom-thin-scrollbar::-webkit-scrollbar {
+  width: 4px !important;
+}
+
+.custom-thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.custom-thin-scrollbar::-webkit-scrollbar-thumb {
+  background: #E2E8F0 !important;
+  border-radius: 10px !important;
+}
+
+.custom-thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #CBD5E1 !important;
+}

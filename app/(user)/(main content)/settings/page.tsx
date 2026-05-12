@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import {
     Building2,
     CreditCard,
@@ -26,6 +27,9 @@ import {
 import { cn } from "@/lib/utils";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import Image from "next/image";
+import { useGetProfileQuery, useUploadProfileImageMutation } from "@/redux/api/BE/user/profileApi";
+import { toast } from "react-hot-toast"; // Assuming toast is used for notifications
+import { Loader2, Camera } from "lucide-react";
 
 // Types
 type Tab = "account" | "business" | "integrations" | "notifications" | "billing";
@@ -223,6 +227,27 @@ interface SettingsProps {
 
 // 1. Account Settings
 const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsProps) => {
+    const { data: profileData } = useGetProfileQuery();
+    const [uploadImage, { isLoading: isUploading }] = useUploadProfileImageMutation();
+    const user = profileData?.data;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.split("/api/v1")[0];
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+            await uploadImage(formData).unwrap();
+            alert("Profile image updated successfully!");
+        } catch (err) {
+            console.error("Upload failed:", err);
+            alert("Failed to upload image. Please try again.");
+        }
+    };
+
     const handleSave = () => {
         console.log("Account settings saved!");
     };
@@ -232,11 +257,43 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
             <div>
                 <h2 className="text-xl font-bold text-gray-900">Account Settings</h2>
                 <div className="bg-white p-6 rounded-2xl border border-gray-200 mt-4 space-y-6">
+                    {/* Profile Image Upload */}
+                    <div className="flex flex-col items-center sm:flex-row gap-6 pb-6 border-b border-gray-100">
+                        <div className="relative group">
+                            <div className="size-24 rounded-full overflow-hidden ring-4 ring-blue-50">
+                                <img
+                                    src={user?.profileImage ? `${baseUrl}${user.profileImage}` : "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
+                                    alt="Profile"
+                                    className="size-full object-cover"
+                                />
+                            </div>
+                            {isUploading && (
+                                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+                                    <Loader2 className="size-6 text-white animate-spin" />
+                                </div>
+                            )}
+                            <label className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full text-white shadow-lg cursor-pointer hover:bg-blue-700 transition-colors">
+                                <Camera className="size-4" />
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    disabled={isUploading}
+                                />
+                            </label>
+                        </div>
+                        <div className="space-y-1 text-center sm:text-left">
+                            <h4 className="font-bold text-gray-900">Profile Picture</h4>
+                            <p className="text-sm text-gray-500">JPG, GIF or PNG. Max size of 800K</p>
+                        </div>
+                    </div>
+
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-700">Full Name</label>
                         <input
                             type="text"
-                            defaultValue="xcxxz"
+                            defaultValue={user?.name || ""}
                             className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                         />
                     </div>
@@ -244,7 +301,7 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
                         <label className="text-sm font-medium text-gray-700">Email Address</label>
                         <input
                             type="email"
-                            defaultValue="czxcc@gmail.com"
+                            defaultValue={user?.email || ""}
                             className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                         />
                     </div>
@@ -434,6 +491,8 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
 
 // 3. Integrations Settings
 const IntegrationsSettings = () => {
+    const selectedBusiness = useSelector((state: any) => state.business.selectedBusiness);
+
     return (
         <div className="space-y-6 animate-fadeIn">
             <h2 className="text-xl font-bold text-gray-900">Integrations</h2>
@@ -447,7 +506,7 @@ const IntegrationsSettings = () => {
                     </div>
                     <div>
                         <h3 className="text-sm font-bold text-gray-900">Google Business Profile</h3>
-                        <p className="text-xs text-gray-500 mt-1">Connected to: Softvence Shop</p>
+                        <p className="text-xs text-gray-500 mt-1">Connected to: {selectedBusiness || "None"}</p>
                         <div className="flex items-center gap-1.5 mt-2">
                             <span className="size-1.5 bg-green-500 rounded-full" />
                             <span className="text-xs font-medium text-green-600">Active</span>

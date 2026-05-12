@@ -28,6 +28,10 @@ import {
 import { cn } from "@/lib/utils";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import { useState, useEffect, useMemo } from "react";
+import { useGetMonthlyReportQuery } from "@/redux/api/AI/reportsApi";
+import { useSelector } from "react-redux";
+import { getUserIdFromToken } from "@/utils/authUtils";
+import { Loader2 } from "lucide-react";
 
 // Mock Data
 const volumeData = [
@@ -101,8 +105,6 @@ const getActionPlan = (index: number) => {
     return plans[index % plans.length];
 };
 
-// --- Helpers ---
-
 const getWeeks = (baseDate: Date) => {
     const weeks = [];
     for (let i = 0; i < 5; i++) {
@@ -125,7 +127,9 @@ const getWeeks = (baseDate: Date) => {
             name: `Weekly Report: ${monday.getDate()} ${monthNames[monday.getMonth()]}`,
             label,
             generated,
-            date: new Date(monday)
+            date: new Date(monday),
+            startDate: monday.toISOString().split('T')[0],
+            endDate: sunday.toISOString().split('T')[0],
         });
     }
     return weeks;
@@ -138,6 +142,8 @@ const getMonths = (baseDate: Date) => {
 
     for (let i = 0; i < 5; i++) {
         const date = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1);
+        const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        
         const name = `${monthNamesLong[date.getMonth()]} ${date.getFullYear()} Monthly Report`;
         const generated = `${monthNamesShort[(date.getMonth() - 1 + 12) % 12]} ${date.getFullYear()}`;
 
@@ -145,13 +151,18 @@ const getMonths = (baseDate: Date) => {
             name,
             label: `${monthNamesLong[date.getMonth()]} ${date.getFullYear()}`,
             generated,
-            date: new Date(date)
+            date: new Date(date),
+            startDate: date.toISOString().split('T')[0],
+            endDate: lastDay.toISOString().split('T')[0],
         });
     }
     return months;
 };
 
 export default function ReportsPage() {
+    const userId = getUserIdFromToken();
+    const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
+
     const [viewMode, setViewMode] = useState<"Weekly" | "Monthly">("Monthly");
     const [baseDate, setBaseDate] = useState(new Date());
     const [activeIndex, setActiveIndex] = useState(0);
@@ -162,36 +173,27 @@ export default function ReportsPage() {
 
     const activeReport = timeframes[activeIndex] || timeframes[0];
 
-    // Dynamic Data based on activeIndex and viewMode
-    const dynamicVolumeData = useMemo(() => {
-        const baseVolume = 70 + (activeIndex * 5);
-        return [
-            { label: viewMode === "Weekly" ? "Day 1-2" : "Week 1", volume: baseVolume - 5 },
-            { label: viewMode === "Weekly" ? "Day 3-4" : "Week 2", volume: baseVolume + 10 },
-            { label: viewMode === "Weekly" ? "Day 5-6" : "Week 3", volume: baseVolume + 5 },
-            { label: viewMode === "Weekly" ? "Weekend" : "Week 4", volume: baseVolume + 20 },
-        ];
-    }, [activeIndex, viewMode]);
-
-    const dynamicRatingData = useMemo(() => {
-        const baseRating = 4.4 + (activeIndex * 0.05);
-        return [
-            { label: viewMode === "Weekly" ? "Day 1-2" : "Week 1", rating: baseRating },
-            { label: viewMode === "Weekly" ? "Day 3-4" : "Week 2", rating: baseRating + 0.1 },
-            { label: viewMode === "Weekly" ? "Day 5-6" : "Week 3", rating: baseRating + 0.2 },
-            { label: viewMode === "Weekly" ? "Weekend" : "Week 4", rating: baseRating + 0.1 },
-        ];
-    }, [activeIndex, viewMode]);
+    const { data: reportData, isLoading } = useGetMonthlyReportQuery(
+        {
+            userId: userId || "",
+            businessName: selectedBusiness || "",
+            reportFrequency: viewMode.toLowerCase() as "weekly" | "monthly",
+            startDate: activeReport?.startDate,
+            endDate: activeReport?.endDate,
+            address: selectedAddress || "",
+        },
+        { skip: !userId || !selectedBusiness || !activeReport }
+    );
 
     const dynamicStats = useMemo(() => {
-        const seed = activeIndex + (viewMode === "Weekly" ? 10 : 0);
+        const kpis = reportData?.kpis;
         return [
-            { label: "Avg. Rating", value: (4.4 + (seed % 5) * 0.1).toFixed(1), trend: "+0.2 vs prev", color: "text-green-600" },
-            { label: "Reviews", value: (200 + (seed % 10) * 15).toString(), trend: "+18 vs prev", color: "text-green-600" },
-            { label: "Satisfaction", value: (80 + (seed % 8) * 2).toString() + "%", trend: "+5% vs prev", color: "text-green-600" },
-            { label: "Response Rate", value: (60 + (seed % 6) * 5).toString() + "%", trend: "-5% vs prev", color: "text-red-500" },
+            { label: "Avg. Rating", value: kpis?.avg_rating.value?.toFixed(1) || "0.0", trend: kpis?.avg_rating.change ? `${kpis.avg_rating.change > 0 ? '+' : ''}${kpis.avg_rating.change} vs prev` : "No data", color: (kpis?.avg_rating.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
+            { label: "Reviews", value: kpis?.reviews.value?.toString() || "0", trend: kpis?.reviews.change ? `${kpis.reviews.change > 0 ? '+' : ''}${kpis.reviews.change} vs prev` : "No data", color: (kpis?.reviews.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
+            { label: "Satisfaction", value: (kpis?.satisfaction.value || 0).toString() + "%", trend: kpis?.satisfaction.change ? `${kpis.satisfaction.change > 0 ? '+' : ''}${kpis.satisfaction.change}% vs prev` : "No data", color: (kpis?.satisfaction.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
+            { label: "Response Rate", value: (kpis?.response_rate.value || 0).toString() + "%", trend: kpis?.response_rate.change ? `${kpis.response_rate.change > 0 ? '+' : ''}${kpis.response_rate.change}% vs prev` : "No data", color: (kpis?.response_rate.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
         ];
-    }, [activeIndex, viewMode]);
+    }, [reportData]);
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 pb-12">
@@ -332,39 +334,45 @@ export default function ReportsPage() {
                     <div>
                         <h3 className="font-bold text-gray-900 mb-3">1. Executive Summary</h3>
                         <div className="bg-blue-50/50 p-4 rounded-xl text-sm text-blue-900 leading-relaxed border border-blue-100">
-                            The report for the period of {activeReport.label} shows {dynamicStats[2].value} customer satisfaction. Total review volume reached {dynamicStats[1].value} reviews. The overall rating of {dynamicStats[0].value} reflects consistent performance. Key areas requiring attention include response rate optimization and peak hour service speed.
+                            {isLoading ? "Analyzing report data..." : reportData?.executive_summary || "No data available for this period."}
                         </div>
                     </div>
 
                     {/* Charts */}
                     <div>
                         <h3 className="font-bold text-gray-900 mb-4">2. Review Volume & Rating Trends</h3>
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div className="h-48 w-full">
-                                <p className="text-xs text-gray-500 mb-2">Review Volume by {viewMode === "Weekly" ? "Period" : "Week"}</p>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={dynamicVolumeData}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                        <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                        <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                                        <Bar dataKey="volume" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
-                                    </BarChart>
-                                </ResponsiveContainer>
+                        {isLoading ? (
+                            <div className="h-48 flex items-center justify-center">
+                                <Loader2 className="size-6 text-blue-600 animate-spin" />
                             </div>
-                            <div className="h-48 w-full">
-                                <p className="text-xs text-gray-500 mb-2">Rating Trend</p>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={dynamicRatingData}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                        <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                        <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                                        <Line type="monotone" dataKey="rating" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} />
-                                    </LineChart>
-                                </ResponsiveContainer>
+                        ) : (
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="h-48 w-full">
+                                    <p className="text-xs text-gray-500 mb-2">Review Volume by {viewMode === "Weekly" ? "Period" : "Week"}</p>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={reportData?.review_volume_trend || []}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                            <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                            <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                                            <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="h-48 w-full">
+                                    <p className="text-xs text-gray-500 mb-2">Rating Trend</p>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={reportData?.rating_trend || []}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                            <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                            <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                                            <Line type="monotone" dataKey="rating" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Sentiment Breakdown */}
@@ -373,18 +381,18 @@ export default function ReportsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="p-4 bg-green-50 rounded-xl">
                                 <p className="text-xs font-bold text-green-700">Positive</p>
-                                <p className="text-2xl font-bold text-green-900 mt-1">80%</p>
-                                <p className="text-[10px] text-green-600 mt-1">188 reviews</p>
+                                <p className="text-2xl font-bold text-green-900 mt-1">{reportData?.sentiment_breakdown.positive.percent || 0}%</p>
+                                <p className="text-[10px] text-green-600 mt-1">{reportData?.sentiment_breakdown.positive.count || 0} reviews</p>
                             </div>
                             <div className="p-4 bg-gray-50 rounded-xl">
                                 <p className="text-xs font-bold text-gray-600">Neutral</p>
-                                <p className="text-2xl font-bold text-gray-800 mt-1">15%</p>
-                                <p className="text-[10px] text-gray-500 mt-1">35 reviews</p>
+                                <p className="text-2xl font-bold text-gray-800 mt-1">{reportData?.sentiment_breakdown.neutral.percent || 0}%</p>
+                                <p className="text-[10px] text-gray-500 mt-1">{reportData?.sentiment_breakdown.neutral.count || 0} reviews</p>
                             </div>
                             <div className="p-4 bg-red-50 rounded-xl">
                                 <p className="text-xs font-bold text-red-700">Negative</p>
-                                <p className="text-2xl font-bold text-red-900 mt-1">5%</p>
-                                <p className="text-[10px] text-red-600 mt-1">11 reviews</p>
+                                <p className="text-2xl font-bold text-red-900 mt-1">{reportData?.sentiment_breakdown.negative.percent || 0}%</p>
+                                <p className="text-[10px] text-red-600 mt-1">{reportData?.sentiment_breakdown.negative.count || 0} reviews</p>
                             </div>
                         </div>
                     </div>
@@ -394,23 +402,29 @@ export default function ReportsPage() {
                         <div>
                             <h3 className="font-bold text-gray-900 mb-3">4. Top Complaints</h3>
                             <div className="space-y-2">
-                                {complaints.map((item, i) => (
-                                    <div key={i} className="flex justify-between p-3 bg-red-50/50 rounded-lg text-sm">
-                                        <span className="font-semibold text-gray-800">{item.label}</span>
-                                        <span className="text-gray-500">{item.count}</span>
-                                    </div>
-                                ))}
+                                {reportData?.top_complaints && reportData.top_complaints.length > 0 ? (
+                                    reportData.top_complaints.map((item, i) => (
+                                        <div key={i} className="flex justify-between p-3 bg-red-50/50 rounded-lg text-sm">
+                                            <span className="font-semibold text-gray-800">{item}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-3 text-sm text-gray-400 italic">No major complaints reported.</div>
+                                )}
                             </div>
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900 mb-3">5. Top Praises</h3>
                             <div className="space-y-2">
-                                {praises.map((item, i) => (
-                                    <div key={i} className="flex justify-between p-3 bg-green-50/50 rounded-lg text-sm">
-                                        <span className="font-semibold text-gray-800">{item.label}</span>
-                                        <span className="text-gray-500">{item.count}</span>
-                                    </div>
-                                ))}
+                                {reportData?.top_praises && reportData.top_praises.length > 0 ? (
+                                    reportData.top_praises.map((item, i) => (
+                                        <div key={i} className="flex justify-between p-3 bg-green-50/50 rounded-lg text-sm">
+                                            <span className="font-semibold text-gray-800">{item}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-3 text-sm text-gray-400 italic">No major praises reported.</div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -419,12 +433,17 @@ export default function ReportsPage() {
                     <div>
                         <h3 className="font-bold text-gray-900 mb-3">6. AI Recommendations</h3>
                         <div className="space-y-3">
-                            {getRecommendations(activeIndex).map((rec, i) => (
-                                <div key={i} className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
-                                    <h4 className="text-sm font-bold text-blue-900">{rec.title}</h4>
-                                    <p className="text-xs text-blue-800/80 mt-1 leading-relaxed">{rec.description}</p>
-                                </div>
-                            ))}
+                            {reportData?.ai_recommendations && reportData.ai_recommendations.length > 0 ? (
+                                reportData.ai_recommendations.map((rec, i) => (
+                                    <div key={i} className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
+                                        <h4 className="text-sm font-bold text-blue-900">{rec.title}</h4>
+                                        <p className="text-xs text-blue-800/80 mt-1 leading-relaxed">{rec.description}</p>
+                                        <p className="text-[10px] font-bold text-blue-600 mt-2 uppercase tracking-wider">{rec.estimated_impact}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-400 italic text-center">No recommendations available.</div>
+                            )}
                         </div>
                     </div>
 
@@ -432,14 +451,18 @@ export default function ReportsPage() {
                     <div>
                         <h3 className="font-bold text-gray-900 mb-3">7. Recommended Action Plan</h3>
                         <div className="space-y-2">
-                            {getActionPlan(activeIndex).map((step, i) => (
-                                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                                    <div className="flex items-center justify-center size-5 rounded-full bg-blue-600 text-white text-xs flex-shrink-0">
-                                        {i + 1}
+                            {reportData?.action_plan && reportData.action_plan.length > 0 ? (
+                                reportData.action_plan.map((step, i) => (
+                                    <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                                        <div className="flex items-center justify-center size-5 rounded-full bg-blue-600 text-white text-xs flex-shrink-0">
+                                            {i + 1}
+                                        </div>
+                                        <span className="text-sm text-gray-700 font-medium">{step}</span>
                                     </div>
-                                    <span className="text-sm text-gray-700 font-medium">{step}</span>
-                                </div>
-                            ))}
+                                ))
+                            ) : (
+                                <div className="p-3 text-sm text-gray-400 italic text-center bg-gray-50 rounded-xl">No action plan generated.</div>
+                            )}
                         </div>
                     </div>
 
