@@ -29,8 +29,8 @@ export interface ReportResponse {
     neutral: { percent: number; count: number };
     negative: { percent: number; count: number };
   };
-  top_complaints: string[];
-  top_praises: string[];
+  top_complaints: { issue?: string; complaint?: string; mentions?: number }[];
+  top_praises: { strength?: string; praise?: string; mentions?: number }[];
   ai_recommendations: { title: string; description: string; estimated_impact: string }[];
   action_plan: string[];
   business_goals: string[];

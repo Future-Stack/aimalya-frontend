@@ -25,6 +25,7 @@ interface StylishDropdownProps {
     multiSelect?: boolean;
     selectedColor?: string; // Color for selected text and checkbox
     selectedBgColor?: string; // Background color for selected items
+    disabled?: boolean;
 }
 
 const StylishDropdown = ({
@@ -36,7 +37,8 @@ const StylishDropdown = ({
     className,
     multiSelect = false,
     selectedColor = "#0066FF",
-    selectedBgColor = "rgb(239 246 255)"
+    selectedBgColor = "rgb(239 246 255)",
+    disabled = false
 }: StylishDropdownProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -85,10 +87,14 @@ const StylishDropdown = ({
         <div className={cn("relative w-full", className)} ref={dropdownRef}>
             <button
                 type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full h-auto py-3 bg-white border border-zinc-200 focus:bg-white rounded-xl px-4 flex items-center justify-between transition-all outline-none group"
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                disabled={disabled}
+                className={cn(
+                    "w-full h-auto py-3 border border-zinc-200 rounded-xl px-4 flex items-center justify-between transition-all outline-none group",
+                    disabled ? "bg-zinc-50 cursor-not-allowed opacity-70" : "bg-white focus:bg-white cursor-pointer"
+                )}
                 style={{
-                    ...(isOpen && { backgroundColor: 'white', borderColor: selectedColor, boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' })
+                    ...(!disabled && isOpen && { backgroundColor: 'white', borderColor: selectedColor, boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)' })
                 }}
             >
                 <div className="flex items-center gap-3 overflow-hidden">

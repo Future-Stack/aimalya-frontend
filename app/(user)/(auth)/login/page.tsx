@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useLoginMutation } from "@/redux/api/BE/user/authApi";
 import Cookies from "js-cookie";
+import { toast } from "react-hot-toast";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -20,13 +21,16 @@ export default function LoginPage() {
         try {
             const result = await login({ email, password, role: "USER" }).unwrap();
             if (result.success) {
-                Cookies.set("accessToken", result.data.accessToken, { path: "/" });
-                Cookies.set("refreshToken", result.data.refreshToken, { path: "/" });
+                Cookies.set("accessToken", result.data.accessToken, { expires: 7, path: "/" });
+                Cookies.set("refreshToken", result.data.refreshToken, { expires: 30, path: "/" });
+                toast.success("Successfully logged in!");
                 router.push("/dashboard");
+            } else {
+                toast.error(result.message || "Login failed. Please check your credentials.");
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Login failed:", err);
-            // You might want to show a toast message here
+            toast.error(err?.data?.message || "Something went wrong. Please try again.");
         }
     };
 

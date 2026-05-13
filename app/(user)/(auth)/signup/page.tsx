@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff, User, Briefcase } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Briefcase, Loader2 } from "lucide-react";
 import { useRegisterMutation } from "@/redux/api/BE/user/authApi";
 import Cookies from "js-cookie";
+import { toast } from "react-hot-toast";
 
 export default function SignupPage() {
     const router = useRouter();
@@ -43,7 +44,7 @@ export default function SignupPage() {
         e.preventDefault();
         
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match");
+            toast.error("Passwords do not match");
             return;
         }
 
@@ -59,11 +60,14 @@ export default function SignupPage() {
             if (result.success) {
                 Cookies.set("accessToken", result.data.accessToken, { expires: 7, path: '/' });
                 Cookies.set("refreshToken", result.data.refreshToken, { expires: 30, path: '/' });
+                toast.success(result.message || "Account created successfully!");
                 router.push("/account-setup");
+            } else {
+                toast.error(result.message || "Registration failed");
             }
         } catch (err: any) {
             console.error("Signup failed:", err);
-            alert(err?.data?.message || "Registration failed. Please try again.");
+            toast.error(err?.data?.message || "Registration failed. Please try again.");
         }
     };
 

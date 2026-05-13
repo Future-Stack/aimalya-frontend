@@ -107,29 +107,25 @@ const getActionPlan = (index: number) => {
 
 const getWeeks = (baseDate: Date) => {
     const weeks = [];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
     for (let i = 0; i < 5; i++) {
-        const date = new Date(baseDate);
-        date.setDate(date.getDate() - (i * 7));
+        const endDate = new Date(baseDate);
+        endDate.setDate(endDate.getDate() - (i * 7));
+        
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 7);
 
-        // Find Monday of that week
-        const day = date.getDay();
-        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-        const monday = new Date(date.setDate(diff));
-
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const label = `${monday.getDate()} ${monthNames[monday.getMonth()]} - ${sunday.getDate()} ${monthNames[sunday.getMonth()]} ${sunday.getFullYear()}`;
-        const generated = `${monthNames[monday.getMonth()]} ${monday.getFullYear()}`;
+        const label = `${startDate.getDate()} ${monthNames[startDate.getMonth()]} - ${endDate.getDate()} ${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
+        const generated = `${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
 
         weeks.push({
-            name: `Weekly Report: ${monday.getDate()} ${monthNames[monday.getMonth()]}`,
+            name: `Weekly Report: ${endDate.getDate()} ${monthNames[endDate.getMonth()]}`,
             label,
             generated,
-            date: new Date(monday),
-            startDate: monday.toISOString().split('T')[0],
-            endDate: sunday.toISOString().split('T')[0],
+            date: new Date(endDate),
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0],
         });
     }
     return weeks;
@@ -137,23 +133,25 @@ const getWeeks = (baseDate: Date) => {
 
 const getMonths = (baseDate: Date) => {
     const months = [];
-    const monthNamesLong = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     for (let i = 0; i < 5; i++) {
-        const date = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1);
-        const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        const endDate = new Date(baseDate);
+        endDate.setDate(endDate.getDate() - (i * 30));
         
-        const name = `${monthNamesLong[date.getMonth()]} ${date.getFullYear()} Monthly Report`;
-        const generated = `${monthNamesShort[(date.getMonth() - 1 + 12) % 12]} ${date.getFullYear()}`;
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 30);
+        
+        const name = `Monthly Report: ${endDate.getDate()} ${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
+        const generated = `${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
 
         months.push({
             name,
-            label: `${monthNamesLong[date.getMonth()]} ${date.getFullYear()}`,
+            label: `${startDate.getDate()} ${monthNames[startDate.getMonth()]} - ${endDate.getDate()} ${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`,
             generated,
-            date: new Date(date),
-            startDate: date.toISOString().split('T')[0],
-            endDate: lastDay.toISOString().split('T')[0],
+            date: new Date(endDate),
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0],
         });
     }
     return months;
@@ -173,7 +171,7 @@ export default function ReportsPage() {
 
     const activeReport = timeframes[activeIndex] || timeframes[0];
 
-    const { data: reportData, isLoading } = useGetMonthlyReportQuery(
+    const { data: reportData, isLoading, isFetching } = useGetMonthlyReportQuery(
         {
             userId: userId || "",
             businessName: selectedBusiness || "",
@@ -297,7 +295,13 @@ export default function ReportsPage() {
                             <input
                                 type="date"
                                 value={baseDate.toISOString().split('T')[0]}
-                                onChange={(e) => setBaseDate(new Date(e.target.value))}
+                                onChange={(e) => {
+                                    const newDate = new Date(e.target.value);
+                                    if (!isNaN(newDate.getTime())) {
+                                        setBaseDate(newDate);
+                                        setActiveIndex(0);
+                                    }
+                                }}
                                 className="h-10 px-4 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:border-blue-600 cursor-pointer"
                             />
                         </div>
@@ -334,14 +338,14 @@ export default function ReportsPage() {
                     <div>
                         <h3 className="font-bold text-gray-900 mb-3">1. Executive Summary</h3>
                         <div className="bg-blue-50/50 p-4 rounded-xl text-sm text-blue-900 leading-relaxed border border-blue-100">
-                            {isLoading ? "Analyzing report data..." : reportData?.executive_summary || "No data available for this period."}
+                            {isFetching ? "Analyzing report data..." : reportData?.executive_summary || "No data available for this period."}
                         </div>
                     </div>
 
                     {/* Charts */}
                     <div>
                         <h3 className="font-bold text-gray-900 mb-4">2. Review Volume & Rating Trends</h3>
-                        {isLoading ? (
+                        {isFetching ? (
                             <div className="h-48 flex items-center justify-center">
                                 <Loader2 className="size-6 text-blue-600 animate-spin" />
                             </div>
@@ -403,9 +407,12 @@ export default function ReportsPage() {
                             <h3 className="font-bold text-gray-900 mb-3">4. Top Complaints</h3>
                             <div className="space-y-2">
                                 {reportData?.top_complaints && reportData.top_complaints.length > 0 ? (
-                                    reportData.top_complaints.map((item, i) => (
-                                        <div key={i} className="flex justify-between p-3 bg-red-50/50 rounded-lg text-sm">
-                                            <span className="font-semibold text-gray-800">{item}</span>
+                                    reportData.top_complaints.map((item: any, i) => (
+                                        <div key={i} className="flex justify-between items-center p-3 bg-red-50/50 rounded-lg text-sm">
+                                            <span className="font-semibold text-gray-800">{typeof item === 'object' ? (item.issue || item.complaint || item.label) : item}</span>
+                                            {typeof item === 'object' && item.mentions && (
+                                                <span className="text-[10px] text-gray-500">{item.mentions} mentions</span>
+                                            )}
                                         </div>
                                     ))
                                 ) : (
@@ -417,9 +424,12 @@ export default function ReportsPage() {
                             <h3 className="font-bold text-gray-900 mb-3">5. Top Praises</h3>
                             <div className="space-y-2">
                                 {reportData?.top_praises && reportData.top_praises.length > 0 ? (
-                                    reportData.top_praises.map((item, i) => (
-                                        <div key={i} className="flex justify-between p-3 bg-green-50/50 rounded-lg text-sm">
-                                            <span className="font-semibold text-gray-800">{item}</span>
+                                    reportData.top_praises.map((item: any, i) => (
+                                        <div key={i} className="flex justify-between items-center p-3 bg-green-50/50 rounded-lg text-sm">
+                                            <span className="font-semibold text-gray-800">{typeof item === 'object' ? (item.strength || item.praise || item.label) : item}</span>
+                                            {typeof item === 'object' && item.mentions && (
+                                                <span className="text-[10px] text-gray-500">{item.mentions} mentions</span>
+                                            )}
                                         </div>
                                     ))
                                 ) : (
