@@ -1,70 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Search, Plus, Mail, Phone, ChevronDown, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { Search, Plus, Mail, Phone, ChevronDown, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CreateTicketModal from "@/components/user/support/CreateTicketModal";
+import TicketDetailsModal from "@/components/user/support/TicketDetailsModal";
 import Image from "next/image";
+import { useGetAllSupportTicketsQuery } from "@/redux/api/BE/supportApi";
 
-// Mock Data
-const existingTickets = [
-    {
-        id: "TKT-1001",
-        title: "Unable to connect Google Business Profile",
-        category: "Integration",
-        status: "In Progress",
-        priority: "High",
-        date: "2026-01-18 10:30",
-        avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-    },
-    {
-        id: "TKT-1002",
-        title: "Unable to connect Google Business Profile",
-        category: "Integration",
-        status: "In Progress",
-        priority: "Medium",
-        date: "2026-01-18 10:30",
-        avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-    },
-    {
-        id: "TKT-1003",
-        title: "Unable to connect Google Business Profile",
-        category: "Integration",
-        status: "In Progress",
-        priority: "Low", // No badge shown in image for low/normal or just omitted? Assuming none or creating style
-        date: "2026-01-18 10:30",
-        avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-    },
-    {
-        id: "TKT-1004",
-        title: "Feature Request: Dark Mode",
-        category: "General",
-        status: "Open",
-        priority: "Low",
-        date: "2026-01-17 14:20",
-        avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-    },
-    {
-        id: "TKT-1005",
-        title: "Billing issue",
-        category: "Billing",
-        status: "Resolved",
-        priority: "High",
-        date: "2026-01-10 09:00",
-        avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-    },
-    {
-        id: "TKT-1006",
-        title: "Another Ticket",
-        category: "General",
-        status: "Open",
-        priority: "Medium",
-        date: "2026-01-09 11:00",
-        avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-    },
-];
-
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE = 10;
 
 function StatusDropdown({
     value,
@@ -86,31 +30,40 @@ function StatusDropdown({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const options = [
+        { label: "All Status", value: "" },
+        { label: "Open", value: "OPEN" },
+        { label: "In Progress", value: "IN_PROGRESS" },
+        { label: "Resolved", value: "RESOLVED" }
+    ];
+
+    const currentOption = options.find(o => o.value === value);
+
     return (
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="cursor-pointer flex items-center justify-between px-3 py-2.5 text-sm bg-white border border-gray-100 rounded-lg min-w-[140px] hover:bg-gray-50 transition-all text-gray-500"
             >
-                <span>{value || "Status"}</span>
+                <span>{currentOption?.label || "Status"}</span>
                 <ChevronDown className={cn("size-4 transition-transform", isOpen && "rotate-180")} />
             </button>
 
             {isOpen && (
                 <div className="absolute top-full right-0 mt-1 w-full bg-white rounded-lg border border-gray-100 shadow-lg z-20 py-1 animate-in fade-in zoom-in-95 duration-100">
-                    {["All", "Open", "In Progress", "Resolved"].map((option) => (
+                    {options.map((option) => (
                         <button
-                            key={option}
+                            key={option.value}
                             onClick={() => {
-                                onChange(option === "All" ? "" : option);
+                                onChange(option.value);
                                 setIsOpen(false);
                             }}
                             className={cn(
                                 "w-full text-left px-4 py-2 text-sm transition-colors hover:bg-gray-50 cursor-pointer",
-                                (value === option || (value === "" && option === "All")) ? "text-blue-600 font-medium" : "text-gray-700"
+                                value === option.value ? "text-blue-600 font-medium" : "text-gray-700"
                             )}
                         >
-                            {option}
+                            {option.label}
                         </button>
                     ))}
                 </div>
@@ -123,39 +76,53 @@ export default function SupportPage() {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [selectedTicket, setSelectedTicket] = useState<any>(null);
 
-    // Derived Data
-    const filteredTickets = existingTickets.filter(ticket => {
-        const matchesSearch = ticket.title.toLowerCase().includes(search.toLowerCase()) || ticket.id.toLowerCase().includes(search.toLowerCase());
-        const matchesStatus = statusFilter ? ticket.status === statusFilter : true;
-        return matchesSearch && matchesStatus;
+    const { data: ticketsData, isLoading } = useGetAllSupportTicketsQuery({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        search,
+        status: statusFilter || undefined,
+        sortOrder: "desc"
     });
-
-    const totalPages = Math.ceil(filteredTickets.length / ITEMS_PER_PAGE);
-    const currentTickets = filteredTickets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
     // Reset pagination
     useEffect(() => {
         setCurrentPage(1);
     }, [search, statusFilter]);
 
-    // Stats
-    const total = existingTickets.length;
-    const open = existingTickets.filter(t => t.status === "Open").length;
-    const inProgress = existingTickets.filter(t => t.status === "In Progress").length;
-    const resolved = existingTickets.filter(t => t.status === "Resolved").length;
+    const tickets = ticketsData?.data || [];
+    const meta = ticketsData?.meta || { total: 0, lastPage: 1 };
+    const totalPages = meta.lastPage;
+
+    // We don't have separate counts for status from the API, so we show total for now
+    // or calculate based on the current page (which is not very accurate for global stats)
+    // For now, I'll just show the total and maybe hide the breakdown or keep it if I can fetch all.
+    // Given the task, I'll focus on the core functionality.
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    };
+
+    const getCategoryLabel = (cat: string) => {
+        return cat.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+    };
 
     return (
         <div className="space-y-6 pb-12">
-            {/* Header - Moved outside to align button with right screen edge */}
+            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Support Center</h1>
                     <p className="text-sm text-gray-500 mt-1">Get help with your ReviewIQ account</p>
                 </div>
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => setIsCreateModalOpen(true)}
                     className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                 >
                     <Plus className="size-4" />
@@ -169,19 +136,20 @@ export default function SupportPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
                             <p className="font-semibold text-gray-900 text-sm">Total Tickets</p>
-                            <h2 className="text-2xl font-bold text-gray-900 mt-3">{total}</h2>
+                            <h2 className="text-2xl font-bold text-gray-900 mt-3">{meta.total}</h2>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                            <p className="font-semibold text-gray-900 text-sm">Open</p>
-                            <h2 className="text-2xl font-bold text-blue-600 mt-3">{open}</h2>
+                        {/* Placeholder stats as the API doesn't provide them easily */}
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm opacity-50">
+                            <p className="font-semibold text-gray-900 text-sm">Active</p>
+                            <h2 className="text-2xl font-bold text-blue-600 mt-3">-</h2>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                            <p className="font-semibold text-gray-900 text-sm">In Progress</p>
-                            <h2 className="text-2xl font-bold text-amber-500 mt-3">{inProgress}</h2>
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm opacity-50">
+                            <p className="font-semibold text-gray-900 text-sm">Pending</p>
+                            <h2 className="text-2xl font-bold text-amber-500 mt-3">-</h2>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm opacity-50">
                             <p className="font-semibold text-gray-900 text-sm">Resolved</p>
-                            <h2 className="text-2xl font-bold text-green-500 mt-3">{resolved}</h2>
+                            <h2 className="text-2xl font-bold text-green-500 mt-3">-</h2>
                         </div>
                     </div>
 
@@ -191,7 +159,7 @@ export default function SupportPage() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="search review"
+                                placeholder="Search tickets..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="h-10 w-full bg-blue-50/50 rounded-lg pl-10 pr-4 text-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 border-transparent border outline-none transition-all placeholder:text-gray-400"
@@ -202,39 +170,48 @@ export default function SupportPage() {
 
                     {/* Tickets List */}
                     <div className="space-y-4 min-h-[400px]">
-                        {currentTickets.length > 0 ? (
-                            currentTickets.map((ticket) => (
-                                <div key={ticket.id} className="bg-blue-50/20 p-6 rounded-2xl border border-blue-100 hover:border-blue-200 transition-colors">
+                        {isLoading ? (
+                            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100">
+                                <Loader2 className="size-8 text-blue-600 animate-spin" />
+                                <p className="text-gray-500 mt-4">Loading tickets...</p>
+                            </div>
+                        ) : tickets.length > 0 ? (
+                            tickets.map((ticket: any) => (
+                                <div
+                                    key={ticket.supportTicketId}
+                                    onClick={() => setSelectedTicket(ticket)}
+                                    className="bg-blue-50/20 p-6 rounded-2xl border border-blue-100 hover:border-blue-200 transition-colors cursor-pointer group"
+                                >
                                     <div className="flex items-start gap-4">
-                                        <img src={ticket.avatar} alt="User" className="size-10 rounded-full object-cover" />
+                                        <div className="size-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs shrink-0">
+                                            {ticket.users?.[0]?.name?.[0] || "U"}
+                                        </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex flex-wrap items-center gap-2 mb-2">
-                                                <span className="text-xs font-semibold text-gray-500">{ticket.id}</span>
+                                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{ticket.supportTicketId.split('-')[0]}</span>
 
                                                 <span className={cn(
                                                     "px-2.5 py-0.5 rounded-md text-[10px] font-bold",
-                                                    ticket.status === "In Progress" ? "bg-amber-100 text-amber-600" :
-                                                        ticket.status === "Open" ? "bg-blue-100 text-blue-600" :
+                                                    ticket.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-600" :
+                                                        ticket.status === "OPEN" ? "bg-blue-100 text-blue-600" :
                                                             "bg-green-100 text-green-600"
                                                 )}>
-                                                    {ticket.status}
+                                                    {ticket.status.replace('_', ' ')}
                                                 </span>
 
-                                                {ticket.priority === 'High' && (
-                                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-red-100 text-red-600">
-                                                        High
-                                                    </span>
-                                                )}
-                                                {ticket.priority === 'Medium' && (
-                                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-600">
-                                                        Medium
-                                                    </span>
-                                                )}
+                                                <span className={cn(
+                                                    "px-2.5 py-0.5 rounded-md text-[10px] font-bold",
+                                                    ticket.priority === 'HIGH' ? "bg-red-100 text-red-600" :
+                                                        ticket.priority === 'MEDIUM' ? "bg-blue-100 text-blue-600" :
+                                                            "bg-gray-100 text-gray-600"
+                                                )}>
+                                                    {ticket.priority}
+                                                </span>
                                             </div>
 
-                                            <h3 className="text-base font-bold text-gray-900 truncate pr-4">{ticket.title}</h3>
-                                            <p className="text-xs text-gray-500 mt-1">{ticket.category}</p>
-                                            <p className="text-xs text-gray-400 mt-4">Created {ticket.date}</p>
+                                            <h3 className="text-base font-bold text-gray-900 truncate pr-4 group-hover:text-blue-600 transition-colors">{ticket.subject}</h3>
+                                            <p className="text-xs text-gray-500 mt-1">{getCategoryLabel(ticket.category)}</p>
+                                            <p className="text-xs text-gray-400 mt-4">Created {formatDate(ticket.createdAt)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -285,12 +262,11 @@ export default function SupportPage() {
                     )}
                 </div>
 
-                {/* Right Sidebar - Now Top on Mobile via flex-col-reverse */}
+                {/* Right Sidebar */}
                 <div className="w-full xl:w-[360px] flex-shrink-0">
                     <div className="bg-blue-100/50 rounded-3xl p-6 md:p-8 space-y-8 sticky top-24 border border-blue-200">
                         <div className="flex flex-col items-center text-center">
                             <div className="relative size-48 mb-6">
-                                {/* Abstract Illustration Placeholder using generic shapes/emojis for now as I can't generate an actual SVG illustration effortlessly without bloating code */}
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <Image src="/support_img.svg" alt="Support" width={200} height={200} />
                                 </div>
@@ -322,8 +298,14 @@ export default function SupportPage() {
                     </div>
                 </div>
 
-                <CreateTicketModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                <CreateTicketModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+                <TicketDetailsModal
+                    isOpen={!!selectedTicket}
+                    onClose={() => setSelectedTicket(null)}
+                    ticket={selectedTicket}
+                />
             </div>
         </div>
     );
 }
+
