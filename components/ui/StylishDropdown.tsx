@@ -26,6 +26,7 @@ interface StylishDropdownProps {
     selectedColor?: string; // Color for selected text and checkbox
     selectedBgColor?: string; // Background color for selected items
     disabled?: boolean;
+    footer?: React.ReactNode;
 }
 
 const StylishDropdown = ({
@@ -38,7 +39,8 @@ const StylishDropdown = ({
     multiSelect = false,
     selectedColor = "#0066FF",
     selectedBgColor = "rgb(239 246 255)",
-    disabled = false
+    disabled = false,
+    footer
 }: StylishDropdownProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -118,7 +120,7 @@ const StylishDropdown = ({
 
             {isOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="max-h-60 overflow-y-auto p-1.5">
+                    <div className="max-h-60 overflow-y-auto p-1.5 custom-thin-scrollbar">
                         {options.length > 0 ? (
                             options.map((option) => {
                                 const active = isSelected(option.value);
@@ -169,6 +171,11 @@ const StylishDropdown = ({
                             </div>
                         )}
                     </div>
+                    {footer && (
+                        <div className="border-t border-zinc-100 p-1.5">
+                            {footer}
+                        </div>
+                    )}
                 </div>
             )}
         </div>
