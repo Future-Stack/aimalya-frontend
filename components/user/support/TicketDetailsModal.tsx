@@ -12,8 +12,8 @@ interface TicketDetailsModalProps {
 
 const CATEGORY_LABELS: Record<string, string> = {
     "GENERAL_QUESTION": "General Question",
-    "TECHNICAL_ISSUE": "Technical Problem",
-    "BILLING_ISSUE": "Billing & Payment",
+    "TECHNICAL_PROBLEM": "Technical Problem",
+    "BILLING_AND_PAYMENT_ISSUE": "Billing & Payment",
     "FEATURE_REQUEST": "Feature Request",
     "INTEGRATION_ISSUE": "Integration Issue"
 };

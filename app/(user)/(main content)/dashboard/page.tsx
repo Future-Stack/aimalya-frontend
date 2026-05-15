@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
-import { Star, ThumbsUp, MessageSquare, Reply, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Star, ThumbsUp, MessageSquare, Reply, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Loader2, X } from "lucide-react";
 import { useGetProfileQuery } from "@/redux/api/BE/user/profileApi";
 import { useGetDashboardOverviewQuery } from "@/redux/api/AI/dashboardApi";
 import { useSelector } from "react-redux";
-import { getUserIdFromToken } from "@/utils/authUtils";
+import { getUserIdFromToken, getSubscriptionFromCookie } from "@/utils/authUtils";
 import {
     AreaChart,
     Area,
@@ -16,6 +17,7 @@ import {
     ResponsiveContainer,
     Legend
 } from "recharts";
+import { GrowthData } from "@/redux/api/AI/dashboardApi";
 
 // Mock Data for Charts
 const sentimentData = [
@@ -59,20 +61,52 @@ export default function DashboardPage() {
     const { data: profileData } = useGetProfileQuery();
     const user = profileData?.data;
     const userId = getUserIdFromToken();
+    const subscription = getSubscriptionFromCookie();
+    const isNonePlan = subscription?.plan === "NONE";
+    const [isBannerVisible, setIsBannerVisible] = React.useState(false);
+
+    React.useEffect(() => {
+        const isDismissed = sessionStorage.getItem("upgrade_banner_dismissed");
+        if (isDismissed !== "true" && isNonePlan) {
+            setIsBannerVisible(true);
+        }
+    }, [isNonePlan]);
+
+    const handleDismissBanner = () => {
+        setIsBannerVisible(false);
+        sessionStorage.setItem("upgrade_banner_dismissed", "true");
+    };
     const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
 
     const { data: dashboardData, isLoading: isLoadingDashboard } = useGetDashboardOverviewQuery(
-        { 
-            userId: userId || "", 
-            businessName: selectedBusiness || "", 
-            address: selectedAddress || "" 
+        {
+            user_id: userId || "",
+            business_name: selectedBusiness || "",
+            address: selectedAddress || ""
         },
         { skip: !userId || !selectedBusiness || !selectedAddress }
     );
 
     const overview = dashboardData?.overview;
     const sentimentTrend = dashboardData?.sentiment_trend || [];
-    const performanceCriteria = dashboardData?.performance_criteria;
+    const performanceCriteria = dashboardData?.performance_criteria_with_growth;
+
+    const GrowthIndicator = ({ growth }: { growth?: GrowthData }) => {
+        if (!growth) return null;
+        const isUp = growth.direction === "up";
+        const isDown = growth.direction === "down";
+
+        return (
+            <div className={cn(
+                "flex items-center mt-4 text-xs font-medium",
+                isUp ? "text-green-600" : isDown ? "text-red-600" : "text-gray-500"
+            )}>
+                {isUp ? <TrendingUp className="size-3 mr-1" /> : isDown ? <TrendingDown className="size-3 mr-1" /> : null}
+                <span>{growth.display}</span>
+                <span className="text-gray-400 ml-1">vs last month</span>
+            </div>
+        );
+    };
 
     if (isLoadingDashboard) {
         return (
@@ -83,15 +117,50 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="space-y-6 pb-8">
+        <div className="space-y-8 pb-8">
+            {/* Upgrade Banner */}
+            {isNonePlan && isBannerVisible && (
+                <div className="bg-[#0066FF] rounded-3xl p-8 text-white shadow-2xl shadow-blue-100 flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden group">
+                    {/* Abstract Shapes */}
+                    <div className="absolute top-0 right-0 -mt-12 -mr-12 size-48 bg-white/10 rounded-full blur-3xl" />
+                    <div className="absolute bottom-0 left-0 -mb-12 -ml-12 size-32 bg-white/10 rounded-full blur-2xl" />
+
+                    <button
+                        onClick={handleDismissBanner}
+                        className="absolute top-2.5 right-2.5 p-1.5 hover:bg-white/10 rounded-full transition-colors z-20 cursor-pointer"
+                    >
+                        <X className="size-5 text-white" />
+                    </button>
+
+                    <div className="flex items-center gap-6 relative z-10">
+                        <div className="p-4 bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 shadow-inner">
+                            <TrendingUp className="size-8 text-white drop-shadow-md" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black tracking-tight">Upgrade to Premium</h2>
+                            <p className="text-blue-50 text-sm mt-2 max-w-lg font-medium opacity-90">
+                                You are currently exploring Aimalya on the Free plan. Unlock unlimited locations, detailed AI competitor analysis, and priority support today!
+                            </p>
+                        </div>
+                    </div>
+
+                    <Link
+                        href="/pricing"
+                        className="bg-white text-[#0066FF] px-10 py-4 rounded-2xl font-black text-sm hover:bg-blue-50 transition-all hover:scale-105 hover:shadow-xl shadow-lg relative z-10 cursor-pointer whitespace-nowrap"
+                    >
+                        View Upgrade Plans
+                    </Link>
+                </div>
+            )}
+
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name || "User"}</h1>
-                <p className="text-gray-500">{selectedBusiness || "Select a Business"} - {selectedAddress || "Overview Dashboard"}</p>
+                <h1 className="text-3xl font-black text-[#0F172A] tracking-tight">Welcome back, {user?.name || "User"}</h1>
+                <p className="text-gray-500 font-medium mt-1">{selectedBusiness || "Select a Business"} - {selectedAddress || "Overview Dashboard"}</p>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                 {/* Overall Rating */}
                 <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
                     <div className="flex justify-between items-start">
@@ -103,11 +172,7 @@ export default function DashboardPage() {
                             <Star className="size-5 fill-blue-600" />
                         </div>
                     </div>
-                    <div className="flex items-center mt-4 text-xs font-medium text-green-600">
-                        <TrendingUp className="size-3 mr-1" />
-                        <span>+0.0</span>
-                        <span className="text-gray-400 ml-1">vs last month</span>
-                    </div>
+                    <GrowthIndicator growth={overview?.growth?.overall_rating} />
                 </div>
 
                 {/* Satisfaction Index */}
@@ -121,11 +186,7 @@ export default function DashboardPage() {
                             <ThumbsUp className="size-5" />
                         </div>
                     </div>
-                    <div className="flex items-center mt-4 text-xs font-medium text-green-600">
-                        <TrendingUp className="size-3 mr-1" />
-                        <span>+0%</span>
-                        <span className="text-gray-400 ml-1">vs last month</span>
-                    </div>
+                    <GrowthIndicator growth={overview?.growth?.satisfaction_index} />
                 </div>
 
                 {/* Review Volume */}
@@ -139,15 +200,11 @@ export default function DashboardPage() {
                             <MessageSquare className="size-5" />
                         </div>
                     </div>
-                    <div className="flex items-center mt-4 text-xs font-medium text-green-600">
-                        <TrendingUp className="size-3 mr-1" />
-                        <span>+0</span>
-                        <span className="text-gray-400 ml-1">vs last month</span>
-                    </div>
+                    <GrowthIndicator growth={overview?.growth?.review_volume} />
                 </div>
 
                 {/* Response Rate */}
-                <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                {/* <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-sm font-medium text-gray-500">Response Rate</p>
@@ -157,12 +214,10 @@ export default function DashboardPage() {
                             <Reply className="size-5" />
                         </div>
                     </div>
-                    <div className="flex items-center mt-4 text-xs font-medium text-green-500">
-                        <TrendingUp className="size-3 mr-1" />
-                        <span>0%</span>
-                        <span className="text-gray-400 ml-1">vs last month</span>
+                    <div className="flex items-center mt-4 text-xs font-medium text-gray-500">
+                        <span>No change vs last month</span>
                     </div>
-                </div>
+                </div> */}
             </div>
 
             {/* Sentiment Trend Chart */}
@@ -261,17 +316,24 @@ export default function DashboardPage() {
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Performance by Criteria</h3>
                 <div className="space-y-6">
-                    {(performanceCriteria ? Object.entries(performanceCriteria) : performanceData.map(d => [d.label, d.value])).map(([label, value]: any) => (
-                        <div key={label} className="grid grid-cols-[100px_1fr_60px_60px] gap-4 items-center text-sm">
+                    {(performanceCriteria ? Object.entries(performanceCriteria) : performanceData.map(d => [d.label, { score: d.value, growth: { display: d.change, direction: d.change.startsWith("+") ? "up" : "down" } }])).map(([label, data]: any) => (
+                        <div key={label} className="grid grid-cols-[100px_1fr_60px_80px] gap-4 items-center text-sm">
                             <span className="font-medium text-gray-700">{label}</span>
                             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-blue-600 rounded-full"
-                                    style={{ width: `${(value / 5) * 100}%` }}
+                                    style={{ width: `${(data.score / 5) * 100}%` }}
                                 />
                             </div>
-                            <span className="font-bold text-gray-900 text-right">{value}</span>
-                            <span className="text-xs text-right font-medium text-green-500">+0.0</span>
+                            <span className="font-bold text-gray-900 text-right">{data.score}</span>
+                            <div className={cn(
+                                "text-xs text-right font-medium flex items-center justify-end",
+                                data.growth.direction === "up" ? "text-green-500" : data.growth.direction === "down" ? "text-red-500" : "text-gray-400"
+                            )}>
+                                {data.growth.direction === "up" && <TrendingUp className="size-3 mr-1" />}
+                                {data.growth.direction === "down" && <TrendingDown className="size-3 mr-1" />}
+                                {data.growth.display}
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -299,7 +361,6 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="flex items-center text-xs font-medium text-red-500">
                                     <TrendingUp className="size-3 mr-1" />
-                                    15%
                                 </div>
                             </div>
                         ))}

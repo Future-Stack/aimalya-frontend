@@ -361,6 +361,13 @@ export default function CompetitorsPage() {
                     ))}
                 </div>
             </div>
+            </>
+            ) : (
+                <div className="h-[400px] flex flex-col items-center justify-center text-gray-500">
+                    <AlertCircle className="size-12 mb-4 text-gray-300" />
+                    <p>No competitor data found for the selected business.</p>
+                </div>
+            )}
 
             {/* Add Competitor Modal */}
             {isModalOpen && (
@@ -458,13 +465,6 @@ export default function CompetitorsPage() {
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
-            </>
-            ) : (
-                <div className="h-[400px] flex flex-col items-center justify-center text-gray-500">
-                    <AlertCircle className="size-12 mb-4 text-gray-300" />
-                    <p>No competitor data found for the selected business.</p>
                 </div>
             )}
         </div>

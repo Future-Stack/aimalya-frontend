@@ -182,10 +182,7 @@ export default function SupportPage() {
                                     onClick={() => setSelectedTicket(ticket)}
                                     className="bg-blue-50/20 p-6 rounded-2xl border border-blue-100 hover:border-blue-200 transition-colors cursor-pointer group"
                                 >
-                                    <div className="flex items-start gap-4">
-                                        <div className="size-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs shrink-0">
-                                            {ticket.users?.[0]?.name?.[0] || "U"}
-                                        </div>
+                                    <div className="flex items-start">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex flex-wrap items-center gap-2 mb-2">
                                                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{ticket.supportTicketId.split('-')[0]}</span>

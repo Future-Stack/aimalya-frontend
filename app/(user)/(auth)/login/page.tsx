@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,13 @@ export default function LoginPage() {
             if (result.success) {
                 Cookies.set("accessToken", result.data.accessToken, { expires: 7, path: "/" });
                 Cookies.set("refreshToken", result.data.refreshToken, { expires: 30, path: "/" });
+                
+                // Save subscription encoded in cookies
+                if (result.data.subscription) {
+                    const encodedSub = btoa(JSON.stringify(result.data.subscription));
+                    Cookies.set("subscription", encodedSub, { expires: 7, path: '/' });
+                }
+
                 toast.success("Successfully logged in!");
                 router.push("/dashboard");
             } else {
@@ -33,6 +40,50 @@ export default function LoginPage() {
             toast.error(err?.data?.message || "Something went wrong. Please try again.");
         }
     };
+
+    const handleGoogleLogin = () => {
+        // Redirecting directly to the backend endpoint for Google Auth
+        window.location.href = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/google/login`;
+    };
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        
+        // Handle Google Auth Success
+        const accessToken = searchParams.get("accessToken");
+        const refreshToken = searchParams.get("refreshToken");
+        const subscription = searchParams.get("subscription");
+
+        if (accessToken && refreshToken) {
+            Cookies.set("accessToken", accessToken, { expires: 7, path: "/" });
+            Cookies.set("refreshToken", refreshToken, { expires: 30, path: "/" });
+            
+            if (subscription) {
+                // If the subscription is raw JSON string in URL, encode it for consistency
+                try {
+                    const subData = JSON.parse(decodeURIComponent(subscription));
+                    const encodedSub = btoa(JSON.stringify(subData));
+                    Cookies.set("subscription", encodedSub, { expires: 7, path: '/' });
+                } catch (e) {
+                    // If it's already encoded or other format, save as is
+                    Cookies.set("subscription", subscription, { expires: 7, path: '/' });
+                }
+            }
+            
+            toast.success("Successfully logged in with Google!");
+            router.push("/dashboard");
+            return;
+        }
+
+        // Handle Google Auth Error
+        const error = searchParams.get("error");
+        if (error) {
+            toast.error(decodeURIComponent(error), { position: "top-right" });
+            const url = new URL(window.location.href);
+            url.searchParams.delete("error");
+            window.history.replaceState({}, "", url.pathname);
+        }
+    }, []);
 
     return (
         <div className="min-h-screen w-full relative content-center flex items-center justify-center overflow-hidden bg-[#E0F2FE]">
@@ -128,7 +179,10 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                <button className="cursor-pointer w-full h-12 bg-white border border-zinc-100/80 text-zinc-700 rounded-xl font-bold text-[15px] hover:bg-zinc-50 transition-all shadow-sm flex items-center justify-center gap-2.5">
+                <button 
+                    onClick={handleGoogleLogin}
+                    className="cursor-pointer w-full h-12 bg-white border border-zinc-100/80 text-zinc-800 rounded-xl font-bold text-[15px] hover:bg-zinc-50 transition-all shadow-sm flex items-center justify-center gap-2.5"
+                >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4" />
                         <path d="M12.24 24.0008C15.4765 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.24 24.0008Z" fill="#34A853" />

@@ -32,6 +32,7 @@ import { useGetMonthlyReportQuery } from "@/redux/api/AI/reportsApi";
 import { useSelector } from "react-redux";
 import { getUserIdFromToken } from "@/utils/authUtils";
 import { Loader2 } from "lucide-react";
+import { downloadReportPDF, downloadReportExcel } from "@/utils/reportExport";
 
 // Mock Data
 const volumeData = [
@@ -173,11 +174,11 @@ export default function ReportsPage() {
 
     const { data: reportData, isLoading, isFetching } = useGetMonthlyReportQuery(
         {
-            userId: userId || "",
-            businessName: selectedBusiness || "",
-            reportFrequency: viewMode.toLowerCase() as "weekly" | "monthly",
-            startDate: activeReport?.startDate,
-            endDate: activeReport?.endDate,
+            user_id: userId || "",
+            business_name: selectedBusiness || "",
+            report_frequency: viewMode.toLowerCase() as "weekly" | "monthly",
+            start_date: activeReport?.startDate,
+            end_date: activeReport?.endDate,
             address: selectedAddress || "",
         },
         { skip: !userId || !selectedBusiness || !activeReport }
@@ -185,11 +186,38 @@ export default function ReportsPage() {
 
     const dynamicStats = useMemo(() => {
         const kpis = reportData?.kpis;
+        
+        const formatTrend = (change: number | null | undefined, isPercent: boolean = false) => {
+            const val = change ?? 0;
+            const sign = val > 0 ? "+" : "";
+            return `${sign}${isPercent ? val : val.toFixed(1)}${isPercent ? "%" : ""} vs prev`;
+        };
+
         return [
-            { label: "Avg. Rating", value: kpis?.avg_rating.value?.toFixed(1) || "0.0", trend: kpis?.avg_rating.change ? `${kpis.avg_rating.change > 0 ? '+' : ''}${kpis.avg_rating.change} vs prev` : "No data", color: (kpis?.avg_rating.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
-            { label: "Reviews", value: kpis?.reviews.value?.toString() || "0", trend: kpis?.reviews.change ? `${kpis.reviews.change > 0 ? '+' : ''}${kpis.reviews.change} vs prev` : "No data", color: (kpis?.reviews.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
-            { label: "Satisfaction", value: (kpis?.satisfaction.value || 0).toString() + "%", trend: kpis?.satisfaction.change ? `${kpis.satisfaction.change > 0 ? '+' : ''}${kpis.satisfaction.change}% vs prev` : "No data", color: (kpis?.satisfaction.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
-            { label: "Response Rate", value: (kpis?.response_rate.value || 0).toString() + "%", trend: kpis?.response_rate.change ? `${kpis.response_rate.change > 0 ? '+' : ''}${kpis.response_rate.change}% vs prev` : "No data", color: (kpis?.response_rate.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
+            { 
+                label: "Avg. Rating", 
+                value: kpis?.avg_rating.value?.toFixed(1) || "0.0", 
+                trend: formatTrend(kpis?.avg_rating.change), 
+                color: (kpis?.avg_rating.change || 0) >= 0 ? "text-green-600" : "text-red-500" 
+            },
+            { 
+                label: "Reviews", 
+                value: kpis?.reviews.value?.toString() || "0", 
+                trend: formatTrend(kpis?.reviews.change, true).replace(".0", ""), 
+                color: (kpis?.reviews.change || 0) >= 0 ? "text-green-600" : "text-red-500" 
+            },
+            { 
+                label: "Satisfaction", 
+                value: (kpis?.satisfaction.value || 0).toString() + "%", 
+                trend: formatTrend(kpis?.satisfaction.change, true), 
+                color: (kpis?.satisfaction.change || 0) >= 0 ? "text-green-600" : "text-red-500" 
+            },
+            { 
+                label: "Response Rate", 
+                value: (kpis?.response_rate.value || 0).toString() + "%", 
+                trend: formatTrend(kpis?.response_rate.change, true), 
+                color: (kpis?.response_rate.change || 0) >= 0 ? "text-green-600" : "text-red-500" 
+            },
         ];
     }, [reportData]);
 
@@ -307,10 +335,20 @@ export default function ReportsPage() {
                         </div>
                         <div className="h-8 w-[1px] bg-gray-200 mx-1 hidden sm:block" />
                         <div className="flex gap-2">
-                            <button className="text-nowrap cursor-pointer p-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors" title="Download PDF">
+                            <button 
+                                onClick={() => reportData && downloadReportPDF(reportData, selectedBusiness, selectedAddress)}
+                                disabled={!reportData || isFetching}
+                                className="text-nowrap cursor-pointer p-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50" 
+                                title="Download PDF"
+                            >
                                 <Download className="size-4" />
                             </button>
-                            <button className="text-nowrap cursor-pointer p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm" title="Download Excel">
+                            <button 
+                                onClick={() => reportData && downloadReportExcel(reportData, selectedBusiness)}
+                                disabled={!reportData || isFetching}
+                                className="text-nowrap cursor-pointer p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50" 
+                                title="Download Excel"
+                            >
                                 <Download className="size-4" />
                             </button>
                         </div>

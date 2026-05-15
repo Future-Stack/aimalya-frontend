@@ -7,6 +7,8 @@ export const useAuth = () => {
   const logout = (redirectPath: string = "/login") => {
     Cookies.remove("accessToken", { path: "/" });
     Cookies.remove("refreshToken", { path: "/" });
+    Cookies.remove("subscription", { path: "/" });
+    sessionStorage.clear();
     router.push(redirectPath);
   };
 

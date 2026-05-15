@@ -15,9 +15,9 @@ interface CreateTicketModalProps {
 const CATEGORY_MAP: Record<string, string> = {
     "General Question": "GENERAL_QUESTION",
     "Integration Issue": "INTEGRATION_ISSUE",
-    "Billing & Payment": "BILLING_ISSUE",
+    "Billing & Payment": "BILLING_AND_PAYMENT_ISSUE",
     "Feature Request": "FEATURE_REQUEST",
-    "Technical Problem": "TECHNICAL_ISSUE"
+    "Technical Problem": "TECHNICAL_PROBLEM"
 };
 
 const REVERSE_CATEGORY_MAP: Record<string, string> = Object.entries(CATEGORY_MAP).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {});

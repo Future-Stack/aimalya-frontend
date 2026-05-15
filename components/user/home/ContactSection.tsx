@@ -1,8 +1,12 @@
 "use client";
 
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { useGetSystemSettingsQuery } from "@/redux/api/BE/landingApi";
 
 export default function ContactSection() {
+    const { data: settingsData, isLoading } = useGetSystemSettingsQuery();
+    const settings = settingsData?.data;
+
     return (
         <div className="max-w-5xl mx-auto px-6">
             <div className="text-center mb-16 reveal-up">
@@ -23,7 +27,11 @@ export default function ContactSection() {
                             <Mail size={24} className="text-white" />
                         </div>
                         <h3 className="text-[18px] font-bold text-zinc-900 mb-2">Email Us</h3>
-                        <p className="text-zinc-500">support@yourwebsite.com</p>
+                        {isLoading ? (
+                            <div className="h-5 w-48 bg-zinc-100 animate-pulse rounded" />
+                        ) : (
+                            <p className="text-zinc-500">{settings?.supportEmail || "support@aimalya.com"}</p>
+                        )}
                     </div>
 
                     {/* Phone Card */}
@@ -32,7 +40,11 @@ export default function ContactSection() {
                             <Phone size={24} className="text-[#1e3a8a]" />
                         </div>
                         <h3 className="text-[18px] font-bold text-zinc-900 mb-2">Call Us</h3>
-                        <p className="text-zinc-500">+880XXXXXXXXXXX</p>
+                        {isLoading ? (
+                            <div className="h-5 w-40 bg-zinc-100 animate-pulse rounded" />
+                        ) : (
+                            <p className="text-zinc-500">{settings?.supportPhone || "+1234567890"}</p>
+                        )}
                     </div>
 
                     {/* Office Card */}
@@ -41,7 +53,11 @@ export default function ContactSection() {
                             <MapPin size={24} className="text-[#1e3a8a]" />
                         </div>
                         <h3 className="text-[18px] font-bold text-zinc-900 mb-2">Office</h3>
-                        <p className="text-zinc-500">Available 24/7 Worldwide</p>
+                        {isLoading ? (
+                            <div className="h-5 w-56 bg-zinc-100 animate-pulse rounded" />
+                        ) : (
+                            <p className="text-zinc-500">{settings?.location || "Tech Hub, Silicon Valley"}</p>
+                        )}
                     </div>
                 </div>
 
