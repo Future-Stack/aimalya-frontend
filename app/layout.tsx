@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "@/redux/store/StoreProvider";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,35 @@ export default function RootLayout({
       >
         <StoreProvider>
           {children}
+          <Toaster 
+            position="top-right" 
+            reverseOrder={false}
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#ffffff',
+                color: '#1a1a1a',
+                borderRadius: '16px',
+                padding: '12px 20px',
+                fontSize: '14px',
+                fontWeight: '500',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                border: '1px solid rgba(0, 0, 0, 0.05)',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#22D3EE',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#EF4444',
+                  secondary: '#fff',
+                },
+              }
+            }}
+          />
         </StoreProvider>
       </body>
     </html>

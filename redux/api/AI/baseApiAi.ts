@@ -6,5 +6,5 @@ export const baseApiAi = createApi({
     baseUrl: process.env.NEXT_PUBLIC_BASE_URL_AI,
   }),
   endpoints: () => ({}),
-  tagTypes: ["Business", "Goals"],
+  tagTypes: ["Business", "Goals", "BusinessManagement"],
 });

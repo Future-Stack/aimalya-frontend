@@ -295,10 +295,11 @@ const StepGoal = ({
     isLoading: boolean
 }) => {
     const handleSave = () => {
-        if (!goals.businessName) return;
+        if (!goals.businessName || !goals.location) return;
         setSavedGoals([...savedGoals, { ...goals, id: Date.now().toString() }]);
         setGoals({
             businessName: '',
+            location: '',
             competitors: '',
             frequency: 'Monthly',
             selectedGoals: []
@@ -310,6 +311,7 @@ const StepGoal = ({
         if (goalToEdit) {
             setGoals({
                 businessName: goalToEdit.businessName,
+                location: goalToEdit.location,
                 competitors: goalToEdit.competitors,
                 frequency: goalToEdit.frequency,
                 selectedGoals: goalToEdit.selectedGoals
@@ -341,14 +343,37 @@ const StepGoal = ({
                             <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Business Name</label>
                             <StylishDropdown
                                 options={businesses
-                                    .filter(b => b.name.trim() !== '' && !savedGoals.some(sg => sg.businessName === b.name))
+                                    .filter(b => {
+                                        if (b.name.trim() === '') return false;
+                                        // Allow selecting business if it has locations not yet saved
+                                        const savedLocationsForBiz = savedGoals.filter(sg => sg.businessName === b.name).map(sg => sg.location);
+                                        return b.locations.some(l => !savedLocationsForBiz.includes(l.address));
+                                    })
                                     .map(b => ({ label: b.name, value: b.name }))}
                                 value={goals.businessName}
-                                onChange={(val) => setGoals({ ...goals, businessName: val as string })}
+                                onChange={(val) => setGoals({ ...goals, businessName: val as string, location: '' })}
                                 placeholder="Select business"
                                 selectedColor="#22D3EE"
                                 selectedBgColor="#ecf9fbff"
                                 icon={<Building2 size={18} className="text-auth-subtitle-color" />}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Location</label>
+                            <StylishDropdown
+                                options={businesses
+                                    .find(b => b.name === goals.businessName)
+                                    ?.locations
+                                    .filter(l => !savedGoals.some(sg => sg.businessName === goals.businessName && sg.location === l.address))
+                                    .map(l => ({ label: l.address, value: l.address })) || []}
+                                value={goals.location}
+                                onChange={(val) => setGoals({ ...goals, location: val as string })}
+                                placeholder="Select location"
+                                selectedColor="#22D3EE"
+                                selectedBgColor="#ecf9fbff"
+                                icon={<MapPin size={18} className="text-auth-subtitle-color" />}
+                                disabled={!goals.businessName}
                             />
                         </div>
 
@@ -403,7 +428,7 @@ const StepGoal = ({
                     <div className="flex justify-end mt-4">
                         <button
                             onClick={handleSave}
-                            disabled={!goals.businessName}
+                            disabled={!goals.businessName || !goals.location}
                             className="bg-auth-subtitle-color text-white px-8 py-2.5 rounded-xl font-bold hover:bg-cyan-300 transition-all shadow-md shadow-blue-100 text-[14px] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Plus size={18} /> Save Goal
@@ -438,9 +463,15 @@ const StepGoal = ({
                         {savedGoals.map((goal) => (
                             <div key={goal.id} className="bg-white border border-zinc-100 rounded-xl p-4 shadow-sm flex flex-col gap-3 group transition-all hover:border-auth-subtitle-color/30">
                                 <div className="flex justify-between items-start">
-                                    <div className="flex items-center gap-2 overflow-hidden">
-                                        <Building2 size={14} className="text-auth-subtitle-color shrink-0" />
-                                        <span className="font-bold text-[14px] text-gray-700 truncate">{goal.businessName}</span>
+                                    <div className="flex flex-col overflow-hidden">
+                                        <div className="flex items-center gap-2">
+                                            <Building2 size={14} className="text-auth-subtitle-color shrink-0" />
+                                            <span className="font-bold text-[14px] text-gray-700 truncate">{goal.businessName}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <MapPin size={12} className="text-zinc-400 shrink-0" />
+                                            <span className="text-[11px] text-zinc-500 truncate">{goal.location}</span>
+                                        </div>
                                     </div>
                                     <div className="flex gap-1 shrink-0">
                                         <button
@@ -526,6 +557,7 @@ export default function AccountSetupPage() {
     ]);
     const [goals, setGoals] = useState({
         businessName: '',
+        location: '',
         competitors: '',
         frequency: 'Monthly',
         selectedGoals: [] as string[]
@@ -589,6 +621,7 @@ export default function AccountSetupPage() {
 
             const businessesPayload = savedGoals.map(goal => ({
                 business_name: goal.businessName,
+                location: goal.location,
                 competitors_urls: goal.competitors.split(',')
                     .map((c: string) => c.trim())
                     .filter((c: string) => c !== "")

@@ -4,14 +4,28 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff, User, Briefcase } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, Briefcase, Loader2 } from "lucide-react";
 import { useRegisterMutation } from "@/redux/api/BE/user/authApi";
 import Cookies from "js-cookie";
+import { toast } from "react-hot-toast";
+import { useEffect } from "react";
 
 export default function SignupPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const error = searchParams.get("error");
+        if (error) {
+            toast.error(decodeURIComponent(error), { position: "top-right" });
+            // Clean up URL
+            const url = new URL(window.location.href);
+            url.searchParams.delete("error");
+            window.history.replaceState({}, "", url.pathname);
+        }
+    }, []);
     
     // Form state
     const [formData, setFormData] = useState({
@@ -43,7 +57,7 @@ export default function SignupPage() {
         e.preventDefault();
         
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match");
+            toast.error("Passwords do not match");
             return;
         }
 
@@ -59,12 +73,27 @@ export default function SignupPage() {
             if (result.success) {
                 Cookies.set("accessToken", result.data.accessToken, { expires: 7, path: '/' });
                 Cookies.set("refreshToken", result.data.refreshToken, { expires: 30, path: '/' });
+                
+                // Save subscription encoded in cookies
+                if (result.data.subscription) {
+                    const encodedSub = btoa(JSON.stringify(result.data.subscription));
+                    Cookies.set("subscription", encodedSub, { expires: 7, path: '/' });
+                }
+
+                toast.success(result.message || "Account created successfully!");
                 router.push("/account-setup");
+            } else {
+                toast.error(result.message || "Registration failed");
             }
         } catch (err: any) {
             console.error("Signup failed:", err);
-            alert(err?.data?.message || "Registration failed. Please try again.");
+            toast.error(err?.data?.message || "Registration failed. Please try again.");
         }
+    };
+
+    const handleGoogleSignup = () => {
+        // Redirecting directly to the backend endpoint for Google Auth
+        window.location.href = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/google/register`;
     };
 
     return (
@@ -204,6 +233,23 @@ export default function SignupPage() {
                         {isLoading ? "Creating Account..." : "Create Account"}
                     </button>
                 </form>
+
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-zinc-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-white rounded-full text-zinc-500 font-medium">Or continue with</span>
+                    </div>
+                </div>
+
+                <button
+                    onClick={handleGoogleSignup}
+                    className="cursor-pointer w-full flex items-center justify-center gap-3 h-12 bg-white border border-zinc-200 rounded-xl font-bold text-[15px] text-zinc-800 hover:bg-zinc-50 transition-all shadow-sm"
+                >
+                    <Image src="/google_icon.svg" alt="Google" width={24} height={24} />
+                    Sign up with Google
+                </button>
 
                 <p className="text-center text-[14px] text-zinc-500 font-medium">
                     Already have an account?{' '}

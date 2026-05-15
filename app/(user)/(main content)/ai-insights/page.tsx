@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState } from "react";
 import {
     Radar,
     RadarChart,
@@ -7,73 +8,84 @@ import {
     PolarAngleAxis,
     PolarRadiusAxis,
     ResponsiveContainer,
+    Tooltip,
 } from "recharts";
 import {
     TrendingUp,
     TrendingDown,
     Lightbulb,
-    Zap,
-    Users,
     Settings,
+    Users,
     Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-
-// --- Mock Data ---
-
-const radarData = [
-    { subject: "Service", A: 120, fullMark: 150 },
-    { subject: "Quality", A: 98, fullMark: 150 },
-    { subject: "Atmosphere", A: 86, fullMark: 150 },
-    { subject: "Value", A: 99, fullMark: 150 },
-    { subject: "Cleanliness", A: 85, fullMark: 150 },
-];
-
-const emergingTrends = [
-    { label: "Increased demand for fish burger options", mentions: "24 mentions" },
-    { label: "Requests for healthier food options", mentions: "34 mentions" },
-    { label: "Interest in outdoor seating", mentions: "58 mentions" },
-];
-
-const decliningAreas = [
-    { label: "WiFi speed satisfaction", mentions: "65 mentions" },
-    { label: "Weekend availability", mentions: "62 mentions" },
-    { label: "Service Timely", mentions: "42 mentions" },
-];
-
-const actionPlans = [
-    {
-        title: "Slow Service During Peak Hours",
-        priority: "High Priority",
-        description: "Peak hours (11am-1pm, 5pm-7pm) show consistent complaints about wait times. Consider hiring 2 additional staff members during these windows or implementing a pre-order system.",
-        evidence: "23 mentions in last 30 days (+15% vs previous month)",
-        impact: "High - Affecting 18% of negative reviews",
-        improvement: "+12% satisfaction",
-        steps: [
-            "Analyze current staff scheduling patterns",
-            "Implement time-slot based staffing",
-            "Consider mobile ordering to reduce queue time",
-            "Train staff on efficiency techniques",
-        ],
-    },
-    {
-        title: "Limited Parking Availability",
-        priority: "Medium Priority",
-        description: "Peak hours (11am-1pm, 5pm-7pm) show consistent complaints about wait times. Consider hiring 2 additional staff members during these windows or implementing a pre-order system.",
-        evidence: "23 mentions in last 30 days (+15% vs previous month)",
-        impact: "High - Affecting 18% of negative reviews",
-        improvement: "+12% satisfaction",
-        steps: [
-            "Analyze current staff scheduling patterns",
-            "Implement time-slot based staffing",
-            "Consider mobile ordering to reduce queue time",
-            "Train staff on efficiency techniques",
-        ],
-    },
-];
+import { useSelector } from "react-redux";
+import { useGetAiInsightsQuery, useUpdateRecommendationStatusMutation } from "@/redux/api/AI/aiInsightsApi";
+import { getUserIdFromToken } from "@/utils/authUtils";
+import { toast } from "react-hot-toast";
+import Link from "next/link";
 
 export default function AIInsightsPage() {
+    // Get business context from Redux
+    const selectedBusiness = useSelector((state: any) => state.business.selectedBusiness);
+    const selectedAddress = useSelector((state: any) => state.business.selectedAddress);
+    const userId = getUserIdFromToken();
+
+    // Fetch live insights
+    const { data: insights, isLoading } = useGetAiInsightsQuery(
+        { userId: userId || "", businessName: selectedBusiness || "", address: selectedAddress || "" },
+        { skip: !userId || !selectedBusiness }
+    );
+
+    const [updateStatus] = useUpdateRecommendationStatusMutation();
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                <div className="size-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <p className="text-gray-500 font-medium animate-pulse">Generating your AI insights...</p>
+            </div>
+        );
+    }
+
+    if (!insights) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+                <div className="bg-gray-100 p-6 rounded-full mb-6">
+                    <Lightbulb className="size-12 text-gray-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">No Insights Available</h2>
+                <p className="text-gray-500 max-w-md">
+                    Please ensure you have selected a business from the sidebar and added your goals and competitors to generate AI insights.
+                </p>
+            </div>
+        );
+    }
+
+    // Transform radar data
+    const radarData = Object.entries(insights.performance_by_category).map(([category, value]) => ({
+        subject: category,
+        A: value,
+        fullMark: 100
+    }));
+
+    const recommendations = insights.actionable_recommendations.slice(0, 3);
+
+    const handleMarkAsAddressed = async (title: string) => {
+        if (!userId) return;
+        try {
+            await updateStatus({
+                userId,
+                title,
+                status: "read"
+            }).unwrap();
+            toast.success("Recommendation marked as addressed!");
+        } catch (err) {
+            toast.error("Failed to update status");
+        }
+    };
+
     return (
         <div className="space-y-8 pb-12">
             {/* Header */}
@@ -95,26 +107,26 @@ export default function AIInsightsPage() {
                         </div>
                     </div>
                     <div className="flex items-end gap-3 mt-4">
-                        <span className="text-6xl font-bold text-gray-900">87</span>
+                        <span className="text-6xl font-bold text-gray-900">{insights.business_health_score}</span>
                         <span className="text-xl font-medium text-gray-400 mb-2">/100</span>
                     </div>
                     <div className="flex items-center text-sm font-medium text-blue-600 w-fit rounded-full">
                         <TrendingUp className="size-4 mr-1.5" />
-                        +5 vs last month
+                        Live data analysis
                     </div>
                 </div>
-                {/* Image Placeholder - making it responsive */}
+                
+                {/* Business Picture */}
                 <div className="w-full md:w-[400px] h-48 rounded-2xl overflow-hidden shadow-lg relative group">
                     <img
-                        src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop"
-                        alt="Restaurant Interior"
+                        src={insights.business_picture.photo_url || "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop"}
+                        alt={selectedBusiness || "Business Image"}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-4 flex items-end">
-                        <div className="flex gap-1">
-                            {[1, 2, 3, 4].map((_, i) => <Star key={i} className="size-4 fill-amber-400 text-amber-400" />)}
-                            <Star className="size-4 fill-amber-400 text-amber-400 opacity-75" />
-                            <span className="text-white text-xs font-bold ml-1">4.8</span>
+                        <div className="flex items-center gap-1">
+                            <Star className="size-4 fill-amber-400 text-amber-400" />
+                            <span className="text-white text-xs font-bold ml-1">Live Location Data</span>
                         </div>
                     </div>
                 </div>
@@ -122,7 +134,6 @@ export default function AIInsightsPage() {
 
             {/* Performance & Quick Insights Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
                 {/* Radar Chart */}
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm min-h-[400px]">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">Performance by Category</h3>
@@ -131,7 +142,10 @@ export default function AIInsightsPage() {
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                                 <PolarGrid stroke="#e5e7eb" />
                                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 500 }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
+                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                <Tooltip 
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                />
                                 <Radar
                                     name="Performance"
                                     dataKey="A"
@@ -156,7 +170,7 @@ export default function AIInsightsPage() {
                             <h4 className="font-bold text-gray-900 text-sm">What Customers Love</h4>
                         </div>
                         <p className="text-sm text-green-800 leading-relaxed">
-                            Your coffee quality and friendly staff are your biggest strengths, mentioned in 92% of positive reviews.
+                            {insights.quick_insights.what_customers_love}
                         </p>
                     </div>
 
@@ -167,7 +181,7 @@ export default function AIInsightsPage() {
                             <h4 className="font-bold text-gray-900 text-sm">What Customers Dislike</h4>
                         </div>
                         <p className="text-sm text-red-800 leading-relaxed">
-                            Service speed during peak hours is the primary pain point, affecting customer satisfaction significantly.
+                            {insights.quick_insights.what_customers_dislike}
                         </p>
                     </div>
 
@@ -178,7 +192,7 @@ export default function AIInsightsPage() {
                             <h4 className="font-bold text-gray-900 text-sm">Emerging Opportunities</h4>
                         </div>
                         <p className="text-sm text-blue-800 leading-relaxed">
-                            Requests for healthier food options could be a new revenue stream, mentioned in 15+ recent reviews.
+                            {insights.quick_insights.emerging_opportunities}
                         </p>
                     </div>
                 </div>
@@ -190,10 +204,10 @@ export default function AIInsightsPage() {
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">Emerging Trends</h3>
                     <div className="space-y-3">
-                        {emergingTrends.map((trend, i) => (
+                        {insights.emerging_trends.map((trend, i) => (
                             <div key={i} className="flex flex-col p-4 bg-green-50/50 rounded-2xl border border-green-100/50">
-                                <span className="text-sm font-semibold text-gray-900">{trend.label}</span>
-                                <span className="text-xs text-green-600 font-medium mt-1">{trend.mentions}</span>
+                                <span className="text-sm font-semibold text-gray-900">{trend.trend}</span>
+                                <span className="text-xs text-green-600 font-medium mt-1">{trend.mentions} mentions</span>
                             </div>
                         ))}
                     </div>
@@ -203,10 +217,10 @@ export default function AIInsightsPage() {
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">Declining Areas</h3>
                     <div className="space-y-3">
-                        {decliningAreas.map((area, i) => (
+                        {insights.declining_areas.map((area, i) => (
                             <div key={i} className="flex flex-col p-4 bg-red-50/50 rounded-2xl border border-red-100/50">
-                                <span className="text-sm font-semibold text-gray-900">{area.label}</span>
-                                <span className="text-xs text-red-600 font-medium mt-1">{area.mentions}</span>
+                                <span className="text-sm font-semibold text-gray-900">{area.trend}</span>
+                                <span className="text-xs text-red-600 font-medium mt-1">{area.mentions} mentions</span>
                             </div>
                         ))}
                     </div>
@@ -222,18 +236,25 @@ export default function AIInsightsPage() {
                         </div>
                         <h3 className="sm:text-xl text-lg font-bold text-gray-900">Actionable Recommendations</h3>
                     </div>
-                    <button className="sm:text-sm text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer text-nowrap">View All</button>
+                    <Link 
+                        href="/ai-insights/all-recommendation"
+                        className="sm:text-sm text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer text-nowrap"
+                    >
+                        View All
+                    </Link>
                 </div>
 
-                {actionPlans.map((plan, i) => (
+                {recommendations.map((plan, i) => (
                     <div key={i} className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
                         <div className="flex items-center gap-4 mb-4">
                             <h4 className="text-lg font-bold text-gray-900">{plan.title}</h4>
                             <span className={cn(
                                 "px-3 py-1 rounded-full text-xs font-semibold text-nowrap",
-                                plan.priority.includes("High") ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
+                                plan.priority === "High" ? "bg-red-100 text-red-600" : 
+                                plan.priority === "Medium" ? "bg-amber-100 text-amber-600" : 
+                                "bg-blue-100 text-blue-600"
                             )}>
-                                {plan.priority}
+                                {plan.priority} Priority
                             </span>
                         </div>
 
@@ -248,18 +269,18 @@ export default function AIInsightsPage() {
                             </div>
                             <div className="p-4 bg-amber-50 rounded-2xl">
                                 <span className="text-xs text-amber-600/80 font-medium">Business Impact</span>
-                                <p className="text-sm text-amber-900 font-semibold mt-1">{plan.impact}</p>
+                                <p className="text-sm text-amber-900 font-semibold mt-1">{plan.business_impact}</p>
                             </div>
                             <div className="p-4 bg-green-50 rounded-2xl">
-                                <span className="text-xs text-green-600/80 font-medium">Improvement</span>
-                                <p className="text-sm text-green-900 font-semibold mt-1">{plan.improvement}</p>
+                                <span className="text-xs text-green-600/80 font-medium">Expected Improvement</span>
+                                <p className="text-sm text-green-900 font-semibold mt-1">{plan.expected_improvement}</p>
                             </div>
                         </div>
 
                         <div className="bg-blue-100/50 p-6 rounded-2xl border border-blue-100">
-                            <h5 className="font-bold text-blue-900 text-sm mb-4">Recommended Solution: Staff Scheduling Optimization</h5>
+                            <h5 className="font-bold text-blue-900 text-sm mb-4">Recommended Actions</h5>
                             <div className="space-y-3 mb-6">
-                                {plan.steps.map((step, j) => (
+                                {plan.actions.map((step, j) => (
                                     <div key={j} className="flex items-center gap-3">
                                         <div className="flex items-center justify-center size-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold shrink-0">
                                             {j + 1}
@@ -269,7 +290,11 @@ export default function AIInsightsPage() {
                                 ))}
                             </div>
                         </div>
-                        <button className="cursor-pointer px-6 py-2.5 bg-blue-600 mt-4 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]">
+                        
+                        <button 
+                            onClick={() => handleMarkAsAddressed(plan.title)}
+                            className="cursor-pointer px-6 py-2.5 bg-blue-600 mt-4 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]"
+                        >
                             Mark as Addressed
                         </button>
                     </div>
@@ -315,7 +340,6 @@ export default function AIInsightsPage() {
                     </button>
                 </div>
 
-                {/* Decorative background circles */}
                 <div className="absolute top-0 right-0 -mr-20 -mt-20 size-96 rounded-full bg-white/10 blur-3xl" />
                 <div className="absolute bottom-0 left-0 -ml-20 -mb-20 size-96 rounded-full bg-white/10 blur-3xl" />
             </div>
@@ -323,7 +347,6 @@ export default function AIInsightsPage() {
     );
 }
 
-// Internal Star Icon for the image overlay
 function Star({ className }: { className?: string }) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>

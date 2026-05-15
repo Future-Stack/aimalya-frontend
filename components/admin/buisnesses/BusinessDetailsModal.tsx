@@ -14,6 +14,10 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import {
+    useGetBusinessManagementDetailQuery,
+} from "@/redux/api/AI/businessmanagementApi";
+
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
@@ -27,9 +31,21 @@ interface BusinessDetailsModalProps {
 export default function BusinessDetailsModal({ isOpen, onClose, business }: BusinessDetailsModalProps) {
     const [activeTab, setActiveTab] = useState("Overview");
 
+    // Mapping activeTab display name to API overlook parameter
+    const overlookParam = activeTab.startsWith("Overview") ? "overview" : 
+                          activeTab.startsWith("Locations") ? "locations" : "analytics";
+
+    const { data: detailData, isLoading: detailLoading } = useGetBusinessManagementDetailQuery(
+        { 
+            business_name: business?.business_name, 
+            overlook: overlookParam 
+        },
+        { skip: !isOpen || !business?.business_name }
+    );
+
     if (!isOpen || !business) return null;
 
-    const tabs = ["Overview", `Locations (${business.locations})`, "Analytics"];
+    const tabs = ["Overview", `Locations (${business.location_count || 0})`, "Analytics"];
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 transition-opacity">
@@ -39,19 +55,19 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
                     <div className="flex items-center gap-4">
                         <div className="h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
                             <img
-                                src={business.image}
-                                alt={business.name}
+                                src={business.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400"}
+                                alt={business.business_name}
                                 className="h-full w-full object-cover"
                             />
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h2 className="text-2xl font-bold text-[#0F172A]">{business.name}</h2>
+                                <h2 className="text-2xl font-bold text-[#0F172A]">{business.business_name}</h2>
                                 <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700">
-                                    {business.status}
+                                    active
                                 </span>
                             </div>
-                            <p className="text-sm text-gray-500">{business.type}</p>
+                            <p className="text-sm text-gray-500 capitalize">{business.category}</p>
                         </div>
                     </div>
                     <button
@@ -84,21 +100,30 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                    {activeTab === "Overview" && (
+                    {detailLoading ? (
+                        <div className="space-y-6 animate-pulse">
+                            <div className="grid grid-cols-4 gap-4">
+                                {Array(4).fill(0).map((_, i) => (
+                                    <div key={i} className="h-20 bg-gray-100 rounded-xl" />
+                                ))}
+                            </div>
+                            <div className="h-40 bg-gray-50 rounded-xl" />
+                        </div>
+                    ) : activeTab === "Overview" && (
                         <>
                             {/* Quick Stats */}
                             <div className="grid grid-cols-4 gap-4">
                                 <div className="rounded-xl bg-blue-50 p-4">
                                     <p className="text-[10px] font-bold text-blue-600 uppercase">Total Locations</p>
-                                    <p className="mt-1 text-xl font-bold text-blue-900">{business.locations}</p>
+                                    <p className="mt-1 text-xl font-bold text-blue-900">{business.location_count}</p>
                                 </div>
                                 <div className="rounded-xl bg-purple-50 p-4">
                                     <p className="text-[10px] font-bold text-purple-600 uppercase">Total Reviews</p>
-                                    <p className="mt-1 text-xl font-bold text-purple-900">{business.reviews}</p>
+                                    <p className="mt-1 text-xl font-bold text-purple-900">{business.reviews.toLocaleString()}</p>
                                 </div>
                                 <div className="rounded-xl bg-amber-50 p-4">
                                     <p className="text-[10px] font-bold text-amber-600 uppercase">Average Rating</p>
-                                    <p className="mt-1 text-xl font-bold text-amber-900">{business.rating}</p>
+                                    <p className="mt-1 text-xl font-bold text-amber-900">{business.ratings}</p>
                                 </div>
                                 <div className="rounded-xl bg-green-50 p-4">
                                     <p className="text-[10px] font-bold text-green-600 uppercase">Monthly Growth</p>
@@ -112,19 +137,35 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
                                 <div className="grid grid-cols-2 gap-y-6">
                                     <div>
                                         <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wider">Business Owner</p>
-                                        <p className="text-sm font-bold text-[#0F172A]">{business.owner}</p>
+                                        <p className="text-sm font-bold text-[#0F172A]">{detailData?.overview?.business_owner_name || "N/A"}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wider">Category</p>
-                                        <p className="text-sm font-bold text-[#0F172A]">{business.type}</p>
+                                        <p className="text-sm font-bold text-[#0F172A] capitalize">{detailData?.overview?.category}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wider">Account Created</p>
-                                        <p className="text-sm font-bold text-[#0F172A]">January 15, 2025</p>
+                                        <p className="text-sm font-bold text-[#0F172A]">
+                                            {detailData?.overview?.account_created ? new Date(detailData.overview.account_created).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : "N/A"}
+                                        </p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wider">Last Active</p>
-                                        <p className="text-sm font-bold text-[#0F172A]">2 hours ago</p>
+                                        <p className="text-sm font-bold text-[#0F172A]">
+                                            {detailData?.overview?.last_active ? new Date(detailData.overview.last_active).toLocaleString() : "N/A"}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wider">Website</p>
+                                        <p className="text-sm font-bold text-blue-600 truncate max-w-[200px]">
+                                            <a href={detailData?.overview?.website} target="_blank" rel="noopener noreferrer">
+                                                {detailData?.overview?.website || "N/A"}
+                                            </a>
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wider">Phone</p>
+                                        <p className="text-sm font-bold text-[#0F172A]">{detailData?.overview?.phone || "N/A"}</p>
                                     </div>
                                 </div>
                             </div>
@@ -151,120 +192,102 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
 
                     {activeTab === "Locations" && (
                         <div className="space-y-4">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="rounded-xl border border-blue-50 bg-white p-6 shadow-sm">
-                                    <div className="flex items-start justify-between mb-8">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                                                <MapPin className="size-5 text-blue-600" />
+                            {detailData?.locations?.length > 0 ? (
+                                detailData.locations.map((loc: any, i: number) => (
+                                    <div key={i} className="rounded-xl border border-blue-50 bg-white p-6 shadow-sm">
+                                        <div className="flex items-start justify-between mb-8">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                                                    <MapPin className="size-5 text-blue-600" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-[#0F172A]">{loc.business_name}</h4>
+                                                    <p className="text-xs text-gray-500 font-medium mt-0.5">{loc.address || "No address provided"}</p>
+                                                </div>
+                                            </div>
+                                            <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700">
+                                                active
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div>
+                                                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Reviews</p>
+                                                <p className="text-sm font-bold text-[#0F172A]">{loc.reviews?.toLocaleString() || 0}</p>
                                             </div>
                                             <div>
-                                                <h4 className="text-sm font-bold text-[#0F172A]">{business.name} - Downtown</h4>
-                                                <p className="text-xs text-gray-500 font-medium mt-0.5">123 Main St, City, State 12345</p>
+                                                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Rating</p>
+                                                <div className="flex items-center gap-1.5">
+                                                    <Star className="size-3.5 text-amber-500 fill-amber-500" />
+                                                    <span className="text-sm font-bold text-[#0F172A]">{loc.rating || 0}</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Action</p>
+                                                <button className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
+                                                    View Details
+                                                    <ChevronRight className="size-3.5" />
+                                                </button>
                                             </div>
                                         </div>
-                                        <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700">
-                                            active
-                                        </span>
                                     </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Reviews</p>
-                                            <p className="text-sm font-bold text-[#0F172A]">456</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Rating</p>
-                                            <div className="flex items-center gap-1.5">
-                                                <Star className="size-3.5 text-amber-500 fill-amber-500" />
-                                                <span className="text-sm font-bold text-[#0F172A]">4.6</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Action</p>
-                                            <button className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
-                                                View Details
-                                                <ChevronRight className="size-3.5" />
-                                            </button>
-                                        </div>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="py-10 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                    <MapPin className="size-8 text-gray-300 mx-auto mb-2" />
+                                    <p className="text-sm text-gray-500 font-medium">No locations found for this business.</p>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     )}
 
                     {activeTab === "Analytics" && (
                         <div className="space-y-6">
-                            {/* Sentiment Analysis */}
-                            <div className="rounded-xl border border-blue-50 bg-white p-6 shadow-sm">
-                                <h3 className="text-lg font-bold text-[#0F172A] mb-6">Sentiment Analysis (Last 30 Days)</h3>
-                                <div className="grid grid-cols-3 gap-8 mb-4">
-                                    <div>
-                                        <p className="text-2xl font-bold text-green-600">68%</p>
-                                        <p className="text-xs text-gray-400 font-medium">Positive</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-2xl font-bold text-amber-500">24%</p>
-                                        <p className="text-xs text-gray-400 font-medium">Neutral</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-2xl font-bold text-red-500">8%</p>
-                                        <p className="text-xs text-gray-400 font-medium">Negative</p>
-                                    </div>
-                                </div>
-                                <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden flex">
-                                    <div className="h-full bg-green-500" style={{ width: '68%' }}></div>
-                                    <div className="h-full bg-amber-500" style={{ width: '24%' }}></div>
-                                    <div className="h-full bg-red-500" style={{ width: '8%' }}></div>
-                                </div>
-                            </div>
-
-                            {/* Key Performance Metrics */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-bold text-[#0F172A]">5 Key Performance Metrics</h3>
-                                <div className="space-y-6">
-                                    {[
-                                        { label: "Signups", value: "250", color: "bg-blue-600", width: "100%" },
-                                        { label: "Completed Onboarding", value: "225 (90%)", color: "bg-purple-600", width: "90%" },
-                                        { label: "Started Trial", value: "198 (79%)", color: "bg-green-500", width: "79%" },
-                                        { label: "Converted to Paid", value: "167 (67%)", color: "bg-amber-600", width: "67%" },
-                                    ].map((metric) => (
-                                        <div key={metric.label}>
-                                            <div className="flex justify-between items-center mb-2">
-                                                <p className="text-xs font-bold text-[#0F172A]">{metric.label}</p>
-                                                <p className="text-xs text-gray-400 font-medium">{metric.value}</p>
+                            {detailData?.analytics ? (
+                                <>
+                                    {/* Sentiment Analysis */}
+                                    <div className="rounded-xl border border-blue-50 bg-white p-6 shadow-sm">
+                                        <h3 className="text-lg font-bold text-[#0F172A] mb-2">Sentiment Analysis</h3>
+                                        <p className="text-xs text-gray-400 mb-6 uppercase font-bold tracking-wider">Period: {detailData.analytics.period?.replace(/_/g, " ")}</p>
+                                        
+                                        <div className="grid grid-cols-3 gap-8 mb-4">
+                                            <div>
+                                                <p className="text-2xl font-bold text-green-600">{detailData.analytics.avg_sentiment_analysis?.positive || "0%"}</p>
+                                                <p className="text-xs text-gray-400 font-medium">Positive</p>
                                             </div>
-                                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                                <div className={cn("h-full rounded-full", metric.color)} style={{ width: metric.width }}></div>
+                                            <div>
+                                                <p className="text-2xl font-bold text-amber-500">{detailData.analytics.avg_sentiment_analysis?.neutral || "0%"}</p>
+                                                <p className="text-xs text-gray-400 font-medium">Neutral</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-2xl font-bold text-red-500">{detailData.analytics.avg_sentiment_analysis?.negative || "0%"}</p>
+                                                <p className="text-xs text-gray-400 font-medium">Negative</p>
                                             </div>
                                         </div>
-                                    ))}
+                                        <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden flex">
+                                            <div className="h-full bg-green-500" style={{ width: detailData.analytics.avg_sentiment_analysis?.positive || "0%" }}></div>
+                                            <div className="h-full bg-amber-500" style={{ width: detailData.analytics.avg_sentiment_analysis?.neutral || "0%" }}></div>
+                                            <div className="h-full bg-red-500" style={{ width: detailData.analytics.avg_sentiment_analysis?.negative || "0%" }}></div>
+                                        </div>
+                                        
+                                        <div className="mt-6 pt-6 border-t border-gray-50 grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-xs text-gray-500 font-medium mb-1">Reviews Analyzed</p>
+                                                <p className="text-lg font-bold text-[#0F172A]">{detailData.analytics.reviews_analyzed || 0}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-gray-500 font-medium mb-1">Positive Percentage</p>
+                                                <p className="text-lg font-bold text-green-600">{detailData.analytics.positive_review_percentage || 0}%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="py-10 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                    <TrendingUp className="size-8 text-gray-300 mx-auto mb-2" />
+                                    <p className="text-sm text-gray-500 font-medium">No analytics data available yet.</p>
                                 </div>
-                            </div>
-
-                            {/* Review Response Rate */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-bold text-[#0F172A]">Review Response Rate</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="rounded-xl bg-blue-50 p-4">
-                                        <p className="text-[10px] font-bold text-blue-600 uppercase">Reviews with Response</p>
-                                        <p className="mt-1 text-2xl font-bold text-blue-900">842</p>
-                                    </div>
-                                    <div className="rounded-xl bg-gray-50 p-4">
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase font-bold">No Response</p>
-                                        <p className="mt-1 text-2xl font-bold text-[#0F172A]">392</p>
-                                    </div>
-                                </div>
-                                <div className="mt-4">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <p className="text-xs font-bold text-[#0F172A]">Response Rate</p>
-                                        <p className="text-xs text-[#0F172A] font-bold">68%</p>
-                                    </div>
-                                    <div className="h-2 w-full bg-blue-50 rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-600 rounded-full" style={{ width: '68%' }}></div>
-                                    </div>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     )}
                 </div>

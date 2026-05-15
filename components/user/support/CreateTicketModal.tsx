@@ -1,13 +1,26 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { X, ChevronDown, Plus } from "lucide-react";
+import { X, ChevronDown, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCreateSupportTicketMutation } from "@/redux/api/BE/supportApi";
+import { useGetProfileQuery } from "@/redux/api/BE/user/profileApi";
+import { toast } from "react-hot-toast";
 
 interface CreateTicketModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
+
+const CATEGORY_MAP: Record<string, string> = {
+    "General Question": "GENERAL_QUESTION",
+    "Integration Issue": "INTEGRATION_ISSUE",
+    "Billing & Payment": "BILLING_AND_PAYMENT_ISSUE",
+    "Feature Request": "FEATURE_REQUEST",
+    "Technical Problem": "TECHNICAL_PROBLEM"
+};
+
+const REVERSE_CATEGORY_MAP: Record<string, string> = Object.entries(CATEGORY_MAP).reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {});
 
 // Custom Dropdown for Modal
 function ModalDropdown({
@@ -72,8 +85,13 @@ function ModalDropdown({
 }
 
 export default function CreateTicketModal({ isOpen, onClose }: CreateTicketModalProps) {
+    const [subject, setSubject] = useState("");
     const [category, setCategory] = useState("");
     const [priority, setPriority] = useState("");
+    const [description, setDescription] = useState("");
+
+    const { data: profileData } = useGetProfileQuery();
+    const [createTicket, { isLoading }] = useCreateSupportTicketMutation();
 
     useEffect(() => {
         if (isOpen) {
@@ -85,6 +103,34 @@ export default function CreateTicketModal({ isOpen, onClose }: CreateTicketModal
             document.body.style.overflow = "unset";
         };
     }, [isOpen]);
+
+    const handleSubmit = async () => {
+        if (!subject || !category || !priority || !description) {
+            toast.error("Please fill in all fields");
+            return;
+        }
+
+        const payload = {
+            subject,
+            category: CATEGORY_MAP[category],
+            priority: priority.toUpperCase(),
+            description,
+            status: "OPEN",
+            userIds: [profileData?.data?.userId],
+        };
+
+        try {
+            await createTicket(payload).unwrap();
+            toast.success("Ticket created successfully");
+            setSubject("");
+            setCategory("");
+            setPriority("");
+            setDescription("");
+            onClose();
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to create ticket");
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -112,6 +158,8 @@ export default function CreateTicketModal({ isOpen, onClose }: CreateTicketModal
                         <input
                             type="text"
                             placeholder="Enter Issue name"
+                            value={subject}
+                            onChange={(e) => setSubject(e.target.value)}
                             className="w-full px-4 py-3 text-sm bg-blue-50/30 border border-blue-100 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-gray-400"
                         />
                     </div>
@@ -119,14 +167,8 @@ export default function CreateTicketModal({ isOpen, onClose }: CreateTicketModal
                     <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">Category</label>
                         <ModalDropdown
-                            label="Feature Request"
-                            options={[
-                                "General Question",
-                                "Integration Issue",
-                                "Billing & Payment",
-                                "Feature Request",
-                                "Technical Problem"
-                            ]}
+                            label="Select Category"
+                            options={Object.keys(CATEGORY_MAP)}
                             value={category}
                             onChange={setCategory}
                         />
@@ -135,7 +177,7 @@ export default function CreateTicketModal({ isOpen, onClose }: CreateTicketModal
                     <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">Priority</label>
                         <ModalDropdown
-                            label="High"
+                            label="Select Priority"
                             options={["High", "Medium", "Low"]}
                             value={priority}
                             onChange={setPriority}
@@ -147,6 +189,8 @@ export default function CreateTicketModal({ isOpen, onClose }: CreateTicketModal
                         <textarea
                             placeholder="Please provide as much detail as possible..."
                             rows={4}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
                             className="w-full px-4 py-3 text-sm bg-blue-50/30 border border-blue-100 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-gray-400 resize-none"
                         />
                     </div>
@@ -154,15 +198,22 @@ export default function CreateTicketModal({ isOpen, onClose }: CreateTicketModal
                     <div className="flex gap-3 pt-2">
                         <button
                             onClick={onClose}
-                            className="cursor-pointer flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                            disabled={isLoading}
+                            className="cursor-pointer flex-1 px-4 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
-                            className="cursor-pointer flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                            className="cursor-pointer flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 disabled:opacity-50"
                         >
-                            <Plus className="size-4" />
-                            Create Ticket
+                            {isLoading ? (
+                                <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                                <Plus className="size-4" />
+                            )}
+                            {isLoading ? "Creating..." : "Create Ticket"}
                         </button>
                     </div>
                 </div>
@@ -170,3 +221,4 @@ export default function CreateTicketModal({ isOpen, onClose }: CreateTicketModal
         </div>
     );
 }
+

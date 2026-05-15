@@ -32,6 +32,7 @@ import { useGetMonthlyReportQuery } from "@/redux/api/AI/reportsApi";
 import { useSelector } from "react-redux";
 import { getUserIdFromToken } from "@/utils/authUtils";
 import { Loader2 } from "lucide-react";
+import { downloadReportPDF, downloadReportExcel } from "@/utils/reportExport";
 
 // Mock Data
 const volumeData = [
@@ -107,29 +108,25 @@ const getActionPlan = (index: number) => {
 
 const getWeeks = (baseDate: Date) => {
     const weeks = [];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
     for (let i = 0; i < 5; i++) {
-        const date = new Date(baseDate);
-        date.setDate(date.getDate() - (i * 7));
+        const endDate = new Date(baseDate);
+        endDate.setDate(endDate.getDate() - (i * 7));
+        
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 7);
 
-        // Find Monday of that week
-        const day = date.getDay();
-        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-        const monday = new Date(date.setDate(diff));
-
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const label = `${monday.getDate()} ${monthNames[monday.getMonth()]} - ${sunday.getDate()} ${monthNames[sunday.getMonth()]} ${sunday.getFullYear()}`;
-        const generated = `${monthNames[monday.getMonth()]} ${monday.getFullYear()}`;
+        const label = `${startDate.getDate()} ${monthNames[startDate.getMonth()]} - ${endDate.getDate()} ${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
+        const generated = `${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
 
         weeks.push({
-            name: `Weekly Report: ${monday.getDate()} ${monthNames[monday.getMonth()]}`,
+            name: `Weekly Report: ${endDate.getDate()} ${monthNames[endDate.getMonth()]}`,
             label,
             generated,
-            date: new Date(monday),
-            startDate: monday.toISOString().split('T')[0],
-            endDate: sunday.toISOString().split('T')[0],
+            date: new Date(endDate),
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0],
         });
     }
     return weeks;
@@ -137,23 +134,25 @@ const getWeeks = (baseDate: Date) => {
 
 const getMonths = (baseDate: Date) => {
     const months = [];
-    const monthNamesLong = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     for (let i = 0; i < 5; i++) {
-        const date = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1);
-        const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        const endDate = new Date(baseDate);
+        endDate.setDate(endDate.getDate() - (i * 30));
         
-        const name = `${monthNamesLong[date.getMonth()]} ${date.getFullYear()} Monthly Report`;
-        const generated = `${monthNamesShort[(date.getMonth() - 1 + 12) % 12]} ${date.getFullYear()}`;
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 30);
+        
+        const name = `Monthly Report: ${endDate.getDate()} ${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
+        const generated = `${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`;
 
         months.push({
             name,
-            label: `${monthNamesLong[date.getMonth()]} ${date.getFullYear()}`,
+            label: `${startDate.getDate()} ${monthNames[startDate.getMonth()]} - ${endDate.getDate()} ${monthNames[endDate.getMonth()]} ${endDate.getFullYear()}`,
             generated,
-            date: new Date(date),
-            startDate: date.toISOString().split('T')[0],
-            endDate: lastDay.toISOString().split('T')[0],
+            date: new Date(endDate),
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0],
         });
     }
     return months;
@@ -173,13 +172,13 @@ export default function ReportsPage() {
 
     const activeReport = timeframes[activeIndex] || timeframes[0];
 
-    const { data: reportData, isLoading } = useGetMonthlyReportQuery(
+    const { data: reportData, isLoading, isFetching } = useGetMonthlyReportQuery(
         {
-            userId: userId || "",
-            businessName: selectedBusiness || "",
-            reportFrequency: viewMode.toLowerCase() as "weekly" | "monthly",
-            startDate: activeReport?.startDate,
-            endDate: activeReport?.endDate,
+            user_id: userId || "",
+            business_name: selectedBusiness || "",
+            report_frequency: viewMode.toLowerCase() as "weekly" | "monthly",
+            start_date: activeReport?.startDate,
+            end_date: activeReport?.endDate,
             address: selectedAddress || "",
         },
         { skip: !userId || !selectedBusiness || !activeReport }
@@ -187,11 +186,38 @@ export default function ReportsPage() {
 
     const dynamicStats = useMemo(() => {
         const kpis = reportData?.kpis;
+        
+        const formatTrend = (change: number | null | undefined, isPercent: boolean = false) => {
+            const val = change ?? 0;
+            const sign = val > 0 ? "+" : "";
+            return `${sign}${isPercent ? val : val.toFixed(1)}${isPercent ? "%" : ""} vs prev`;
+        };
+
         return [
-            { label: "Avg. Rating", value: kpis?.avg_rating.value?.toFixed(1) || "0.0", trend: kpis?.avg_rating.change ? `${kpis.avg_rating.change > 0 ? '+' : ''}${kpis.avg_rating.change} vs prev` : "No data", color: (kpis?.avg_rating.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
-            { label: "Reviews", value: kpis?.reviews.value?.toString() || "0", trend: kpis?.reviews.change ? `${kpis.reviews.change > 0 ? '+' : ''}${kpis.reviews.change} vs prev` : "No data", color: (kpis?.reviews.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
-            { label: "Satisfaction", value: (kpis?.satisfaction.value || 0).toString() + "%", trend: kpis?.satisfaction.change ? `${kpis.satisfaction.change > 0 ? '+' : ''}${kpis.satisfaction.change}% vs prev` : "No data", color: (kpis?.satisfaction.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
-            { label: "Response Rate", value: (kpis?.response_rate.value || 0).toString() + "%", trend: kpis?.response_rate.change ? `${kpis.response_rate.change > 0 ? '+' : ''}${kpis.response_rate.change}% vs prev` : "No data", color: (kpis?.response_rate.change || 0) >= 0 ? "text-green-600" : "text-red-500" },
+            { 
+                label: "Avg. Rating", 
+                value: kpis?.avg_rating.value?.toFixed(1) || "0.0", 
+                trend: formatTrend(kpis?.avg_rating.change), 
+                color: (kpis?.avg_rating.change || 0) >= 0 ? "text-green-600" : "text-red-500" 
+            },
+            { 
+                label: "Reviews", 
+                value: kpis?.reviews.value?.toString() || "0", 
+                trend: formatTrend(kpis?.reviews.change, true).replace(".0", ""), 
+                color: (kpis?.reviews.change || 0) >= 0 ? "text-green-600" : "text-red-500" 
+            },
+            { 
+                label: "Satisfaction", 
+                value: (kpis?.satisfaction.value || 0).toString() + "%", 
+                trend: formatTrend(kpis?.satisfaction.change, true), 
+                color: (kpis?.satisfaction.change || 0) >= 0 ? "text-green-600" : "text-red-500" 
+            },
+            { 
+                label: "Response Rate", 
+                value: (kpis?.response_rate.value || 0).toString() + "%", 
+                trend: formatTrend(kpis?.response_rate.change, true), 
+                color: (kpis?.response_rate.change || 0) >= 0 ? "text-green-600" : "text-red-500" 
+            },
         ];
     }, [reportData]);
 
@@ -297,16 +323,32 @@ export default function ReportsPage() {
                             <input
                                 type="date"
                                 value={baseDate.toISOString().split('T')[0]}
-                                onChange={(e) => setBaseDate(new Date(e.target.value))}
+                                onChange={(e) => {
+                                    const newDate = new Date(e.target.value);
+                                    if (!isNaN(newDate.getTime())) {
+                                        setBaseDate(newDate);
+                                        setActiveIndex(0);
+                                    }
+                                }}
                                 className="h-10 px-4 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:border-blue-600 cursor-pointer"
                             />
                         </div>
                         <div className="h-8 w-[1px] bg-gray-200 mx-1 hidden sm:block" />
                         <div className="flex gap-2">
-                            <button className="text-nowrap cursor-pointer p-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors" title="Download PDF">
+                            <button 
+                                onClick={() => reportData && downloadReportPDF(reportData, selectedBusiness, selectedAddress)}
+                                disabled={!reportData || isFetching}
+                                className="text-nowrap cursor-pointer p-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50" 
+                                title="Download PDF"
+                            >
                                 <Download className="size-4" />
                             </button>
-                            <button className="text-nowrap cursor-pointer p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm" title="Download Excel">
+                            <button 
+                                onClick={() => reportData && downloadReportExcel(reportData, selectedBusiness)}
+                                disabled={!reportData || isFetching}
+                                className="text-nowrap cursor-pointer p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50" 
+                                title="Download Excel"
+                            >
                                 <Download className="size-4" />
                             </button>
                         </div>
@@ -334,14 +376,14 @@ export default function ReportsPage() {
                     <div>
                         <h3 className="font-bold text-gray-900 mb-3">1. Executive Summary</h3>
                         <div className="bg-blue-50/50 p-4 rounded-xl text-sm text-blue-900 leading-relaxed border border-blue-100">
-                            {isLoading ? "Analyzing report data..." : reportData?.executive_summary || "No data available for this period."}
+                            {isFetching ? "Analyzing report data..." : reportData?.executive_summary || "No data available for this period."}
                         </div>
                     </div>
 
                     {/* Charts */}
                     <div>
                         <h3 className="font-bold text-gray-900 mb-4">2. Review Volume & Rating Trends</h3>
-                        {isLoading ? (
+                        {isFetching ? (
                             <div className="h-48 flex items-center justify-center">
                                 <Loader2 className="size-6 text-blue-600 animate-spin" />
                             </div>
@@ -403,9 +445,12 @@ export default function ReportsPage() {
                             <h3 className="font-bold text-gray-900 mb-3">4. Top Complaints</h3>
                             <div className="space-y-2">
                                 {reportData?.top_complaints && reportData.top_complaints.length > 0 ? (
-                                    reportData.top_complaints.map((item, i) => (
-                                        <div key={i} className="flex justify-between p-3 bg-red-50/50 rounded-lg text-sm">
-                                            <span className="font-semibold text-gray-800">{item}</span>
+                                    reportData.top_complaints.map((item: any, i) => (
+                                        <div key={i} className="flex justify-between items-center p-3 bg-red-50/50 rounded-lg text-sm">
+                                            <span className="font-semibold text-gray-800">{typeof item === 'object' ? (item.issue || item.complaint || item.label) : item}</span>
+                                            {typeof item === 'object' && item.mentions && (
+                                                <span className="text-[10px] text-gray-500">{item.mentions} mentions</span>
+                                            )}
                                         </div>
                                     ))
                                 ) : (
@@ -417,9 +462,12 @@ export default function ReportsPage() {
                             <h3 className="font-bold text-gray-900 mb-3">5. Top Praises</h3>
                             <div className="space-y-2">
                                 {reportData?.top_praises && reportData.top_praises.length > 0 ? (
-                                    reportData.top_praises.map((item, i) => (
-                                        <div key={i} className="flex justify-between p-3 bg-green-50/50 rounded-lg text-sm">
-                                            <span className="font-semibold text-gray-800">{item}</span>
+                                    reportData.top_praises.map((item: any, i) => (
+                                        <div key={i} className="flex justify-between items-center p-3 bg-green-50/50 rounded-lg text-sm">
+                                            <span className="font-semibold text-gray-800">{typeof item === 'object' ? (item.strength || item.praise || item.label) : item}</span>
+                                            {typeof item === 'object' && item.mentions && (
+                                                <span className="text-[10px] text-gray-500">{item.mentions} mentions</span>
+                                            )}
                                         </div>
                                     ))
                                 ) : (

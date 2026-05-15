@@ -15,7 +15,11 @@ const baseQuery = fetchBaseQuery({
 const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result.error && result.error.status === 401) {
+  // Check if it's an auth-related request (login, refresh, etc.)
+  const url = typeof args === "string" ? args : args.url;
+  const isAuthRequest = url?.includes("/auth/login") || url?.includes("/auth/refresh");
+
+  if (result.error && result.error.status === 401 && !isAuthRequest) {
     // try to get a new token
     const refreshToken = Cookies.get("refreshToken");
     if (refreshToken) {
@@ -40,13 +44,21 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
         // refresh failed, logout
         Cookies.remove("accessToken", { path: "/" });
         Cookies.remove("refreshToken", { path: "/" });
-        window.location.href = "/login";
+        
+        if (typeof window !== "undefined") {
+          const isAdmin = window.location.pathname.startsWith("/admin");
+          window.location.href = isAdmin ? "/admin/signin" : "/login";
+        }
       }
     } else {
       // no refresh token, logout
       Cookies.remove("accessToken", { path: "/" });
       Cookies.remove("refreshToken", { path: "/" });
-      window.location.href = "/login";
+      
+      if (typeof window !== "undefined") {
+        const isAdmin = window.location.pathname.startsWith("/admin");
+        window.location.href = isAdmin ? "/admin/signin" : "/login";
+      }
     }
   }
   return result;
@@ -56,5 +68,5 @@ export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
   endpoints: () => ({}),
-  tagTypes: ["User"],
+  tagTypes: ["User", "SupportTicket", "AdminDashboard", "ActivityLog"] as const,
 });

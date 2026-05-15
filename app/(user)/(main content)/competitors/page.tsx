@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Plus, Zap, AlertCircle, CheckCircle, Award, Target } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Plus, Zap, AlertCircle, CheckCircle, Award, Target, Building2, MapPin, User, X, Loader2 } from "lucide-react";
 import {
     BarChart,
     Bar,
@@ -18,94 +18,142 @@ import {
     Legend
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { useSelector } from "react-redux";
+import { useSetGoalsMutation } from "@/redux/api/AI/signupflowApi";
+import { useGetCompetitorAnalysisQuery } from "@/redux/api/AI/competitorsApi";
+import { getUserIdFromToken } from "@/utils/authUtils";
+import StylishDropdown from "@/components/ui/StylishDropdown";
 
 // Mock Data
-const competitors = [
-    { name: "Coffee Haven", rating: 4.6, reviews: 234, sentiment: "87%", response: "68%", isBusiness: true },
-    { name: "Bean & Brew", rating: 4.7, reviews: 312, sentiment: "89%", response: "85%", color: "text-green-600" },
-    { name: "The Daily Grind", rating: 4.4, reviews: 189, sentiment: "78%", response: "45%", color: "text-amber-600" },
-    { name: "Espresso Corner", rating: 4.3, reviews: 156, sentiment: "75%", response: "60%", color: "text-purple-600" },
-];
 
-const performanceComparisonData = [
-    { name: "Rating", "Coffee Haven": 92, "Bean & Brew": 94, "The Daily Grind": 88, "Espresso Corner": 86 },
-    { name: "Volume", "Coffee Haven": 75, "Bean & Brew": 100, "The Daily Grind": 60, "Espresso Corner": 50 },
-    { name: "Sentiment", "Coffee Haven": 87, "Bean & Brew": 89, "The Daily Grind": 78, "Espresso Corner": 75 },
-    { name: "Response Rate", "Coffee Haven": 68, "Bean & Brew": 85, "The Daily Grind": 45, "Espresso Corner": 60 },
-];
-
-const radarData = [
-    { subject: "Service", A: 120, B: 110, C: 130, D: 100, fullMark: 150 },
-    { subject: "Quality", A: 98, B: 130, C: 100, D: 90, fullMark: 150 },
-    { subject: "Atmosphere", A: 86, B: 130, C: 90, D: 85, fullMark: 150 },
-    { subject: "Value", A: 99, B: 100, C: 85, D: 90, fullMark: 150 },
-    { subject: "Location", A: 85, B: 90, C: 80, D: 85, fullMark: 150 },
-];
-
-const criteria = [
-    { label: "Service Quality", score: 4.5, competitorAvg: 4.7, leader: "Bean & Brew (4.7)" },
-    { label: "Product Quality", score: 4.7, competitorAvg: 4.4, leader: "You" },
-    { label: "Atmosphere", score: 4.3, competitorAvg: 4.5, leader: "Bean & Brew (4.8)" },
-    { label: "Value for Money", score: 4.2, competitorAvg: 4.1, leader: "The Daily Grind (4.6)" },
-    { label: "Cleanliness", score: 4.6, competitorAvg: 4.4, leader: "You" },
-];
-
-const advantages = [
-    {
-        title: "Coffee Quality",
-        desc: "You lead in coffee quality ratings with 4.7 vs competitor average of 4.3",
-        action: "Strength: Highlight this in marketing materials"
-    },
-    {
-        title: "Staff Friendliness",
-        desc: "145 mentions vs competitor average of 98 mentions",
-        action: "Strength: Continue staff training program"
-    },
-    {
-        title: "Cleanliness",
-        desc: "Top-rated for cleanliness at 4.6 vs 4.4 average",
-        action: "Strength: Feature this in review responses"
-    },
-];
-
-const whereCompetitorsExcel = [
-    {
-        title: "Service Speed",
-        desc: "Bean & Brew averages 3-minute wait times vs your 8-minute wait average during peak hours",
-        action: "Opportunity: Implement their express lane system"
-    },
-    {
-        title: "Response Rate",
-        desc: "Bean & Brew has 85% response rate vs your 68%",
-        action: "Opportunity: Dedicate staff time for review responses"
-    },
-    {
-        title: "Modern Atmosphere",
-        desc: "Competitors mention updated decor 40% more frequently",
-        action: "Opportunity: Refresh interior design elements"
-    },
-];
-
-const strategicRecs = [
-    {
-        title: "Focus on Service Speed",
-        desc: "Closing the service speed gap could increase your rating to 4.8 and capture market share from Bean & Brew"
-    },
-    {
-        title: "Leverage Quality Advantage",
-        desc: "Your superior coffee quality is a differentiator - emphasize this in marketing to justify value"
-    },
-    {
-        title: "Improve Response Rate",
-        desc: "Matching Bean & Brew's 85% response rate could improve sentiment score by 5-8%"
-    },
-    {
-        title: "Price Positioning",
-        desc: "Consider loyalty program to compete with The Daily Grind's value perception"
-    },
-];
 
 export default function CompetitorsPage() {
+    const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
+    const userId = getUserIdFromToken();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    
+    const [form, setForm] = useState({
+        competitors: '',
+        selectedGoals: [] as string[]
+    });
+
+    const [setGoalsApi] = useSetGoalsMutation();
+
+    const { data: analysisData, isLoading: isAnalysisLoading } = useGetCompetitorAnalysisQuery(
+        { userId: userId || "", businessName: selectedBusiness || "", address: selectedAddress || "" },
+        { skip: !userId || !selectedBusiness }
+    );
+
+    // Transform API data for UI components
+    const competitors = analysisData?.cards.map((card, i) => ({
+        ...card,
+        sentiment: `${card.sentiment}%`,
+        response: `${card.response_rate}%`,
+        isBusiness: i === 0 // Assuming the first card is the user's business
+    })) || [];
+
+    const performanceComparisonData = analysisData ? [
+        { 
+            name: "Rating", 
+            ...Object.fromEntries(analysisData.performance_comparison.rating.map(d => [d.name, (d.value / 5) * 100])) 
+        },
+        { 
+            name: "Volume", 
+            ...Object.fromEntries(analysisData.performance_comparison.reviews.map(d => {
+                const maxReviews = Math.max(...analysisData.performance_comparison.reviews.map(rd => rd.value), 1);
+                return [d.name, (d.value / maxReviews) * 100];
+            })) 
+        },
+        { 
+            name: "Sentiment", 
+            ...Object.fromEntries(analysisData.performance_comparison.sentiment.map(d => [d.name, d.value])) 
+        },
+        { 
+            name: "Response Rate", 
+            ...Object.fromEntries(analysisData.performance_comparison.response_rate.map(d => [d.name, d.value])) 
+        },
+    ] : [];
+
+    const subjects = ["Service", "Quality", "Atmosphere", "Value", "Cleanliness"];
+    const radarData = subjects.map(subject => {
+        const row: any = { subject, fullMark: 100 };
+        if (analysisData) {
+            Object.keys(analysisData.category_radar).forEach(businessName => {
+                row[businessName] = (analysisData.category_radar as any)[businessName][subject];
+            });
+        }
+        return row;
+    });
+
+    const criteria = analysisData?.criteria_comparison.map(c => ({
+        label: c.criteria,
+        score: c.my_score,
+        competitorAvg: c.competitor_avg,
+        leader: `${c.leader.name} (${c.leader.score})`
+    })) || [];
+
+    const advantages = analysisData?.competitive_advantages.map(a => ({
+        title: a.title,
+        desc: a.description,
+        action: `Strength: ${a.strength}`
+    })) || [];
+
+    const whereCompetitorsExcel = analysisData?.where_competitors_excel.map(e => ({
+        title: e.title,
+        desc: e.description,
+        action: `Opportunity: ${e.opportunity}`
+    })) || [];
+
+    const strategicRecs = analysisData?.strategic_recommendations || [];
+
+    const handleSubmit = async () => {
+        if (!selectedBusiness || !selectedAddress || !userId) return;
+        setIsLoading(true);
+
+        const goalMapping: { [key: string]: string } = {
+            "Improve customer satisfaction": "improve_customer_satisfaction",
+            "Improve service speed": "improve_service_speed",
+            "Increase ratings": "increase_ratings"
+        };
+
+        const payload = {
+            businesses: [{
+                business_name: selectedBusiness,
+                location: selectedAddress,
+                competitors_urls: form.competitors.split(',')
+                    .map((c: string) => c.trim())
+                    .filter((c: string) => c !== "")
+                    .map((c: string) => c.replace(/^https?:\/\//, '')),
+                goals: form.selectedGoals.map((g: string) => goalMapping[g] || g)
+            }],
+            user_id: userId
+        };
+
+        try {
+            await setGoalsApi(payload).unwrap();
+            setIsModalOpen(false);
+            setForm({ competitors: '', selectedGoals: [] });
+            alert("Competitor data saved successfully!");
+        } catch (err: any) {
+            console.error("Error saving competitor data:", err);
+            alert("Failed to save data. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (isModalOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "unset";
+        }
+        return () => {
+            document.body.style.overflow = "unset";
+        };
+    }, [isModalOpen]);
+
     return (
         <div className="space-y-8 pb-12">
             {/* Header */}
@@ -114,13 +162,22 @@ export default function CompetitorsPage() {
                     <h1 className="text-2xl font-bold text-gray-900">Competitor Analysis</h1>
                     <p className="text-sm text-gray-500 mt-1">Benchmark your performance against competitors</p>
                 </div>
-                <button className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                >
                     <Plus className="size-4" />
                     Add Competitor
                 </button>
             </div>
 
-            {/* Competitor Cards */}
+            {isAnalysisLoading ? (
+                <div className="h-[400px] flex items-center justify-center">
+                    <Loader2 className="size-8 animate-spin text-blue-600" />
+                </div>
+            ) : analysisData ? (
+                <>
+                {/* Competitor Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {competitors.map((comp, i) => (
                     <div
@@ -130,11 +187,6 @@ export default function CompetitorsPage() {
                             comp.isBusiness ? "bg-blue-50/50 border-blue-200" : "bg-white border-gray-100"
                         )}
                     >
-                        {/* {comp.isBusiness && (
-                            <div className="mb-2">
-                                <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full uppercase">Your Business</span>
-                            </div>
-                        )} */}
                         <div className="flex items-center justify-between">
                             <h3 className="font-bold text-gray-900 mb-4">{comp.name}</h3>
                             {comp.isBusiness && (
@@ -161,7 +213,11 @@ export default function CompetitorsPage() {
                                 <span className="font-bold text-gray-900">{comp.response}</span>
                             </div>
                         </div>
-                        <button className="cursor-pointer w-full mt-4 py-2 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <button 
+                            onClick={() => comp.map_url && window.open(comp.map_url, '_blank')}
+                            className="cursor-pointer w-full mt-4 py-2 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={!comp.map_url}
+                        >
                             Show on Google
                         </button>
                     </div>
@@ -179,10 +235,15 @@ export default function CompetitorsPage() {
                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
                             <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
                             <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '10px' }} />
-                            <Bar dataKey="Coffee Haven" fill="#3b82f6" name="Coffee Haven (You)" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="Bean & Brew" fill="#10b981" name="Bean & Brew" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="The Daily Grind" fill="#f59e0b" name="The Daily Grind" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="Espresso Corner" fill="#8b5cf6" name="Espresso Corner" radius={[4, 4, 0, 0]} />
+                            {competitors.map((comp, idx) => (
+                                <Bar 
+                                    key={comp.name} 
+                                    dataKey={comp.name} 
+                                    fill={idx === 0 ? "#3b82f6" : idx === 1 ? "#10b981" : idx === 2 ? "#f59e0b" : "#8b5cf6"} 
+                                    name={comp.isBusiness ? `${comp.name} (You)` : comp.name} 
+                                    radius={[4, 4, 0, 0]} 
+                                />
+                            ))}
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -196,12 +257,26 @@ export default function CompetitorsPage() {
                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                             <PolarGrid stroke="#e5e7eb" />
                             <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 11, fontWeight: 500 }} />
-                            <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
+                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                            <Tooltip 
+                                contentStyle={{ 
+                                    borderRadius: '12px', 
+                                    border: 'none', 
+                                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+                                    fontSize: '12px'
+                                }} 
+                            />
 
-                            <Radar name="Coffee Haven" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} />
-                            <Radar name="Bean & Brew" dataKey="B" stroke="#10b981" fill="#10b981" fillOpacity={0.1} />
-                            <Radar name="The Daily Grind" dataKey="C" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.1} />
-                            <Radar name="Espresso Corner" dataKey="D" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.1} />
+                            {competitors.map((comp, idx) => (
+                                <Radar 
+                                    key={comp.name} 
+                                    name={comp.name} 
+                                    dataKey={comp.name} 
+                                    stroke={idx === 0 ? "#3b82f6" : idx === 1 ? "#10b981" : idx === 2 ? "#f59e0b" : "#8b5cf6"} 
+                                    fill={idx === 0 ? "#3b82f6" : idx === 1 ? "#10b981" : idx === 2 ? "#f59e0b" : "#8b5cf6"} 
+                                    fillOpacity={0.1} 
+                                />
+                            ))}
 
                             <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '10px' }} />
                         </RadarChart>
@@ -220,9 +295,7 @@ export default function CompetitorsPage() {
                                 <span className="text-gray-400 font-normal">Leader: {c.leader}</span>
                             </div>
                             <div className="relative h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                {/* Competitor Avg Marker (Approx) */}
                                 <div className="absolute top-0 bottom-0 bg-gray-400 w-full" style={{ width: `${(c.competitorAvg / 5) * 100}%` }} />
-                                {/* Your Score */}
                                 <div className="absolute top-0 bottom-0 bg-blue-600 z-10 rounded-full" style={{ width: `${(c.score / 5) * 100}%` }} />
                             </div>
                             <div className="flex justify-between text-[10px] font-medium">
@@ -283,11 +356,117 @@ export default function CompetitorsPage() {
                     {strategicRecs.map((rec, i) => (
                         <div key={i} className="p-5 bg-white rounded-xl text-gray-900">
                             <h4 className="font-bold text-sm mb-2">{rec.title}</h4>
-                            <p className="text-xs text-gray-500 leading-relaxed">{rec.desc}</p>
+                            <p className="text-xs text-gray-500 leading-relaxed">{rec.description}</p>
                         </div>
                     ))}
                 </div>
             </div>
+            </>
+            ) : (
+                <div className="h-[400px] flex flex-col items-center justify-center text-gray-500">
+                    <AlertCircle className="size-12 mb-4 text-gray-300" />
+                    <p>No competitor data found for the selected business.</p>
+                </div>
+            )}
+
+            {/* Add Competitor Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl w-full max-w-lg shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                            <h2 className="text-xl font-bold text-gray-900">Add Competitor</h2>
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                            >
+                                <X className="size-5" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh] custom-thin-scrollbar overflow-x-visible">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Business Name</label>
+                                    <div className="relative">
+                                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-auth-subtitle-color" size={18} />
+                                        <input
+                                            type="text"
+                                            value={selectedBusiness}
+                                            disabled
+                                            className="w-full h-12 bg-zinc-50 border border-zinc-200 rounded-xl pl-12 pr-4 text-[14px] text-zinc-500 cursor-not-allowed"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Location</label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-auth-subtitle-color" size={18} />
+                                        <input
+                                            type="text"
+                                            value={selectedAddress}
+                                            disabled
+                                            className="w-full h-12 bg-zinc-50 border border-zinc-200 rounded-xl pl-12 pr-4 text-[14px] text-zinc-500 cursor-not-allowed"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Your Goals</label>
+                                    <StylishDropdown
+                                        multiSelect
+                                        options={[
+                                            { label: "Improve customer satisfaction", value: "Improve customer satisfaction" },
+                                            { label: "Improve service speed", value: "Improve service speed" },
+                                            { label: "Increase ratings", value: "Increase ratings" }
+                                        ]}
+                                        value={form.selectedGoals}
+                                        onChange={(val) => setForm({ ...form, selectedGoals: val as string[] })}
+                                        placeholder="Select goals"
+                                        selectedColor="#22D3EE"
+                                        selectedBgColor="#ecf9fbff"
+                                        icon={<Target size={18} className="text-cyan-400" />}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Competitors Google Maps URLs (Optional)</label>
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" size={18} />
+                                        <input
+                                            type="text"
+                                            placeholder="Enter competitor URLs, separated by commas"
+                                            className="w-full h-12 bg-white border border-zinc-200 focus:border-auth-subtitle-color rounded-xl pl-12 pr-4 text-[14px] outline-none transition-all"
+                                            value={form.competitors}
+                                            onChange={(e) => setForm({ ...form, competitors: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="px-6 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={isLoading}
+                                className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                            >
+                                {isLoading && <Loader2 className="size-4 animate-spin" />}
+                                Add Competitors
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

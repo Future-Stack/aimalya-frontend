@@ -19,6 +19,7 @@ import {
     HistoryIcon,
     Menu,
     X,
+    Plus,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -29,6 +30,7 @@ import { useGetBusinessNamesQuery, useGetBusinessLocationsQuery } from "@/redux/
 import { getUserIdFromToken } from "@/utils/authUtils";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedBusiness, setSelectedLocation, setSelectedAddress } from "@/redux/slices/businessSlice";
+import AddBusinessModal from "./AddBusinessModal";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -57,6 +59,7 @@ export default function Sidebar() {
 
     const [isSmallScreen, setIsSmallScreen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
 
     // Fetch Business Names
     const { data: namesData, isLoading: isLoadingNames } = useGetBusinessNamesQuery(userId || "", {
@@ -69,15 +72,26 @@ export default function Sidebar() {
         { skip: !userId || !selectedShop }
     );
 
-    const shopOptions = useMemo(() => namesData?.business_names.map((name) => ({
-        label: name,
-        value: name,
-    })) || [], [namesData]);
+    const shopOptions = useMemo(() => {
+        const names = namesData?.business_names || [];
+        const uniqueNames = Array.from(new Set(names));
+        return uniqueNames.map((name) => ({
+            label: name,
+            value: name,
+        }));
+    }, [namesData]);
 
-    const locationOptions = useMemo(() => locationsData?.locations.map((loc) => ({
-        label: loc.address_or_city,
-        value: loc.google_maps_url,
-    })) || [], [locationsData]);
+    const locationOptions = useMemo(() => {
+        const locations = locationsData?.locations || [];
+        // Filter unique by google_maps_url to avoid duplicate keys in dropdown
+        const uniqueLocations = locations.filter((loc, index, self) =>
+            index === self.findIndex((t) => t.google_maps_url === loc.google_maps_url)
+        );
+        return uniqueLocations.map((loc) => ({
+            label: loc.address_or_city,
+            value: loc.google_maps_url,
+        }));
+    }, [locationsData]);
 
     useEffect(() => {
         if (shopOptions.length > 0 && !selectedShop) {
@@ -161,6 +175,15 @@ export default function Sidebar() {
                     onChange={(val) => dispatch(setSelectedBusiness(val as string))}
                     icon={<Store className="size-4 shrink-0" />}
                     className="h-10"
+                    footer={
+                        <button
+                            onClick={() => setIsAddBusinessModalOpen(true)}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+                        >
+                            <Plus size={16} />
+                            Add Business
+                        </button>
+                    }
                 />
                 <StylishDropdown
                     options={locationOptions}
@@ -231,6 +254,11 @@ export default function Sidebar() {
                     </span>
                 </button>
             </div>
+
+            <AddBusinessModal 
+                isOpen={isAddBusinessModalOpen} 
+                onClose={() => setIsAddBusinessModalOpen(false)} 
+            />
         </aside>
     );
 }

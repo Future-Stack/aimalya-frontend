@@ -16,27 +16,17 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import BusinessDetailsModal from "../../../../../components/admin/buisnesses/BusinessDetailsModal";
 
+import {
+    useGetBusinessManagementQuery,
+} from "@/redux/api/AI/businessmanagementApi";
+
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-const stats = [
-    { label: "Total Businesses", value: "234", icon: Building2, change: "+0.2", trend: "up", color: "text-blue-600", bgColor: "bg-blue-50" },
-    { label: "Total Locations", value: "892", icon: MapPin, change: "used for business", trend: "neutral", color: "text-purple-600", bgColor: "bg-purple-50" },
-    { label: "Avg Rating", value: "4.6", icon: Star, change: "★★★★½", trend: "neutral", color: "text-amber-600", bgColor: "bg-amber-50" },
-    { label: "Total Reviews", value: "45,234", icon: MessageSquare, change: "+0.2", trend: "up", color: "text-green-600", bgColor: "bg-green-50" },
-];
-
-const initialBusinesses = [
-    { id: 1, name: "Coffee Haven", type: "Restaurant", status: "active", owner: "John Doe", locations: 5, reviews: "1,234", rating: "4.5", image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=400", city: "New York" },
-    { id: 2, name: "Zaitoon Restaurant", type: "Restaurant", status: "active", owner: "John Doe", locations: 5, reviews: "1,234", rating: "4.5", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400", city: "London" },
-    { id: 3, name: "The Burger Shack", type: "Restaurant", status: "active", owner: "Jane Smith", locations: 2, reviews: "850", rating: "4.2", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=400", city: "New York" },
-    { id: 4, name: "Luxury Spa", type: "Service", status: "active", owner: "Robert J", locations: 1, reviews: "320", rating: "4.8", image: "https://images.unsplash.com/photo-1540555700478-4be289fbecee?auto=format&fit=crop&q=80&w=400", city: "Dubai" },
-    { id: 5, name: "Tech Hub", type: "Service", status: "active", owner: "Alice W", locations: 3, reviews: "210", rating: "4.6", image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400", city: "London" },
-    { id: 6, name: "Downtown Fitness", type: "Service", status: "active", owner: "Michael B", locations: 1, reviews: "540", rating: "4.4", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400", city: "New York" },
-];
-
 export default function BusinessManagement() {
+    const { data: managementData, isLoading } = useGetBusinessManagementQuery();
+    
     const [searchTerm, setSearchTerm] = useState("");
     const [cityFilter, setCityFilter] = useState("All location");
     const [currentPage, setCurrentPage] = useState(1);
@@ -50,13 +40,54 @@ export default function BusinessManagement() {
         setIsModalOpen(true);
     };
 
+    const stats = [
+        { 
+            label: "Total Businesses", 
+            value: managementData?.total_business?.toString() || "0", 
+            icon: Building2, 
+            change: "+0.2", 
+            trend: "up", 
+            color: "text-blue-600", 
+            bgColor: "bg-blue-50" 
+        },
+        { 
+            label: "Total Locations", 
+            value: managementData?.total_location?.toString() || "0", 
+            icon: MapPin, 
+            change: "used for business", 
+            trend: "neutral", 
+            color: "text-purple-600", 
+            bgColor: "bg-purple-50" 
+        },
+        { 
+            label: "Avg Rating", 
+            value: managementData?.avg_rating?.toString() || "0", 
+            icon: Star, 
+            change: "★★★★½", 
+            trend: "neutral", 
+            color: "text-amber-600", 
+            bgColor: "bg-amber-50" 
+        },
+        { 
+            label: "Total Reviews", 
+            value: managementData?.total_reviews?.toLocaleString() || "0", 
+            icon: MessageSquare, 
+            change: "+0.2", 
+            trend: "up", 
+            color: "text-green-600", 
+            bgColor: "bg-green-50" 
+        },
+    ];
+
+    const initialBusinesses = managementData?.businesses || [];
+
     const filteredBusinesses = useMemo(() => {
-        return initialBusinesses.filter(biz => {
-            const matchesSearch = biz.name.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesCity = cityFilter === "All location" || biz.city === cityFilter;
-            return matchesSearch && matchesCity;
+        return initialBusinesses.filter((biz: any) => {
+            const matchesSearch = biz.business_name.toLowerCase().includes(searchTerm.toLowerCase());
+            // The API doesn't seem to have city, but I'll keep the filter logic if needed or hide it if not applicable
+            return matchesSearch;
         });
-    }, [searchTerm, cityFilter]);
+    }, [searchTerm, initialBusinesses]);
 
     const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage);
     const paginatedBusinesses = filteredBusinesses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -147,44 +178,52 @@ export default function BusinessManagement() {
 
             {/* Businesses Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {paginatedBusinesses.map((biz) => (
-                    <div key={biz.id} className="group overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm transition-all hover:shadow-md">
+                {isLoading ? (
+                    Array(4).fill(0).map((_, idx) => (
+                        <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm animate-pulse">
+                            <div className="h-48 bg-gray-200 rounded-lg mb-4" />
+                            <div className="h-4 bg-gray-100 rounded w-3/4 mb-2" />
+                            <div className="h-3 bg-gray-50 rounded w-1/4" />
+                        </div>
+                    ))
+                ) : paginatedBusinesses.map((biz: any, idx: number) => (
+                    <div key={idx} className="group overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm transition-all hover:shadow-md">
                         <div className="relative h-48 w-full overflow-hidden">
                             <img
-                                src={biz.image}
-                                alt={biz.name}
+                                src={biz.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400"}
+                                alt={biz.business_name}
                                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />
                             <div className="absolute right-3 top-3 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700">
-                                {biz.status}
+                                active
                             </div>
                         </div>
                         <div className="p-5">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <h4 className="font-bold text-[#0F172A]">{biz.name}</h4>
-                                    <p className="text-xs text-gray-500">{biz.type}</p>
+                                    <h4 className="font-bold text-[#0F172A]">{biz.business_name}</h4>
+                                    <p className="text-xs text-gray-500 capitalize">{biz.category}</p>
                                 </div>
                             </div>
 
                             <div className="mt-4 space-y-2">
                                 <div className="flex justify-between text-xs text-gray-500">
                                     <span>Owner:</span>
-                                    <span className="font-semibold text-[#0F172A]">{biz.owner}</span>
+                                    <span className="font-semibold text-[#0F172A]">{biz.owner_name || "N/A"}</span>
                                 </div>
                                 <div className="flex justify-between text-xs text-gray-500">
                                     <span>Locations:</span>
-                                    <span className="font-semibold text-[#0F172A]">{biz.locations}</span>
+                                    <span className="font-semibold text-[#0F172A]">{biz.location_count}</span>
                                 </div>
                                 <div className="flex justify-between text-xs text-gray-500">
                                     <span>Reviews:</span>
-                                    <span className="font-semibold text-[#0F172A]">{biz.reviews}</span>
+                                    <span className="font-semibold text-[#0F172A]">{biz.reviews.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between text-xs text-gray-500">
                                     <span>Rating:</span>
                                     <span className="flex items-center gap-1 font-semibold text-amber-500">
                                         <Star className="size-3 fill-current" />
-                                        {biz.rating}
+                                        {biz.ratings}
                                     </span>
                                 </div>
                             </div>

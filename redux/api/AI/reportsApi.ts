@@ -29,12 +29,13 @@ export interface ReportResponse {
     neutral: { percent: number; count: number };
     negative: { percent: number; count: number };
   };
-  top_complaints: string[];
-  top_praises: string[];
+  top_complaints: { issue?: string; complaint?: string; mentions?: number }[];
+  top_praises: { strength?: string; praise?: string; mentions?: number }[];
   ai_recommendations: { title: string; description: string; estimated_impact: string }[];
   action_plan: string[];
   business_goals: string[];
   saved_report_frequency: string | null;
+  count: number;
 }
 
 export const reportsApi = baseApiAi.injectEndpoints({
@@ -42,20 +43,19 @@ export const reportsApi = baseApiAi.injectEndpoints({
     getMonthlyReport: builder.query<
       ReportResponse,
       {
-        userId: string;
-        businessName: string;
-        reportFrequency: "monthly" | "weekly";
-        startDate: string;
-        endDate: string;
+        user_id: string;
+        business_name: string;
+        report_frequency: "monthly" | "weekly";
+        start_date: string;
+        end_date: string;
         address: string;
       }
     >({
-      query: ({ userId, businessName, reportFrequency, startDate, endDate, address }) =>
-        `/reports/monthly?user_id=${userId}&business_name=${encodeURIComponent(
-          businessName
-        )}&report_frequency=${reportFrequency}&start_date=${startDate}&end_date=${endDate}&address=${encodeURIComponent(
-          address
-        )}`,
+      query: (params) => ({
+        url: "/reports/monthly",
+        method: "GET",
+        params,
+      }),
       providesTags: ["Business"],
     }),
   }),

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import {
     Building2,
@@ -22,12 +22,16 @@ import {
     Globe,
     Phone,
     Check,
-    AlertCircle
+    AlertCircle,
+    Copy,
+    ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import Image from "next/image";
 import { useGetProfileQuery, useUploadProfileImageMutation } from "@/redux/api/BE/user/profileApi";
+import { useGetBusinessProfileQuery, useUpdateBusinessProfileMutation } from "@/redux/api/AI/businessSettingsApi";
+import { getUserIdFromToken } from "@/utils/authUtils";
 import { toast } from "react-hot-toast"; // Assuming toast is used for notifications
 import { Loader2, Camera } from "lucide-react";
 
@@ -350,41 +354,103 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
 
 // 2. Business Settings
 const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => {
-    const [businessName, setBusinessName] = useState("Softvence Shop");
-    const [category, setCategory] = useState("Cafe");
-    const [locations, setLocations] = useState(["San Francisco, CA"]);
-    const [phone, setPhone] = useState("+1 (555) 123-4567");
-    const [website, setWebsite] = useState("https://coffeehaven.com");
+    const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
+    const userId = getUserIdFromToken();
 
-    const categories = [
-        { label: "Cafe", value: "Cafe" },
-        { label: "Restaurant", value: "Restaurant" },
-        { label: "Retail", value: "Retail" },
-        { label: "Services", value: "Services" },
-        { label: "Beauty & Spa", value: "Beauty & Spa" },
-        { label: "Health & Medical", value: "Health & Medical" },
-        { label: "Other", value: "Other" }
+    const { data: profileData, isLoading: isFetching } = useGetBusinessProfileQuery(
+        { user_id: userId || "", business_name: selectedBusiness || "", location: selectedAddress || "" },
+        { skip: !userId || !selectedBusiness || !selectedAddress }
+    );
+
+    const [updateProfile, { isLoading: isUpdating }] = useUpdateBusinessProfileMutation();
+
+    const [businessName, setBusinessName] = useState("");
+    const [category, setCategory] = useState("");
+    const [location, setLocation] = useState("");
+    const [mapUrl, setMapUrl] = useState("");
+    const [phone, setPhone] = useState("");
+    const [website, setWebsite] = useState("");
+
+    const initialCategories = [
+        { label: "Cafe", value: "cafe" },
+        { label: "Restaurant", value: "restaurant" },
+        { label: "Retail", value: "retail" },
+        { label: "Services", value: "services" },
+        { label: "Beauty & Spa", value: "beauty_spa" },
+        { label: "Health & Medical", value: "health_medical" },
+        { label: "Other", value: "other" }
     ];
 
-    const handleAddLocation = () => {
-        setLocations([...locations, ""]);
-    };
+    const [categories, setCategories] = useState(initialCategories);
 
-    const handleLocationChange = (index: number, value: string) => {
-        const newLocations = [...locations];
-        newLocations[index] = value;
-        setLocations(newLocations);
-    };
+    useEffect(() => {
+        if (profileData) {
+            setBusinessName(profileData.business_name || "");
+            setCategory(profileData.category || "");
+            setLocation(profileData.location || "");
+            setMapUrl(profileData.map_url || "");
+            setPhone(profileData.phone_no || "");
+            setWebsite(profileData.website || "");
 
-    const handleRemoveLocation = (index: number) => {
-        if (locations.length > 1) {
-            setLocations(locations.filter((_, i) => i !== index));
+            // If backend category is not in the list, add it
+            if (profileData.category) {
+                const exists = initialCategories.find(c => c.value.toLowerCase() === profileData.category.toLowerCase());
+                if (!exists) {
+                    setCategories([
+                        ...initialCategories,
+                        { 
+                            label: profileData.category.charAt(0).toUpperCase() + profileData.category.slice(1), 
+                            value: profileData.category 
+                        }
+                    ]);
+                }
+            }
+        }
+    }, [profileData]);
+
+    const handleCopyMapUrl = () => {
+        if (mapUrl) {
+            navigator.clipboard.writeText(mapUrl);
+            toast.success("Google Maps URL copied!");
         }
     };
 
-    const handleSave = () => {
-        console.log("Business settings saved:", { businessName, category, locations, phone, website });
+    const handleCopyWebsite = () => {
+        if (website) {
+            navigator.clipboard.writeText(website);
+            toast.success("Website URL copied!");
+        }
     };
+
+    const handleSave = async () => {
+        if (!userId || !selectedBusiness || !selectedAddress) return;
+
+        try {
+            await updateProfile({
+                user_id: userId,
+                existing_business_name: selectedBusiness,
+                existing_location: selectedAddress,
+                new_business_name: businessName,
+                category,
+                new_location: location,
+                map_url: mapUrl,
+                phone_no: phone,
+                website
+            }).unwrap();
+            toast.success("Business profile updated successfully!");
+        } catch (err: any) {
+            console.error("Update failed:", err);
+            toast.error(err?.data?.message || "Failed to update business profile");
+        }
+    };
+
+    if (isFetching) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="size-8 animate-spin text-blue-600" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8 animate-fadeIn">
@@ -417,38 +483,47 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
                     {/* Locations Section */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium text-gray-700">Locations</label>
-                            <button
-                                onClick={handleAddLocation}
-                                className="cursor-pointer flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors"
-                            >
-                                <Plus className="size-3.5" />
-                                Add new
-                            </button>
+                            <label className="text-sm font-medium text-gray-700">Business Location</label>
                         </div>
                         <div className="space-y-3">
-                            {locations.map((loc, index) => (
-                                <div key={index} className="flex gap-2">
+                            {/* Address Name */}
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium text-gray-500">Address Name</label>
+                                <div className="relative">
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        value={location}
+                                        onChange={(e) => setLocation(e.target.value)}
+                                        placeholder="Enter address name..."
+                                        className="w-full pl-11 pr-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Google Map URL */}
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium text-gray-500">Google Map URL</label>
+                                <div className="flex gap-2">
                                     <div className="relative flex-1">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                                         <input
                                             type="text"
-                                            value={loc}
-                                            onChange={(e) => handleLocationChange(index, e.target.value)}
-                                            placeholder="Enter address..."
+                                            value={mapUrl}
+                                            onChange={(e) => setMapUrl(e.target.value)}
+                                            placeholder="Enter Google Map URL..."
                                             className="w-full pl-11 pr-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                                         />
                                     </div>
-                                    {locations.length > 1 && (
-                                        <button
-                                            onClick={() => handleRemoveLocation(index)}
-                                            className="cursor-pointer p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
-                                        >
-                                            <Trash2 className="size-5" />
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={handleCopyMapUrl}
+                                        className="cursor-pointer p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
+                                        title="Copy URL"
+                                    >
+                                        <Copy className="size-5" />
+                                    </button>
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </div>
 
@@ -466,12 +541,25 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
                     {/* Website */}
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-700">Website</label>
-                        <input
-                            type="url"
-                            value={website}
-                            onChange={(e) => setWebsite(e.target.value)}
-                            className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                        />
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                                <input
+                                    type="url"
+                                    value={website}
+                                    onChange={(e) => setWebsite(e.target.value)}
+                                    placeholder="https://example.com"
+                                    className="w-full pl-11 pr-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                                />
+                            </div>
+                            <button
+                                onClick={handleCopyWebsite}
+                                className="cursor-pointer p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
+                                title="Copy Website"
+                            >
+                                <Copy className="size-5" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -479,10 +567,15 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
             <div className="flex justify-end pt-4">
                 <button
                     onClick={() => onOpenSave(handleSave)}
-                    className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
+                    disabled={isUpdating}
+                    className="cursor-pointer flex items-center justify-center gap-2 px-6 py-3 min-w-[160px] text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50"
                 >
-                    <Save className="size-4" />
-                    Save Changes
+                    {isUpdating ? (
+                        <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                        <Save className="size-4" />
+                    )}
+                    {isUpdating ? "Saving..." : "Save Changes"}
                 </button>
             </div>
         </div>
