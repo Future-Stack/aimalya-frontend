@@ -102,7 +102,7 @@ const StylishDropdown = ({
                 <div className="flex items-center gap-3 overflow-hidden">
                     {icon && <div className="text-zinc-400 shrink-0" style={{ color: isOpen ? selectedColor : undefined }}>{icon}</div>}
                     <span className={cn(
-                        "text-[14px] leading-tight text-left",
+                        "text-[14px] leading-tight text-left truncate flex-1",
                         (Array.isArray(value) ? value.length > 0 : value) ? "text-[#1A1A1A] font-medium" : "text-zinc-400"
                     )}>
                         {getSelectedLabels()}
@@ -161,7 +161,7 @@ const StylishDropdown = ({
                                             </div>
                                         )}
                                         {option.icon && <div className="shrink-0">{option.icon}</div>}
-                                        <span className="text-[14px]">{option.label}</span>
+                                        <span className="text-[14px] truncate flex-1">{option.label}</span>
                                     </button>
                                 );
                             })

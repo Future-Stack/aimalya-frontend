@@ -34,6 +34,7 @@ import { useGetBusinessProfileQuery, useUpdateBusinessProfileMutation } from "@/
 import { getUserIdFromToken } from "@/utils/authUtils";
 import { toast } from "react-hot-toast"; // Assuming toast is used for notifications
 import { Loader2, Camera } from "lucide-react";
+import Skeleton from "@/components/ui/Skeleton";
 
 // Types
 type Tab = "account" | "business" | "integrations" | "notifications" | "billing";
@@ -231,7 +232,7 @@ interface SettingsProps {
 
 // 1. Account Settings
 const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsProps) => {
-    const { data: profileData } = useGetProfileQuery();
+    const { data: profileData, isLoading } = useGetProfileQuery();
     const [uploadImage, { isLoading: isUploading }] = useUploadProfileImageMutation();
     const user = profileData?.data;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.split("/api/v1")[0];
@@ -255,6 +256,30 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
     const handleSave = () => {
         console.log("Account settings saved!");
     };
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8">
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 space-y-6">
+                    <div className="flex items-center gap-6 pb-6 border-b border-gray-100">
+                        <Skeleton className="size-24 rounded-full" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-5 w-32" />
+                            <Skeleton className="h-4 w-48" />
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-10 w-full rounded-xl" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8 animate-fadeIn">
@@ -357,16 +382,16 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
     const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
     const userId = getUserIdFromToken();
 
-    const { data: profileData, isLoading: isFetching } = useGetBusinessProfileQuery(
+    const { data: profileData, isLoading, isFetching } = useGetBusinessProfileQuery(
         { user_id: userId || "", business_name: selectedBusiness || "", location: selectedAddress || "" },
         { skip: !userId || !selectedBusiness || !selectedAddress }
     );
 
     const [updateProfile, { isLoading: isUpdating }] = useUpdateBusinessProfileMutation();
 
-    const [businessName, setBusinessName] = useState("");
+    const [businessName, setBusinessName] = useState(selectedBusiness || "");
     const [category, setCategory] = useState("");
-    const [location, setLocation] = useState("");
+    const [location, setLocation] = useState(selectedAddress || "");
     const [mapUrl, setMapUrl] = useState("");
     const [phone, setPhone] = useState("");
     const [website, setWebsite] = useState("");
@@ -382,6 +407,11 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
     ];
 
     const [categories, setCategories] = useState(initialCategories);
+
+    useEffect(() => {
+        if (selectedBusiness) setBusinessName(selectedBusiness);
+        if (selectedAddress) setLocation(selectedAddress);
+    }, [selectedBusiness, selectedAddress]);
 
     useEffect(() => {
         if (profileData) {
@@ -444,13 +474,7 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
         }
     };
 
-    if (isFetching) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="size-8 animate-spin text-blue-600" />
-            </div>
-        );
-    }
+    // No longer return full-page skeleton here. We'll handle it inline.
 
     return (
         <div className="space-y-8 animate-fadeIn">
@@ -471,13 +495,17 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
                     {/* Business Category Dropdown */}
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-700">Business Category</label>
-                        <StylishDropdown
-                            options={categories}
-                            value={category}
-                            onChange={(val) => setCategory(val as string)}
-                            placeholder="Select Category"
-                            icon={<Building2 className="size-4" />}
-                        />
+                        {isLoading || isFetching ? (
+                            <Skeleton className="h-10 w-full rounded-xl" />
+                        ) : (
+                            <StylishDropdown
+                                options={categories}
+                                value={category}
+                                onChange={(val) => setCategory(val as string)}
+                                placeholder="Select Category"
+                                icon={<Building2 className="size-4" />}
+                            />
+                        )}
                     </div>
 
                     {/* Locations Section */}
@@ -504,25 +532,29 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
                             {/* Google Map URL */}
                             <div className="space-y-1">
                                 <label className="text-xs font-medium text-gray-500">Google Map URL</label>
-                                <div className="flex gap-2">
-                                    <div className="relative flex-1">
-                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-                                        <input
-                                            type="text"
-                                            value={mapUrl}
-                                            onChange={(e) => setMapUrl(e.target.value)}
-                                            placeholder="Enter Google Map URL..."
-                                            className="w-full pl-11 pr-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                                        />
+                                {isLoading || isFetching ? (
+                                    <Skeleton className="h-10 w-full rounded-xl" />
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                                            <input
+                                                type="text"
+                                                value={mapUrl}
+                                                onChange={(e) => setMapUrl(e.target.value)}
+                                                placeholder="Enter Google Map URL..."
+                                                className="w-full pl-11 pr-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={handleCopyMapUrl}
+                                            className="cursor-pointer p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
+                                            title="Copy URL"
+                                        >
+                                            <Copy className="size-5" />
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={handleCopyMapUrl}
-                                        className="cursor-pointer p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
-                                        title="Copy URL"
-                                    >
-                                        <Copy className="size-5" />
-                                    </button>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -530,36 +562,44 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
                     {/* Phone Number */}
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-700">Phone Number</label>
-                        <input
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                        />
+                        {isLoading || isFetching ? (
+                            <Skeleton className="h-10 w-full rounded-xl" />
+                        ) : (
+                            <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                            />
+                        )}
                     </div>
 
                     {/* Website */}
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-700">Website</label>
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-                                <input
-                                    type="url"
-                                    value={website}
-                                    onChange={(e) => setWebsite(e.target.value)}
-                                    placeholder="https://example.com"
-                                    className="w-full pl-11 pr-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
-                                />
+                        {isLoading || isFetching ? (
+                            <Skeleton className="h-10 w-full rounded-xl" />
+                        ) : (
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                                    <input
+                                        type="url"
+                                        value={website}
+                                        onChange={(e) => setWebsite(e.target.value)}
+                                        placeholder="https://example.com"
+                                        className="w-full pl-11 pr-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleCopyWebsite}
+                                    className="cursor-pointer p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
+                                    title="Copy Website"
+                                >
+                                    <Copy className="size-5" />
+                                </button>
                             </div>
-                            <button
-                                onClick={handleCopyWebsite}
-                                className="cursor-pointer p-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-gray-100 shadow-sm"
-                                title="Copy Website"
-                            >
-                                <Copy className="size-5" />
-                            </button>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

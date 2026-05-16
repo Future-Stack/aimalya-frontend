@@ -8,6 +8,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useLoginMutation } from "@/redux/api/BE/user/authApi";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
+import gsap from "gsap";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -45,8 +46,13 @@ export default function LoginPage() {
         // Redirecting directly to the backend endpoint for Google Auth
         window.location.href = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/google/login`;
     };
-
     useEffect(() => {
+        // Entrance Animation
+        gsap.fromTo(".user-auth-bg", 
+            { opacity: 0, y: 30, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 1, ease: "power3.out" }
+        );
+
         const searchParams = new URLSearchParams(window.location.search);
         
         // Handle Google Auth Success

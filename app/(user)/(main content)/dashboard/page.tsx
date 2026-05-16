@@ -7,6 +7,7 @@ import { useGetProfileQuery } from "@/redux/api/BE/user/profileApi";
 import { useGetDashboardOverviewQuery } from "@/redux/api/AI/dashboardApi";
 import { useSelector } from "react-redux";
 import { getUserIdFromToken, getSubscriptionFromCookie } from "@/utils/authUtils";
+import Skeleton from "@/components/ui/Skeleton";
 import {
     AreaChart,
     Area,
@@ -78,7 +79,7 @@ export default function DashboardPage() {
     };
     const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
 
-    const { data: dashboardData, isLoading: isLoadingDashboard } = useGetDashboardOverviewQuery(
+    const { currentData: dashboardData, isLoading: isLoadingDashboard, isFetching } = useGetDashboardOverviewQuery(
         {
             user_id: userId || "",
             business_name: selectedBusiness || "",
@@ -108,10 +109,52 @@ export default function DashboardPage() {
         );
     };
 
-    if (isLoadingDashboard) {
+    if (isLoadingDashboard || isFetching) {
         return (
-            <div className="flex h-[60vh] items-center justify-center">
-                <Loader2 className="size-8 text-blue-600 animate-spin" />
+            <div className="space-y-8 pb-8">
+                {/* Header Skeleton */}
+                <div className="space-y-2">
+                    <Skeleton className="h-10 w-64" />
+                    <Skeleton className="h-4 w-48" />
+                </div>
+
+                {/* Stats Cards Skeleton */}
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-8 w-16" />
+                                </div>
+                                <Skeleton className="size-10 rounded-lg" />
+                            </div>
+                            <Skeleton className="h-4 w-32 mt-4" />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Chart Skeleton */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-6">
+                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-8 w-24" />
+                    </div>
+                    <Skeleton className="h-[350px] w-full" />
+                </div>
+
+                {/* Performance Criteria Skeleton */}
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                    <Skeleton className="h-6 w-48 mb-6" />
+                    {[...Array(5)].map((_, i) => (
+                        <div key={i} className="grid grid-cols-[100px_1fr_60px_80px] gap-4 items-center">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-2 w-full rounded-full" />
+                            <Skeleton className="h-4 w-10 ml-auto" />
+                            <Skeleton className="h-4 w-16 ml-auto" />
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
