@@ -25,6 +25,7 @@ import { useGetAiInsightsQuery, useUpdateRecommendationStatusMutation } from "@/
 import { getUserIdFromToken } from "@/utils/authUtils";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import Skeleton from "@/components/ui/Skeleton";
 
 export default function AIInsightsPage() {
     // Get business context from Redux
@@ -33,18 +34,70 @@ export default function AIInsightsPage() {
     const userId = getUserIdFromToken();
 
     // Fetch live insights
-    const { data: insights, isLoading } = useGetAiInsightsQuery(
+    const { currentData: insights, isLoading, isFetching } = useGetAiInsightsQuery(
         { userId: userId || "", businessName: selectedBusiness || "", address: selectedAddress || "" },
         { skip: !userId || !selectedBusiness }
     );
 
     const [updateStatus] = useUpdateRecommendationStatusMutation();
 
-    if (isLoading) {
+    if (isLoading || isFetching) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-                <div className="size-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                <p className="text-gray-500 font-medium animate-pulse">Generating your AI insights...</p>
+            <div className="space-y-8 pb-12">
+                <div className="space-y-2">
+                    <Skeleton className="h-8 w-64" />
+                    <Skeleton className="h-4 w-48" />
+                </div>
+
+                {/* Health Score Skeleton */}
+                <div className="bg-blue-50/50 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-100">
+                    <div className="flex-1 space-y-6">
+                        <div className="flex items-start gap-4">
+                            <Skeleton className="size-12 rounded-2xl" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-6 w-48" />
+                                <Skeleton className="h-4 w-64" />
+                            </div>
+                        </div>
+                        <Skeleton className="h-16 w-32" />
+                        <Skeleton className="h-6 w-24 rounded-full" />
+                    </div>
+                    <Skeleton className="w-full md:w-[400px] h-48 rounded-2xl" />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm min-h-[400px]">
+                        <Skeleton className="h-6 w-48 mb-6" />
+                        <Skeleton className="h-[300px] w-full" />
+                    </div>
+                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                        <Skeleton className="h-6 w-32 mb-6" />
+                        {[...Array(3)].map((_, i) => (
+                            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-4 w-16" />
+                    </div>
+                    {[...Array(2)].map((_, i) => (
+                        <div key={i} className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+                            <div className="flex gap-4">
+                                <Skeleton className="h-6 w-1/2" />
+                                <Skeleton className="h-6 w-24 rounded-full" />
+                            </div>
+                            <Skeleton className="h-20 w-full" />
+                            <div className="grid grid-cols-3 gap-4">
+                                <Skeleton className="h-16 w-full rounded-2xl" />
+                                <Skeleton className="h-16 w-full rounded-2xl" />
+                                <Skeleton className="h-16 w-full rounded-2xl" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }

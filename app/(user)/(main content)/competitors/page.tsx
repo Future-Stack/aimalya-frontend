@@ -23,6 +23,7 @@ import { useSetGoalsMutation } from "@/redux/api/AI/signupflowApi";
 import { useGetCompetitorAnalysisQuery } from "@/redux/api/AI/competitorsApi";
 import { getUserIdFromToken } from "@/utils/authUtils";
 import StylishDropdown from "@/components/ui/StylishDropdown";
+import Skeleton from "@/components/ui/Skeleton";
 
 // Mock Data
 
@@ -40,7 +41,7 @@ export default function CompetitorsPage() {
 
     const [setGoalsApi] = useSetGoalsMutation();
 
-    const { data: analysisData, isLoading: isAnalysisLoading } = useGetCompetitorAnalysisQuery(
+    const { currentData: analysisData, isLoading: isAnalysisLoading, isFetching } = useGetCompetitorAnalysisQuery(
         { userId: userId || "", businessName: selectedBusiness || "", address: selectedAddress || "" },
         { skip: !userId || !selectedBusiness }
     );
@@ -171,9 +172,47 @@ export default function CompetitorsPage() {
                 </button>
             </div>
 
-            {isAnalysisLoading ? (
-                <div className="h-[400px] flex items-center justify-center">
-                    <Loader2 className="size-8 animate-spin text-blue-600" />
+            {isAnalysisLoading || isFetching ? (
+                <div className="space-y-8 pb-12">
+                    {/* Competitor Cards Skeleton */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {[...Array(4)].map((_, i) => (
+                            <div key={i} className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                                <Skeleton className="h-6 w-3/4" />
+                                <div className="space-y-2">
+                                    {[...Array(4)].map((_, j) => (
+                                        <div key={j} className="flex justify-between">
+                                            <Skeleton className="h-3 w-16" />
+                                            <Skeleton className="h-3 w-10" />
+                                        </div>
+                                    ))}
+                                </div>
+                                <Skeleton className="h-10 w-full rounded-lg mt-4" />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Performance Comparison Skeleton */}
+                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+                        <Skeleton className="h-6 w-48 mb-6" />
+                        <Skeleton className="h-[300px] w-full" />
+                    </div>
+
+                    {/* Criteria Comparison Skeleton */}
+                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-8">
+                        <Skeleton className="h-6 w-48" />
+                        <div className="space-y-6">
+                            {[...Array(3)].map((_, i) => (
+                                <div key={i} className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <Skeleton className="h-4 w-24" />
+                                        <Skeleton className="h-4 w-32" />
+                                    </div>
+                                    <Skeleton className="h-2 w-full rounded-full" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             ) : analysisData ? (
                 <>

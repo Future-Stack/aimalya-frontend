@@ -1,12 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Search, Plus, Mail, Phone, ChevronDown, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Search, Plus, Mail, Phone, ChevronDown, ChevronLeft, ChevronRight, Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CreateTicketModal from "@/components/user/support/CreateTicketModal";
 import TicketDetailsModal from "@/components/user/support/TicketDetailsModal";
+import DeleteConfirmationModal from "@/components/user/support/DeleteConfirmationModal";
 import Image from "next/image";
-import { useGetAllSupportTicketsQuery } from "@/redux/api/BE/supportApi";
+import { useGetAllSupportTicketsQuery, useDeleteSupportTicketMutation } from "@/redux/api/BE/supportApi";
+import toast from "react-hot-toast";
+import Skeleton from "@/components/ui/Skeleton";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -78,14 +81,36 @@ export default function SupportPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState<any>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
 
-    const { data: ticketsData, isLoading } = useGetAllSupportTicketsQuery({
+    const { data: ticketsData, isLoading, isFetching } = useGetAllSupportTicketsQuery({
         page: currentPage,
         limit: ITEMS_PER_PAGE,
         search,
         status: statusFilter || undefined,
         sortOrder: "desc"
     });
+
+    const [deleteTicket, { isLoading: isDeleting }] = useDeleteSupportTicketMutation();
+
+    const handleDelete = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        setTicketToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!ticketToDelete) return;
+        try {
+            await deleteTicket(ticketToDelete).unwrap();
+            toast.success("Ticket deleted successfully");
+            setIsDeleteModalOpen(false);
+            setTicketToDelete(null);
+        } catch (error) {
+            toast.error("Failed to delete ticket");
+        }
+    };
 
     // Reset pagination
     useEffect(() => {
@@ -170,11 +195,26 @@ export default function SupportPage() {
 
                     {/* Tickets List */}
                     <div className="space-y-4 min-h-[400px]">
-                        {isLoading ? (
-                            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100">
-                                <Loader2 className="size-8 text-blue-600 animate-spin" />
-                                <p className="text-gray-500 mt-4">Loading tickets...</p>
-                            </div>
+                        {isLoading || isFetching ? (
+                            <>
+                                {[...Array(5)].map((_, i) => (
+                                    <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <Skeleton className="h-4 w-16" />
+                                            <Skeleton className="h-4 w-20" />
+                                            <Skeleton className="h-4 w-14" />
+                                        </div>
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex-1 space-y-2">
+                                                <Skeleton className="h-6 w-3/4" />
+                                                <Skeleton className="h-4 w-1/4" />
+                                            </div>
+                                            <Skeleton className="size-8 rounded-lg" />
+                                        </div>
+                                        <Skeleton className="h-3 w-32 mt-4" />
+                                    </div>
+                                ))}
+                            </>
                         ) : tickets.length > 0 ? (
                             tickets.map((ticket: any) => (
                                 <div
@@ -182,33 +222,43 @@ export default function SupportPage() {
                                     onClick={() => setSelectedTicket(ticket)}
                                     className="bg-blue-50/20 p-6 rounded-2xl border border-blue-100 hover:border-blue-200 transition-colors cursor-pointer group"
                                 >
-                                    <div className="flex items-start">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{ticket.supportTicketId.split('-')[0]}</span>
+                                    <div className="flex items-start w-full">
+                                        <div className="flex justify-between items-start w-full">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{ticket.supportTicketId.split('-')[0]}</span>
 
-                                                <span className={cn(
-                                                    "px-2.5 py-0.5 rounded-md text-[10px] font-bold",
-                                                    ticket.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-600" :
-                                                        ticket.status === "OPEN" ? "bg-blue-100 text-blue-600" :
-                                                            "bg-green-100 text-green-600"
-                                                )}>
-                                                    {ticket.status.replace('_', ' ')}
-                                                </span>
+                                                    <span className={cn(
+                                                        "px-2.5 py-0.5 rounded-md text-[10px] font-bold",
+                                                        ticket.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-600" :
+                                                            ticket.status === "OPEN" ? "bg-blue-100 text-blue-600" :
+                                                                "bg-green-100 text-green-600"
+                                                    )}>
+                                                        {ticket.status.replace('_', ' ')}
+                                                    </span>
 
-                                                <span className={cn(
-                                                    "px-2.5 py-0.5 rounded-md text-[10px] font-bold",
-                                                    ticket.priority === 'HIGH' ? "bg-red-100 text-red-600" :
-                                                        ticket.priority === 'MEDIUM' ? "bg-blue-100 text-blue-600" :
-                                                            "bg-gray-100 text-gray-600"
-                                                )}>
-                                                    {ticket.priority}
-                                                </span>
+                                                    <span className={cn(
+                                                        "px-2.5 py-0.5 rounded-md text-[10px] font-bold",
+                                                        ticket.priority === 'HIGH' ? "bg-red-100 text-red-600" :
+                                                            ticket.priority === 'MEDIUM' ? "bg-blue-100 text-blue-600" :
+                                                                "bg-gray-100 text-gray-600"
+                                                    )}>
+                                                        {ticket.priority}
+                                                    </span>
+                                                </div>
+
+                                                <h3 className="text-base font-bold text-gray-900 truncate pr-4 group-hover:text-blue-600 transition-colors">{ticket.subject}</h3>
+                                                <p className="text-xs text-gray-500 mt-1">{getCategoryLabel(ticket.category)}</p>
+                                                <p className="text-xs text-gray-400 mt-4">Created {formatDate(ticket.createdAt)}</p>
                                             </div>
 
-                                            <h3 className="text-base font-bold text-gray-900 truncate pr-4 group-hover:text-blue-600 transition-colors">{ticket.subject}</h3>
-                                            <p className="text-xs text-gray-500 mt-1">{getCategoryLabel(ticket.category)}</p>
-                                            <p className="text-xs text-gray-400 mt-4">Created {formatDate(ticket.createdAt)}</p>
+                                            <button
+                                                onClick={(e) => handleDelete(e, ticket.supportTicketId)}
+                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                                                title="Delete Ticket"
+                                            >
+                                                <Trash2 className="size-4" />
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -300,6 +350,15 @@ export default function SupportPage() {
                     isOpen={!!selectedTicket}
                     onClose={() => setSelectedTicket(null)}
                     ticket={selectedTicket}
+                />
+                <DeleteConfirmationModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => {
+                        setIsDeleteModalOpen(false);
+                        setTicketToDelete(null);
+                    }}
+                    onConfirm={confirmDelete}
+                    isLoading={isDeleting}
                 />
             </div>
         </div>

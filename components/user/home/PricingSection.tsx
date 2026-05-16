@@ -1,7 +1,10 @@
 "use client";
 
-import { Star } from "lucide-react";
-import { forwardRef } from "react";
+import { Star, Loader2 } from "lucide-react";
+import { forwardRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import gsap from "gsap";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -14,6 +17,48 @@ interface PricingSectionProps {
 }
 
 const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDashboard }, ref) => {
+    const router = useRouter();
+    const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+    const handlePlanClick = (planName: string) => {
+        setLoadingPlan(planName);
+
+        // Show toast
+        toast.error("Please login to purchase this plan", {
+            duration: 3000,
+            position: "top-center",
+            style: {
+                borderRadius: '12px',
+                background: '#1a1a1a',
+                color: '#fff',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                zIndex: 9999,
+            },
+        });
+
+        // Start Page Exit Animation
+        const mainElement = document.querySelector('main');
+        const navbarElement = document.querySelector('nav');
+
+        if (mainElement) {
+            gsap.to([mainElement, navbarElement].filter(Boolean), {
+                opacity: 0,
+                y: -30,
+                duration: 0.8,
+                ease: "power2.inOut",
+                onComplete: () => {
+                    router.push("/login");
+                }
+            });
+        } else {
+            // Fallback if elements not found
+            setTimeout(() => {
+                router.push("/login");
+            }, 1000);
+        }
+    };
+
     return (
         <section id="pricing" ref={ref} className={cn(
             "bg-[#f8fafc]",
@@ -40,8 +85,14 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                             </li>
                         ))}
                     </ul>
-                    <button className="w-full cursor-pointer py-4 px-6 rounded-2xl border-2 border-gray-100 text-[#0F172A] font-black hover:bg-gray-50 transition-all text-[14px] shadow-sm">
-                        Get Started
+                    <button
+                        onClick={() => handlePlanClick('Starter')}
+                        disabled={loadingPlan !== null}
+                        className="w-full cursor-pointer py-4 px-6 rounded-2xl border-2 border-gray-100 text-[#0F172A] font-black hover:bg-gray-50 transition-all text-[14px] shadow-sm flex items-center justify-center gap-2"
+                    >
+                        {loadingPlan === 'Starter' ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : "Get Started"}
                     </button>
                 </div>
 
@@ -68,8 +119,14 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                             </li>
                         ))}
                     </ul>
-                    <button className="w-full cursor-pointer py-4 px-6 rounded-2xl bg-white text-[#0066FF] font-black hover:bg-blue-50 transition-all text-[14px] shadow-xl">
-                        Get Started
+                    <button
+                        onClick={() => handlePlanClick('Professional')}
+                        disabled={loadingPlan !== null}
+                        className="w-full cursor-pointer py-4 px-6 rounded-2xl bg-white text-[#0066FF] font-black hover:bg-blue-50 transition-all text-[14px] shadow-xl flex items-center justify-center gap-2"
+                    >
+                        {loadingPlan === 'Professional' ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : "Get Started"}
                     </button>
                 </div>
 
@@ -92,8 +149,14 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                             </li>
                         ))}
                     </ul>
-                    <button className="w-full cursor-pointer py-4 px-6 rounded-2xl border-2 border-gray-100 text-[#0F172A] font-black hover:bg-gray-50 transition-all text-[14px] shadow-sm">
-                        Contact Sales
+                    <button
+                        onClick={() => handlePlanClick('Enterprise')}
+                        disabled={loadingPlan !== null}
+                        className="w-full cursor-pointer py-4 px-6 rounded-2xl border-2 border-gray-100 text-[#0F172A] font-black hover:bg-gray-50 transition-all text-[14px] shadow-sm flex items-center justify-center gap-2"
+                    >
+                        {loadingPlan === 'Enterprise' ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : "Contact Sales"}
                     </button>
                 </div>
             </div>

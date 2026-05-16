@@ -22,6 +22,7 @@ import { useGetReviewAnalysisQuery } from "@/redux/api/AI/reviewApi";
 import { useSelector } from "react-redux";
 import { getUserIdFromToken } from "@/utils/authUtils";
 import { Loader2 } from "lucide-react";
+import Skeleton from "@/components/ui/Skeleton";
 
 // Constants
 const ITEMS_PER_PAGE = 5;
@@ -90,7 +91,7 @@ export default function ReviewPage() {
     const userId = getUserIdFromToken();
     const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
 
-    const { data: analysisData, isLoading } = useGetReviewAnalysisQuery(
+    const { currentData: analysisData, isLoading, isFetching } = useGetReviewAnalysisQuery(
         {
             userId: userId || "",
             businessName: selectedBusiness || "",
@@ -239,10 +240,40 @@ export default function ReviewPage() {
 
             {/* Review List */}
             <div className="space-y-4 min-h-[400px]">
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <Loader2 className="size-8 text-blue-600 animate-spin" />
-                    </div>
+                {isLoading || isFetching ? (
+                    <>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                            {[...Array(4)].map((_, i) => (
+                                <div key={i} className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                                    <div className="flex justify-between items-start">
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-4 w-24" />
+                                            <Skeleton className="h-8 w-16" />
+                                        </div>
+                                        <Skeleton className="size-10 rounded-lg" />
+                                    </div>
+                                    <Skeleton className="h-4 w-32 mt-4" />
+                                </div>
+                            ))}
+                        </div>
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 space-y-4">
+                                <div className="flex gap-3">
+                                    <Skeleton className="size-12 rounded-full" />
+                                    <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-5 w-32" />
+                                        <Skeleton className="h-3 w-24" />
+                                    </div>
+                                </div>
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-3/4" />
+                                <div className="flex gap-2">
+                                    <Skeleton className="h-6 w-16 rounded-lg" />
+                                    <Skeleton className="h-6 w-16 rounded-lg" />
+                                </div>
+                            </div>
+                        ))}
+                    </>
                 ) : currentReviews.length > 0 ? (
                     currentReviews.map((review, idx) => (
                         <div

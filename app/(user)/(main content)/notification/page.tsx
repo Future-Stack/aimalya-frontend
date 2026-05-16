@@ -13,6 +13,7 @@ import {
     Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Skeleton from "@/components/ui/Skeleton";
 
 // Mock Data
 const initialNotifications = [
@@ -95,6 +96,8 @@ const categories = ["All", "Alerts", "Reports", "Info", "Unread"];
 export default function NotificationPage() {
     const [notifications, setNotifications] = useState(initialNotifications);
     const [activeTab, setActiveTab] = useState("All");
+    const [isLoading, setIsLoading] = useState(false); // Can be linked to real API later
+    const isFetching = false; // Placeholder
 
     const unreadCount = notifications.filter(n => n.unread).length;
 
@@ -222,7 +225,23 @@ export default function NotificationPage() {
 
             {/* Notification List */}
             <div className="space-y-3">
-                {filteredNotifications.length > 0 ? (
+                {isLoading || isFetching ? (
+                    <>
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="p-5 bg-white rounded-2xl border border-gray-100 space-y-3">
+                                <div className="flex items-start gap-4">
+                                    <Skeleton className="size-5 rounded shrink-0" />
+                                    <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-1/3" />
+                                        <Skeleton className="h-4 w-full" />
+                                        <Skeleton className="h-3 w-20" />
+                                    </div>
+                                    <Skeleton className="h-8 w-24 rounded-lg shrink-0" />
+                                </div>
+                            </div>
+                        ))}
+                    </>
+                ) : filteredNotifications.length > 0 ? (
                     filteredNotifications.map((notification) => {
                         const style = getNotificationStyle(notification.type);
                         const Icon = style.iconRaw; // Assuming simple conditional logic for icons above is enough for mock

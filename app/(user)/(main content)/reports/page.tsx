@@ -33,6 +33,7 @@ import { useSelector } from "react-redux";
 import { getUserIdFromToken } from "@/utils/authUtils";
 import { Loader2 } from "lucide-react";
 import { downloadReportPDF, downloadReportExcel } from "@/utils/reportExport";
+import Skeleton from "@/components/ui/Skeleton";
 
 // Mock Data
 const volumeData = [
@@ -172,7 +173,7 @@ export default function ReportsPage() {
 
     const activeReport = timeframes[activeIndex] || timeframes[0];
 
-    const { data: reportData, isLoading, isFetching } = useGetMonthlyReportQuery(
+    const { currentData: reportData, isLoading, isFetching } = useGetMonthlyReportQuery(
         {
             user_id: userId || "",
             business_name: selectedBusiness || "",
@@ -233,7 +234,19 @@ export default function ReportsPage() {
                         </span>
                     </div>
                     <div className="space-y-3">
-                        {timeframes.map((report, i) => (
+                        {isLoading || isFetching ? (
+                            [...Array(5)].map((_, i) => (
+                                <div key={i} className="p-4 bg-white rounded-xl border border-gray-100 space-y-2">
+                                    <div className="flex gap-3">
+                                        <Skeleton className="size-5 rounded" />
+                                        <div className="flex-1 space-y-2">
+                                            <Skeleton className="h-4 w-3/4" />
+                                            <Skeleton className="h-3 w-1/2" />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : timeframes.map((report, i) => (
                             <div
                                 key={i}
                                 onClick={() => setActiveIndex(i)}
@@ -356,164 +369,184 @@ export default function ReportsPage() {
                 </div>
 
                 <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8 space-y-8">
-                    {/* Report Header */}
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900">{activeReport.name}</h2>
-                        <p className="text-sm text-gray-500 mt-1">Period: {activeReport.label}</p>
-
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                            {dynamicStats.map((stat, i) => (
-                                <div key={i} className="p-4 bg-gray-50 rounded-xl">
-                                    <p className="text-xs font-medium text-gray-500">{stat.label}</p>
-                                    <h4 className="text-xl font-bold text-gray-900 mt-1">{stat.value}</h4>
-                                    <p className={cn("text-[10px] font-bold mt-1", stat.color)}>{stat.trend}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Executive Summary */}
-                    <div>
-                        <h3 className="font-bold text-gray-900 mb-3">1. Executive Summary</h3>
-                        <div className="bg-blue-50/50 p-4 rounded-xl text-sm text-blue-900 leading-relaxed border border-blue-100">
-                            {isFetching ? "Analyzing report data..." : reportData?.executive_summary || "No data available for this period."}
-                        </div>
-                    </div>
-
-                    {/* Charts */}
-                    <div>
-                        <h3 className="font-bold text-gray-900 mb-4">2. Review Volume & Rating Trends</h3>
-                        {isFetching ? (
-                            <div className="h-48 flex items-center justify-center">
-                                <Loader2 className="size-6 text-blue-600 animate-spin" />
-                            </div>
-                        ) : (
-                            <div className="grid md:grid-cols-2 gap-8">
-                                <div className="h-48 w-full">
-                                    <p className="text-xs text-gray-500 mb-2">Review Volume by {viewMode === "Weekly" ? "Period" : "Week"}</p>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={reportData?.review_volume_trend || []}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                            <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                            <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                                            <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                <div className="h-48 w-full">
-                                    <p className="text-xs text-gray-500 mb-2">Rating Trend</p>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={reportData?.rating_trend || []}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                            <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                            <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                            <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
-                                            <Line type="monotone" dataKey="rating" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Sentiment Breakdown */}
-                    <div>
-                        <h3 className="font-bold text-gray-900 mb-3">3. Sentiment Breakdown</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-4 bg-green-50 rounded-xl">
-                                <p className="text-xs font-bold text-green-700">Positive</p>
-                                <p className="text-2xl font-bold text-green-900 mt-1">{reportData?.sentiment_breakdown.positive.percent || 0}%</p>
-                                <p className="text-[10px] text-green-600 mt-1">{reportData?.sentiment_breakdown.positive.count || 0} reviews</p>
-                            </div>
-                            <div className="p-4 bg-gray-50 rounded-xl">
-                                <p className="text-xs font-bold text-gray-600">Neutral</p>
-                                <p className="text-2xl font-bold text-gray-800 mt-1">{reportData?.sentiment_breakdown.neutral.percent || 0}%</p>
-                                <p className="text-[10px] text-gray-500 mt-1">{reportData?.sentiment_breakdown.neutral.count || 0} reviews</p>
-                            </div>
-                            <div className="p-4 bg-red-50 rounded-xl">
-                                <p className="text-xs font-bold text-red-700">Negative</p>
-                                <p className="text-2xl font-bold text-red-900 mt-1">{reportData?.sentiment_breakdown.negative.percent || 0}%</p>
-                                <p className="text-[10px] text-red-600 mt-1">{reportData?.sentiment_breakdown.negative.count || 0} reviews</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Lists */}
-                    <div className="space-y-6">
-                        <div>
-                            <h3 className="font-bold text-gray-900 mb-3">4. Top Complaints</h3>
+                    {isFetching ? (
+                        <div className="space-y-8 animate-pulse">
                             <div className="space-y-2">
-                                {reportData?.top_complaints && reportData.top_complaints.length > 0 ? (
-                                    reportData.top_complaints.map((item: any, i) => (
-                                        <div key={i} className="flex justify-between items-center p-3 bg-red-50/50 rounded-lg text-sm">
-                                            <span className="font-semibold text-gray-800">{typeof item === 'object' ? (item.issue || item.complaint || item.label) : item}</span>
-                                            {typeof item === 'object' && item.mentions && (
-                                                <span className="text-[10px] text-gray-500">{item.mentions} mentions</span>
-                                            )}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-3 text-sm text-gray-400 italic">No major complaints reported.</div>
-                                )}
+                                <Skeleton className="h-8 w-64" />
+                                <Skeleton className="h-4 w-48" />
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                                    {[...Array(4)].map((_, i) => (
+                                        <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <Skeleton className="h-6 w-48" />
+                                <Skeleton className="h-24 w-full rounded-xl" />
+                            </div>
+                            <div className="space-y-4">
+                                <Skeleton className="h-6 w-48" />
+                                <div className="grid grid-cols-2 gap-8">
+                                    <Skeleton className="h-48 w-full rounded-xl" />
+                                    <Skeleton className="h-48 w-full rounded-xl" />
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <h3 className="font-bold text-gray-900 mb-3">5. Top Praises</h3>
-                            <div className="space-y-2">
-                                {reportData?.top_praises && reportData.top_praises.length > 0 ? (
-                                    reportData.top_praises.map((item: any, i) => (
-                                        <div key={i} className="flex justify-between items-center p-3 bg-green-50/50 rounded-lg text-sm">
-                                            <span className="font-semibold text-gray-800">{typeof item === 'object' ? (item.strength || item.praise || item.label) : item}</span>
-                                            {typeof item === 'object' && item.mentions && (
-                                                <span className="text-[10px] text-gray-500">{item.mentions} mentions</span>
-                                            )}
+                    ) : (
+                        <>
+                            {/* Report Header */}
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900">{activeReport.name}</h2>
+                                <p className="text-sm text-gray-500 mt-1">Period: {activeReport.label}</p>
+
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                                    {dynamicStats.map((stat, i) => (
+                                        <div key={i} className="p-4 bg-gray-50 rounded-xl">
+                                            <p className="text-xs font-medium text-gray-500">{stat.label}</p>
+                                            <h4 className="text-xl font-bold text-gray-900 mt-1">{stat.value}</h4>
+                                            <p className={cn("text-[10px] font-bold mt-1", stat.color)}>{stat.trend}</p>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="p-3 text-sm text-gray-400 italic">No major praises reported.</div>
-                                )}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* AI Recommendations */}
-                    <div>
-                        <h3 className="font-bold text-gray-900 mb-3">6. AI Recommendations</h3>
-                        <div className="space-y-3">
-                            {reportData?.ai_recommendations && reportData.ai_recommendations.length > 0 ? (
-                                reportData.ai_recommendations.map((rec, i) => (
-                                    <div key={i} className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
-                                        <h4 className="text-sm font-bold text-blue-900">{rec.title}</h4>
-                                        <p className="text-xs text-blue-800/80 mt-1 leading-relaxed">{rec.description}</p>
-                                        <p className="text-[10px] font-bold text-blue-600 mt-2 uppercase tracking-wider">{rec.estimated_impact}</p>
+                            {/* Executive Summary */}
+                            <div>
+                                <h3 className="font-bold text-gray-900 mb-3">1. Executive Summary</h3>
+                                <div className="bg-blue-50/50 p-4 rounded-xl text-sm text-blue-900 leading-relaxed border border-blue-100">
+                                    {reportData?.executive_summary || "No data available for this period."}
+                                </div>
+                            </div>
+
+                            {/* Charts */}
+                            <div>
+                                <h3 className="font-bold text-gray-900 mb-4">2. Review Volume & Rating Trends</h3>
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    <div className="h-48 w-full">
+                                        <p className="text-xs text-gray-500 mb-2">Review Volume by {viewMode === "Weekly" ? "Period" : "Week"}</p>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={reportData?.review_volume_trend || []}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                                <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                                <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                                                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-400 italic text-center">No recommendations available.</div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Action Plan */}
-                    <div>
-                        <h3 className="font-bold text-gray-900 mb-3">7. Recommended Action Plan</h3>
-                        <div className="space-y-2">
-                            {reportData?.action_plan && reportData.action_plan.length > 0 ? (
-                                reportData.action_plan.map((step, i) => (
-                                    <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                                        <div className="flex items-center justify-center size-5 rounded-full bg-blue-600 text-white text-xs flex-shrink-0">
-                                            {i + 1}
-                                        </div>
-                                        <span className="text-sm text-gray-700 font-medium">{step}</span>
+                                    <div className="h-48 w-full">
+                                        <p className="text-xs text-gray-500 mb-2">Rating Trend</p>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <LineChart data={reportData?.rating_trend || []}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                                <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                                <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
+                                                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                                                <Line type="monotone" dataKey="rating" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} />
+                                            </LineChart>
+                                        </ResponsiveContainer>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="p-3 text-sm text-gray-400 italic text-center bg-gray-50 rounded-xl">No action plan generated.</div>
-                            )}
-                        </div>
-                    </div>
+                                </div>
+                            </div>
 
+                            {/* Sentiment Breakdown */}
+                            <div>
+                                <h3 className="font-bold text-gray-900 mb-3">3. Sentiment Breakdown</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="p-4 bg-green-50 rounded-xl">
+                                        <p className="text-xs font-bold text-green-700">Positive</p>
+                                        <p className="text-2xl font-bold text-green-900 mt-1">{reportData?.sentiment_breakdown.positive.percent || 0}%</p>
+                                        <p className="text-[10px] text-green-600 mt-1">{reportData?.sentiment_breakdown.positive.count || 0} reviews</p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 rounded-xl">
+                                        <p className="text-xs font-bold text-gray-600">Neutral</p>
+                                        <p className="text-2xl font-bold text-gray-800 mt-1">{reportData?.sentiment_breakdown.neutral.percent || 0}%</p>
+                                        <p className="text-[10px] text-gray-500 mt-1">{reportData?.sentiment_breakdown.neutral.count || 0} reviews</p>
+                                    </div>
+                                    <div className="p-4 bg-red-50 rounded-xl">
+                                        <p className="text-xs font-bold text-red-700">Negative</p>
+                                        <p className="text-2xl font-bold text-red-900 mt-1">{reportData?.sentiment_breakdown.negative.percent || 0}%</p>
+                                        <p className="text-[10px] text-red-600 mt-1">{reportData?.sentiment_breakdown.negative.count || 0} reviews</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Lists */}
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="font-bold text-gray-900 mb-3">4. Top Complaints</h3>
+                                    <div className="space-y-2">
+                                        {reportData?.top_complaints && reportData.top_complaints.length > 0 ? (
+                                            reportData.top_complaints.map((item: any, i) => (
+                                                <div key={i} className="flex justify-between items-center p-3 bg-red-50/50 rounded-lg text-sm">
+                                                    <span className="font-semibold text-gray-800">{typeof item === 'object' ? (item.issue || item.complaint || item.label) : item}</span>
+                                                    {typeof item === 'object' && item.mentions && (
+                                                        <span className="text-[10px] text-gray-500">{item.mentions} mentions</span>
+                                                    )}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-3 text-sm text-gray-400 italic">No major complaints reported.</div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900 mb-3">5. Top Praises</h3>
+                                    <div className="space-y-2">
+                                        {reportData?.top_praises && reportData.top_praises.length > 0 ? (
+                                            reportData.top_praises.map((item: any, i) => (
+                                                <div key={i} className="flex justify-between items-center p-3 bg-green-50/50 rounded-lg text-sm">
+                                                    <span className="font-semibold text-gray-800">{typeof item === 'object' ? (item.strength || item.praise || item.label) : item}</span>
+                                                    {typeof item === 'object' && item.mentions && (
+                                                        <span className="text-[10px] text-gray-500">{item.mentions} mentions</span>
+                                                    )}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-3 text-sm text-gray-400 italic">No major praises reported.</div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* AI Recommendations */}
+                            <div>
+                                <h3 className="font-bold text-gray-900 mb-3">6. AI Recommendations</h3>
+                                <div className="space-y-3">
+                                    {reportData?.ai_recommendations && reportData.ai_recommendations.length > 0 ? (
+                                        reportData.ai_recommendations.map((rec, i) => (
+                                            <div key={i} className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
+                                                <h4 className="text-sm font-bold text-blue-900">{rec.title}</h4>
+                                                <p className="text-xs text-blue-800/80 mt-1 leading-relaxed">{rec.description}</p>
+                                                <p className="text-[10px] font-bold text-blue-600 mt-2 uppercase tracking-wider">{rec.estimated_impact}</p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-400 italic text-center">No recommendations available.</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Action Plan */}
+                            <div>
+                                <h3 className="font-bold text-gray-900 mb-3">7. Recommended Action Plan</h3>
+                                <div className="space-y-2">
+                                    {reportData?.action_plan && reportData.action_plan.length > 0 ? (
+                                        reportData.action_plan.map((step, i) => (
+                                            <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                                                <div className="flex items-center justify-center size-5 rounded-full bg-blue-600 text-white text-xs flex-shrink-0">
+                                                    {i + 1}
+                                                </div>
+                                                <span className="text-sm text-gray-700 font-medium">{step}</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-3 text-sm text-gray-400 italic text-center bg-gray-50 rounded-xl">No action plan generated.</div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

@@ -31,6 +31,7 @@ import { getUserIdFromToken } from "@/utils/authUtils";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedBusiness, setSelectedLocation, setSelectedAddress } from "@/redux/slices/businessSlice";
 import AddBusinessModal from "./AddBusinessModal";
+import AddLocationModal from "./AddLocationModal";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -60,6 +61,7 @@ export default function Sidebar() {
     const [isSmallScreen, setIsSmallScreen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
+    const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false);
 
     // Fetch Business Names
     const { data: namesData, isLoading: isLoadingNames } = useGetBusinessNamesQuery(userId || "", {
@@ -178,7 +180,7 @@ export default function Sidebar() {
                     footer={
                         <button
                             onClick={() => setIsAddBusinessModalOpen(true)}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors whitespace-nowrap"
                         >
                             <Plus size={16} />
                             Add Business
@@ -197,6 +199,15 @@ export default function Sidebar() {
                     }}
                     icon={<MapPin className="size-4 shrink-0" />}
                     className="h-10"
+                    footer={
+                        <button
+                            onClick={() => setIsAddLocationModalOpen(true)}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors whitespace-nowrap"
+                        >
+                            <Plus size={16} />
+                            Add Location
+                        </button>
+                    }
                 />
             </div>
 
@@ -258,6 +269,11 @@ export default function Sidebar() {
             <AddBusinessModal 
                 isOpen={isAddBusinessModalOpen} 
                 onClose={() => setIsAddBusinessModalOpen(false)} 
+            />
+            <AddLocationModal 
+                isOpen={isAddLocationModalOpen} 
+                onClose={() => setIsAddLocationModalOpen(false)} 
+                businessName={selectedShop as string}
             />
         </aside>
     );
