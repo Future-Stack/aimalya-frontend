@@ -21,7 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useSelector } from "react-redux";
-import { useGetAiInsightsQuery, useUpdateRecommendationStatusMutation } from "@/redux/api/AI/aiInsightsApi";
+import { useGetAiInsightsQuery, useUpdateRecommendationStatusMutation, useGenerateMoreRecommendationsMutation } from "@/redux/api/AI/aiInsightsApi";
 import { getUserIdFromToken } from "@/utils/authUtils";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
@@ -40,6 +40,21 @@ export default function AIInsightsPage() {
     );
 
     const [updateStatus] = useUpdateRecommendationStatusMutation();
+    const [generateMoreRecommendations, { isLoading: isGenerating }] = useGenerateMoreRecommendationsMutation();
+
+    const handleGenerateMore = async () => {
+        if (!userId || !selectedBusiness) return;
+        try {
+            await generateMoreRecommendations({
+                userId,
+                businessName: selectedBusiness,
+                address: selectedAddress || ""
+            }).unwrap();
+            toast.success("New recommendations generated successfully!");
+        } catch (error) {
+            toast.error("Failed to generate recommendations.");
+        }
+    };
 
     if (isLoading || isFetching) {
         return (
@@ -117,13 +132,13 @@ export default function AIInsightsPage() {
     }
 
     // Transform radar data
-    const radarData = Object.entries(insights.performance_by_category).map(([category, value]) => ({
+    const radarData = Object.entries(insights.performance_by_category || {}).map(([category, value]) => ({
         subject: category,
         A: value,
         fullMark: 100
     }));
 
-    const recommendations = insights.actionable_recommendations.slice(0, 3);
+    const recommendations = insights.actionable_recommendations?.slice(0, 3) || [];
 
     const handleMarkAsAddressed = async (title: string) => {
         if (!userId) return;
@@ -176,10 +191,15 @@ export default function AIInsightsPage() {
                         alt={selectedBusiness || "Business Image"}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-4 flex items-end">
-                        <div className="flex items-center gap-1">
-                            <Star className="size-4 fill-amber-400 text-amber-400" />
-                            <span className="text-white text-xs font-bold ml-1">Live Location Data</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-4 flex flex-col justify-end">
+                        <div className="flex flex-col gap-1.5">
+                            {/* <span className="text-white/90 text-xs font-semibold flex items-center gap-1.5">
+                                <div className="size-1.5 rounded-full bg-green-500 animate-pulse" />
+                                Live Location Data
+                            </span> */}
+                            {insights.rating && (
+                                <RatingStars rating={insights.rating} count={insights.count} />
+                            )}
                         </div>
                     </div>
                 </div>
@@ -257,7 +277,7 @@ export default function AIInsightsPage() {
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">Emerging Trends</h3>
                     <div className="space-y-3">
-                        {insights.emerging_trends.map((trend, i) => (
+                        {insights.emerging_trends?.map((trend, i) => (
                             <div key={i} className="flex flex-col p-4 bg-green-50/50 rounded-2xl border border-green-100/50">
                                 <span className="text-sm font-semibold text-gray-900">{trend.trend}</span>
                                 <span className="text-xs text-green-600 font-medium mt-1">{trend.mentions} mentions</span>
@@ -270,7 +290,7 @@ export default function AIInsightsPage() {
                 <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">Declining Areas</h3>
                     <div className="space-y-3">
-                        {insights.declining_areas.map((area, i) => (
+                        {insights.declining_areas?.map((area, i) => (
                             <div key={i} className="flex flex-col p-4 bg-red-50/50 rounded-2xl border border-red-100/50">
                                 <span className="text-sm font-semibold text-gray-900">{area.trend}</span>
                                 <span className="text-xs text-red-600 font-medium mt-1">{area.mentions} mentions</span>
@@ -297,7 +317,7 @@ export default function AIInsightsPage() {
                     </Link>
                 </div>
 
-                {recommendations.map((plan, i) => (
+                {recommendations?.map((plan, i) => (
                     <div key={i} className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
                         <div className="flex items-center gap-4 mb-4">
                             <h4 className="text-lg font-bold text-gray-900">{plan.title}</h4>
@@ -326,14 +346,14 @@ export default function AIInsightsPage() {
                             </div>
                             <div className="p-4 bg-green-50 rounded-2xl">
                                 <span className="text-xs text-green-600/80 font-medium">Expected Improvement</span>
-                                <p className="text-sm text-green-900 font-semibold mt-1">{plan.expected_improvement}</p>
+                                <p className="text-sm text-green-900 font-semibold mt-1">{plan.expected_improvement || plan.improvement}</p>
                             </div>
                         </div>
 
                         <div className="bg-blue-100/50 p-6 rounded-2xl border border-blue-100">
                             <h5 className="font-bold text-blue-900 text-sm mb-4">Recommended Actions</h5>
                             <div className="space-y-3 mb-6">
-                                {plan.actions.map((step, j) => (
+                                {(plan.actions || plan.actions_to_do)?.map((step, j) => (
                                     <div key={j} className="flex items-center gap-3">
                                         <div className="flex items-center justify-center size-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold shrink-0">
                                             {j + 1}
@@ -388,14 +408,45 @@ export default function AIInsightsPage() {
                         </div>
                     </div>
 
-                    <button className="flex-shrink-0 px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-purple-50 transition-all shadow-xl">
-                        Request Solution
+                    <button 
+                        onClick={handleGenerateMore}
+                        disabled={isGenerating}
+                        className="cursor-pointer flex-shrink-0 px-8 py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-purple-50 transition-all shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {isGenerating ? "Generating..." : "Request Solution"}
                     </button>
                 </div>
 
                 <div className="absolute top-0 right-0 -mr-20 -mt-20 size-96 rounded-full bg-white/10 blur-3xl" />
                 <div className="absolute bottom-0 left-0 -ml-20 -mb-20 size-96 rounded-full bg-white/10 blur-3xl" />
             </div>
+        </div>
+    );
+}
+
+function RatingStars({ rating, count }: { rating: number; count?: number }) {
+    return (
+        <div className="flex items-center gap-1 mt-0.5">
+            <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => {
+                    const fillPercentage = Math.min(Math.max(rating - i, 0), 1) * 100;
+                    return (
+                        <div key={i} className="relative size-4">
+                            {/* Background (empty) star */}
+                            <Star className="absolute inset-0 size-4 text-amber-400/30" />
+                            {/* Foreground (filled) star */}
+                            <div 
+                                className="absolute inset-0 overflow-hidden" 
+                                style={{ width: `${fillPercentage}%` }}
+                            >
+                                <Star className="size-4 fill-amber-400 text-amber-400" />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+            <span className="text-white text-sm font-bold ml-1.5">{rating.toFixed(1)}</span>
+            {count && <span className="text-white/70 text-xs ml-1 font-medium">({count} reviews)</span>}
         </div>
     );
 }

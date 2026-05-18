@@ -17,8 +17,10 @@ export interface ActionableRecommendation {
   description: string;
   evidence: string;
   business_impact: string;
-  expected_improvement: string;
-  actions: string[];
+  expected_improvement?: string;
+  improvement?: string;
+  actions?: string[];
+  actions_to_do?: string[];
 }
 
 export interface BusinessPicture {
@@ -40,6 +42,8 @@ export interface AiInsightsResponse {
     [category: string]: number;
   };
   business_goals: string[];
+  rating?: number;
+  count?: number;
 }
 
 export const aiInsightsApi = baseApiAi.injectEndpoints({
@@ -72,7 +76,27 @@ export const aiInsightsApi = baseApiAi.injectEndpoints({
       }),
       invalidatesTags: ["Goals"],
     }),
+    generateMoreRecommendations: builder.mutation<
+      any,
+      { userId: string; businessName: string; address?: string }
+    >({
+      query: ({ userId, businessName, address }) => {
+        let url = `/insights/actionable-recommendations?user_id=${userId}&business_name=${encodeURIComponent(businessName)}`;
+        if (address) {
+          url += `&address=${encodeURIComponent(address)}`;
+        }
+        return {
+          url,
+          method: "GET",
+        };
+      },
+      invalidatesTags: ["Goals"],
+    }),
   }),
 });
 
-export const { useGetAiInsightsQuery, useUpdateRecommendationStatusMutation } = aiInsightsApi;
+export const { 
+  useGetAiInsightsQuery, 
+  useUpdateRecommendationStatusMutation,
+  useGenerateMoreRecommendationsMutation
+} = aiInsightsApi;

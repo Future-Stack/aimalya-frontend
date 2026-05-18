@@ -1,6 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
+import Skeleton from "@/components/ui/Skeleton";
+import { PageHeaderSkeleton, StatsCardsSkeleton, ChartSkeleton } from "@/components/admin/AdminSkeletons";
+import { useGetBusinessCategoriesQuery } from "@/redux/api/AI/businessCategoryApi";
+import {
+    useGetDashboardStatisticsQuery,
+    useGetDashboardChartsQuery,
+    useGetConversionFunnelQuery
+} from "@/redux/api/BE/admin/analyticsApi";
 import {
     Users,
     TrendingUp,
@@ -73,6 +81,108 @@ const funnelData = [
 ];
 
 export default function AnalyticsDashboard() {
+    const { data: categoryData } = useGetBusinessCategoriesQuery();
+    const { data: statsQueryData, isLoading: statsLoading } = useGetDashboardStatisticsQuery();
+    const { data: chartsQueryData } = useGetDashboardChartsQuery();
+    const { data: funnelQueryData } = useGetConversionFunnelQuery();
+
+    const COLORS = ["#3B82F6", "#8B5CF6", "#10B981", "#F59E0B", "#EF4444", "#EC4899", "#14B8A6", "#84CC16"];
+
+    const dynamicPieData = useMemo(() => {
+        if (!categoryData?.categories || categoryData.categories.length === 0) return pieData;
+
+        return categoryData.categories.map((cat: any, index: number) => ({
+            name: cat.category.charAt(0).toUpperCase() + cat.category.slice(1),
+            value: cat.business_count,
+            color: COLORS[index % COLORS.length]
+        }));
+    }, [categoryData]);
+
+    const dynamicStats = useMemo(() => {
+        if (!statsQueryData?.data) return stats;
+        const data = statsQueryData.data;
+        return [
+            {
+                label: "Total Users",
+                value: data.totalUsers?.value?.toLocaleString() || "0",
+                icon: Users,
+                change: `${data.totalUsers?.trend >= 0 ? "+" : ""}${data.totalUsers?.trend || 0}${data.totalUsers?.isPercentage ? "%" : ""}`,
+                trend: data.totalUsers?.trend >= 0 ? "up" : "down",
+                color: "bg-blue-500"
+            },
+            {
+                label: "Total MRR",
+                value: `$${data.monthlyRevenue?.value?.toLocaleString() || "0"}`,
+                icon: TrendingUp,
+                change: `${data.monthlyRevenue?.trend >= 0 ? "+" : ""}${data.monthlyRevenue?.trend || 0}${data.monthlyRevenue?.isPercentage ? "%" : ""}`,
+                trend: data.monthlyRevenue?.trend >= 0 ? "up" : "down",
+                color: "bg-blue-600"
+            },
+            {
+                label: "Active Businesses",
+                value: data.activeBusinesses?.value?.toLocaleString() || "0",
+                icon: Building2,
+                change: `${data.activeBusinesses?.trend >= 0 ? "+" : ""}${data.activeBusinesses?.trend || 0}${data.activeBusinesses?.isPercentage ? "%" : ""}`,
+                trend: data.activeBusinesses?.trend >= 0 ? "up" : "down",
+                color: "bg-amber-700"
+            },
+            {
+                label: "Churn Rate",
+                value: `${data.churnRate?.value || 0}%`,
+                icon: TrendingDown,
+                change: `${data.churnRate?.trend >= 0 ? "+" : ""}${data.churnRate?.trend || 0}${data.churnRate?.isPercentage ? "%" : ""}`,
+                trend: data.churnRate?.trend >= 0 ? "up" : "down",
+                color: "bg-red-500"
+            }
+        ];
+    }, [statsQueryData]);
+
+    const dynamicChartData = useMemo(() => {
+        if (!chartsQueryData?.data?.revenueGrowth) return areaData;
+        return chartsQueryData.data.revenueGrowth.map((item: any) => ({
+            name: item.month,
+            users: item.users || 0,
+            reviews: item.reviews || 0,
+            revenue: item.revenue || 0,
+            churn: item.churn || 0
+        }));
+    }, [chartsQueryData]);
+
+    const dynamicFunnelData = useMemo(() => {
+        if (!funnelQueryData?.data) return funnelData;
+        const data = funnelQueryData.data;
+        return [
+            { label: "Signups", value: data.signups?.value || 0, percent: "100%", color: "bg-blue-600" },
+            { label: "Completed Onboarding", value: data.completedOnboarding?.value || 0, percent: `${data.completedOnboarding?.percentage || 0}%`, color: "bg-purple-600" },
+            { label: "Started Trial", value: data.startedTrial?.value || 0, percent: `${data.startedTrial?.percentage || 0}%`, color: "bg-green-600" },
+            { label: "Converted to Paid", value: data.convertedToPaid?.value || 0, percent: `${data.convertedToPaid?.percentage || 0}%`, color: "bg-amber-600" },
+        ];
+    }, [funnelQueryData]);
+
+    const overallConversionRate = funnelQueryData?.data?.overallConversionRate ?? 67;
+    const conversionText = funnelQueryData?.data?.conversionText ?? "167 out of 250 signups converted";
+
+    if (statsLoading) {
+        return (
+            <div className="space-y-8 pb-10">
+                <PageHeaderSkeleton />
+                <StatsCardsSkeleton />
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <ChartSkeleton height={300} />
+                    <ChartSkeleton height={300} />
+                </div>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-2">
+                        <ChartSkeleton height={300} />
+                    </div>
+                    <div>
+                        <ChartSkeleton height={300} />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -83,7 +193,7 @@ export default function AnalyticsDashboard() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat, idx) => (
+                {dynamicStats.map((stat, idx) => (
                     <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
                         <div className="flex items-center justify-between">
                             <div>
@@ -112,22 +222,27 @@ export default function AnalyticsDashboard() {
             {/* Main Charts */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* User Growth Chart */}
-                <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+                 <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
                     <h3 className="text-lg font-bold text-[#0F172A]">User Growth & Churn</h3>
                     <div className="mt-6 h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={areaData}>
+                            <AreaChart data={dynamicChartData}>
                                 <defs>
                                     <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.1} />
                                         <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorChurn" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#EF4444" stopOpacity={0.1} />
+                                        <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
                                 <Tooltip />
-                                <Area type="monotone" dataKey="users" stroke="#3B82F6" strokeWidth={2} fillOpacity={1} fill="url(#colorUsers)" />
+                                <Area type="monotone" dataKey="users" name="Users" stroke="#3B82F6" strokeWidth={2} fillOpacity={1} fill="url(#colorUsers)" />
+                                <Area type="monotone" dataKey="churn" name="Churn" stroke="#EF4444" strokeWidth={2} fillOpacity={1} fill="url(#colorChurn)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -138,12 +253,12 @@ export default function AnalyticsDashboard() {
                     <h3 className="text-lg font-bold text-[#0F172A]">Reviews Processed</h3>
                     <div className="mt-6 h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={barData}>
+                            <BarChart data={dynamicChartData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
                                 <Tooltip />
-                                <Bar dataKey="processed" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="reviews" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -159,7 +274,7 @@ export default function AnalyticsDashboard() {
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
-                                    data={pieData}
+                                    data={dynamicPieData}
                                     cx="50%"
                                     cy="50%"
                                     innerRadius={60}
@@ -167,7 +282,7 @@ export default function AnalyticsDashboard() {
                                     paddingAngle={5}
                                     dataKey="value"
                                 >
-                                    {pieData.map((entry, index) => (
+                                    {dynamicPieData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
                                 </Pie>
@@ -176,7 +291,7 @@ export default function AnalyticsDashboard() {
                         </ResponsiveContainer>
                     </div>
                     <div className="mt-4 space-y-2">
-                        {pieData.map((item, idx) => (
+                        {dynamicPieData.map((item, idx) => (
                             <div key={idx} className="flex items-center gap-2">
                                 <div className="size-2 rounded-full" style={{ backgroundColor: item.color }} />
                                 <span className="text-xs text-gray-500">{item.name}</span>
@@ -190,7 +305,7 @@ export default function AnalyticsDashboard() {
                 <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm lg:col-span-2">
                     <h3 className="text-lg font-bold text-[#0F172A]">Conversion Funnel</h3>
                     <div className="mt-6 space-y-6">
-                        {funnelData.map((item, idx) => (
+                        {dynamicFunnelData.map((item, idx) => (
                             <div key={idx} className="space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-500">{item.label}</span>
@@ -209,8 +324,8 @@ export default function AnalyticsDashboard() {
                     </div>
                     <div className="mt-8 rounded-lg bg-blue-50 p-4">
                         <p className="text-xs font-medium text-blue-600">Overall Conversion Rate</p>
-                        <p className="mt-1 text-xl font-bold text-blue-700">67%</p>
-                        <p className="text-[10px] text-blue-500">167 out of 250 signups converted</p>
+                        <p className="mt-1 text-xl font-bold text-blue-700">{overallConversionRate}%</p>
+                        <p className="text-[10px] text-blue-500">{conversionText}</p>
                     </div>
                 </div>
             </div>

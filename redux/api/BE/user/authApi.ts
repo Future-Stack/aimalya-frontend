@@ -70,6 +70,12 @@ export const authApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+    getMe: builder.query<any, void>({
+      query: () => ({
+        url: "/auth/me",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -79,5 +85,7 @@ export const {
   useRegisterMutation,
   useInitiateGoogleRegisterQuery,
   useInitiateGoogleLoginQuery,
-  useGoogleLoginCallbackQuery
+  useGoogleLoginCallbackQuery,
+  useGetMeQuery,
+  useLazyGetMeQuery
 } = authApi;

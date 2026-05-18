@@ -17,7 +17,7 @@ const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
 
   // Check if it's an auth-related request (login, refresh, etc.)
   const url = typeof args === "string" ? args : args.url;
-  const isAuthRequest = url?.includes("/auth/login") || url?.includes("/auth/refresh");
+  const isAuthRequest = url?.includes("/auth/login") || url?.includes("/auth/refresh") || url?.includes("/auth/change-password");
 
   if (result.error && result.error.status === 401 && !isAuthRequest) {
     // try to get a new token
@@ -68,5 +68,5 @@ export const baseApi = createApi({
   reducerPath: "baseApi",
   baseQuery: baseQueryWithReauth,
   endpoints: () => ({}),
-  tagTypes: ["User", "SupportTicket", "AdminDashboard", "ActivityLog"] as const,
+  tagTypes: ["User", "SupportTicket", "AdminDashboard", "ActivityLog", "Subscription", "SystemSettings", "Review"] as const,
 });

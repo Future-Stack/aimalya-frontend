@@ -14,10 +14,12 @@ interface TicketDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
     ticket: any;
+    onUpdateStatus?: (id: string, status: string) => Promise<void>;
 }
 
-export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDetailsModalProps) {
+export default function TicketDetailsModal({ isOpen, onClose, ticket, onUpdateStatus }: TicketDetailsModalProps) {
     const [selectedStatus, setSelectedStatus] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (ticket) {
@@ -102,17 +104,32 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
                     {/* Actions */}
                     <div className="flex gap-4 pt-2">
                         <button
-                            onClick={() => {
-                                // Logic to save status
+                            disabled={isSaving}
+                            onClick={async () => {
+                                if (onUpdateStatus && ticket.supportTicketId) {
+                                    setIsSaving(true);
+                                    try {
+                                        let apiStatus = "OPEN";
+                                        if (selectedStatus === "In Progress") apiStatus = "IN_PROGRESS";
+                                        else if (selectedStatus === "Resolved") apiStatus = "RESOLVED";
+
+                                        await onUpdateStatus(ticket.supportTicketId, apiStatus);
+                                    } catch (err) {
+                                        console.error("Failed to update status", err);
+                                    } finally {
+                                        setIsSaving(false);
+                                    }
+                                }
                                 onClose();
                             }}
-                            className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
+                            className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
                         >
-                            Save Changes
+                            {isSaving ? "Saving..." : "Save Changes"}
                         </button>
                         <button
+                            disabled={isSaving}
                             onClick={onClose}
-                            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                            className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
                         >
                             Cancel
                         </button>

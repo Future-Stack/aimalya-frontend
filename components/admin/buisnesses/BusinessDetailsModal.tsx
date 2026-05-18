@@ -14,8 +14,11 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import toast from "react-hot-toast";
+
 import {
     useGetBusinessManagementDetailQuery,
+    useUpdateBusinessStatusMutation,
 } from "@/redux/api/AI/businessmanagementApi";
 
 function cn(...inputs: ClassValue[]) {
@@ -38,10 +41,29 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
     const { data: detailData, isLoading: detailLoading } = useGetBusinessManagementDetailQuery(
         { 
             business_name: business?.business_name, 
-            overlook: overlookParam 
+            overlook: overlookParam,
+            user_id: business?.owner_id
         },
         { skip: !isOpen || !business?.business_name }
     );
+
+    const [updateStatus, { isLoading: isUpdating }] = useUpdateBusinessStatusMutation();
+
+    const isSuspended = detailData?.overview?.is_suspended ?? business?.is_suspended ?? false;
+
+    const handleToggleSuspension = async () => {
+        try {
+            const action = isSuspended ? "unsuspend" : "suspend";
+            await updateStatus({
+                action,
+                business_name: business.business_name
+            }).unwrap();
+            
+            toast.success(`Business ${action === "suspend" ? "suspended" : "unsuspended"} successfully!`);
+        } catch (error) {
+            toast.error("Failed to update business status.");
+        }
+    };
 
     if (!isOpen || !business) return null;
 
@@ -63,8 +85,11 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
                         <div>
                             <div className="flex items-center gap-2">
                                 <h2 className="text-2xl font-bold text-[#0F172A]">{business.business_name}</h2>
-                                <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700">
-                                    active
+                                <span className={cn(
+                                    "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
+                                    isSuspended ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
+                                )}>
+                                    {isSuspended ? "suspended" : "active"}
                                 </span>
                             </div>
                             <p className="text-sm text-gray-500 capitalize">{business.category}</p>
@@ -224,10 +249,15 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
                                             </div>
                                             <div>
                                                 <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 tracking-wider">Action</p>
-                                                <button className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
+                                                <a 
+                                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.business_name + ' ' + (loc.address || ''))}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                                                >
                                                     View Details
                                                     <ChevronRight className="size-3.5" />
-                                                </button>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -294,8 +324,17 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
 
                 {/* Footer Actions */}
                 <div className="flex gap-4 p-6 border-t border-gray-100">
-                    <button className="rounded-lg border border-red-500 px-6 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer">
-                        Suspend Account
+                    <button 
+                        onClick={handleToggleSuspension}
+                        disabled={isUpdating}
+                        className={cn(
+                            "rounded-lg border px-6 py-2.5 text-sm font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+                            isSuspended 
+                                ? "border-green-500 text-green-600 hover:bg-green-50" 
+                                : "border-red-500 text-red-600 hover:bg-red-50"
+                        )}
+                    >
+                        {isUpdating ? "Updating..." : (isSuspended ? "Unsuspend Account" : "Suspend Account")}
                     </button>
                     <button
                         onClick={onClose}

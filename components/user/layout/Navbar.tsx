@@ -12,17 +12,7 @@ export default function Navbar() {
     return (
         <nav className="sticky top-0 z-30 flex h-20 py-4 w-full items-center justify-between border-b border-[#E2E8F0] bg-white/80 backdrop-blur-md px-4 md:px-6 lg:px-8 transition-all">
             <div className="flex items-center gap-4">
-                {/* Search bar visible on most screens */}
-                <div className="flex relative items-center">
-                    <div className="absolute left-3 text-gray-400 pointer-events-none">
-                        <Search className="size-4" />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        className="h-11 w-48 sm:w-64 md:w-80 rounded-xl bg-gray-50 border border-gray-100 pl-10 pr-4 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
-                    />
-                </div>
+                {/* Search field removed */}
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">

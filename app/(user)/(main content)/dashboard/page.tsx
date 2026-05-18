@@ -4,10 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { Star, ThumbsUp, MessageSquare, Reply, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Loader2, X } from "lucide-react";
 import { useGetProfileQuery } from "@/redux/api/BE/user/profileApi";
+import { useLazyGetMeQuery } from "@/redux/api/BE/user/authApi";
 import { useGetDashboardOverviewQuery } from "@/redux/api/AI/dashboardApi";
 import { useSelector } from "react-redux";
 import { getUserIdFromToken, getSubscriptionFromCookie } from "@/utils/authUtils";
 import Skeleton from "@/components/ui/Skeleton";
+import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import Cookies from "js-cookie";
 import {
     AreaChart,
     Area,
@@ -59,17 +63,63 @@ const keyStrengths = [
 ];
 
 export default function DashboardPage() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
     const { data: profileData } = useGetProfileQuery();
+    const [getMe] = useLazyGetMeQuery();
     const user = profileData?.data;
     const userId = getUserIdFromToken();
-    const subscription = getSubscriptionFromCookie();
+    const [subscription, setSubscription] = React.useState(getSubscriptionFromCookie());
     const isNonePlan = subscription?.plan === "NONE";
     const [isBannerVisible, setIsBannerVisible] = React.useState(false);
+
+    const paymentToastShown = React.useRef(false);
+
+    React.useEffect(() => {
+        if ((searchParams.get("success") === "true" || searchParams.get("session_id")) && !paymentToastShown.current) {
+            paymentToastShown.current = true;
+
+            setTimeout(() => {
+                toast.success("Payment completed successfully! You are now a premium user.", { duration: 5000 });
+            }, 500); // slight delay to ensure it shows after render
+
+            // Polling mechanism to wait for Stripe Webhook to update the backend
+            let attempts = 0;
+            const pollSubscription = async () => {
+                try {
+                    const res: any = await getMe().unwrap();
+                    let newSubscription = res?.data?.subscription;
+
+                    if (newSubscription && newSubscription.plan && newSubscription.plan !== "NONE") {
+                        const encodedSub = btoa(JSON.stringify(newSubscription));
+                        Cookies.set("subscription", encodedSub, { expires: 7, path: '/' });
+                        setSubscription(newSubscription);
+                    } else if (attempts < 6) {
+                        attempts++;
+                        setTimeout(pollSubscription, 2500); // Retry every 2.5s
+                    }
+                } catch (error) {
+                    console.error("Failed to poll for updated subscription:", error);
+                }
+            };
+
+            // Hold a few seconds before hitting the API the first time to let Stripe webhook update the DB
+            setTimeout(() => {
+                pollSubscription();
+            }, 3000);
+
+            // Clean up the URL without triggering a router reload
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+        }
+    }, [searchParams, getMe]);
 
     React.useEffect(() => {
         const isDismissed = sessionStorage.getItem("upgrade_banner_dismissed");
         if (isDismissed !== "true" && isNonePlan) {
             setIsBannerVisible(true);
+        } else {
+            setIsBannerVisible(false);
         }
     }, [isNonePlan]);
 

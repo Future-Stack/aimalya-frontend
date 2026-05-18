@@ -24,31 +24,95 @@ import {
     Check,
     AlertCircle,
     Copy,
-    ExternalLink
+    ExternalLink,
+    MessageSquare,
+    Star,
+    Edit,
+    StarHalf
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import Image from "next/image";
-import { useGetProfileQuery, useUploadProfileImageMutation } from "@/redux/api/BE/user/profileApi";
+import { useGetProfileQuery, useUploadProfileImageMutation, useUpdateProfileMutation, useChangePasswordMutation } from "@/redux/api/BE/user/profileApi";
 import { useGetBusinessProfileQuery, useUpdateBusinessProfileMutation } from "@/redux/api/AI/businessSettingsApi";
 import { getUserIdFromToken } from "@/utils/authUtils";
+import { useLoginMutation } from "@/redux/api/BE/user/authApi";
+import Cookies from "js-cookie";
 import { toast } from "react-hot-toast"; // Assuming toast is used for notifications
 import { Loader2, Camera } from "lucide-react";
 import Skeleton from "@/components/ui/Skeleton";
 
+import { useGetReviewsQuery, useCreateReviewMutation, useUpdateReviewMutation } from "@/redux/api/BE/reviewsApi";
+
 // Types
-type Tab = "account" | "business" | "integrations" | "notifications" | "billing";
+type Tab = "account" | "business" | "integrations" | "notifications" | "billing" | "reviews";
 
 // ----------------------------------------------------------------------
 // MODAL COMPONENTS
 // ----------------------------------------------------------------------
 
-const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const ChangePasswordModal = ({ isOpen, onClose, email }: { isOpen: boolean, onClose: () => void, email: string }) => {
+    const [changePassword, { isLoading }] = useChangePasswordMutation();
+    const [login] = useLoginMutation();
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [showCurrent, setShowCurrent] = useState(false);
     const [showNew, setShowNew] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
 
     if (!isOpen) return null;
+
+    const handleUpdatePassword = async () => {
+        if (!currentPassword) {
+            toast.error("Please enter your current password");
+            return;
+        }
+        if (!newPassword) {
+            toast.error("Please enter a new password");
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            toast.error("New passwords do not match");
+            return;
+        }
+
+        try {
+            await changePassword({
+                oldPassword: currentPassword,
+                newPassword: newPassword
+            }).unwrap();
+            
+            // Silently log back in with the new password so the user is NOT logged out
+            if (email) {
+                try {
+                    const result = await login({ email, password: newPassword, role: "USER" }).unwrap();
+                    if (result.success) {
+                        Cookies.set("accessToken", result.data.accessToken, { expires: 7, path: "/" });
+                        Cookies.set("refreshToken", result.data.refreshToken, { expires: 30, path: "/" });
+                        if (result.data.subscription) {
+                            const encodedSub = btoa(JSON.stringify(result.data.subscription));
+                            Cookies.set("subscription", encodedSub, { expires: 7, path: '/' });
+                        }
+                    }
+                } catch (loginErr) {
+                    console.error("Silent login failed after password change:", loginErr);
+                }
+            }
+
+            toast.success("Password changed successfully!");
+            
+            // Reset state fields
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+            onClose();
+        } catch (err: any) {
+            console.error("Change password failed:", err);
+            toast.error(err?.data?.message || "Failed to change password. Please check your current password.");
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
@@ -64,6 +128,8 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         <div className="relative">
                             <input
                                 type={showCurrent ? "text" : "password"}
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
                                 placeholder="••••••••"
                                 className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all pr-12"
                             />
@@ -81,6 +147,8 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         <div className="relative">
                             <input
                                 type={showNew ? "text" : "password"}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
                                 placeholder="••••••••"
                                 className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all pr-12"
                             />
@@ -98,6 +166,8 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         <div className="relative">
                             <input
                                 type={showConfirm ? "text" : "password"}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
                                 placeholder="••••••••"
                                 className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all pr-12"
                             />
@@ -119,10 +189,11 @@ const ChangePasswordModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         Cancel
                     </button>
                     <button
-                        onClick={onClose}
-                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                        onClick={handleUpdatePassword}
+                        disabled={isLoading}
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        Update Password
+                        {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Update Password"}
                     </button>
                 </div>
             </div>
@@ -233,28 +304,55 @@ interface SettingsProps {
 // 1. Account Settings
 const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsProps) => {
     const { data: profileData, isLoading } = useGetProfileQuery();
-    const [uploadImage, { isLoading: isUploading }] = useUploadProfileImageMutation();
+    const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
     const user = profileData?.data;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.split("/api/v1")[0];
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState("");
+
+    useEffect(() => {
+        if (user) {
+            setName(user.name || "");
+            setEmail(user.email || "");
+            setPreviewUrl(user.profileImage ? `${baseUrl}${user.profileImage}` : "");
+        }
+    }, [user, baseUrl]);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append("image", file);
-
-        try {
-            await uploadImage(formData).unwrap();
-            alert("Profile image updated successfully!");
-        } catch (err) {
-            console.error("Upload failed:", err);
-            alert("Failed to upload image. Please try again.");
-        }
+        setImageFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
     };
 
-    const handleSave = () => {
-        console.log("Account settings saved!");
+    const handleSave = async () => {
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("email", email);
+        
+        // Pass original values for backend validation / consistency
+        formData.append("phone", user?.phone || "");
+        formData.append("address", user?.address || "");
+        formData.append("country", user?.country || "");
+        formData.append("language", user?.language || "");
+        formData.append("operationsRole", user?.operationsRole || "manager");
+        
+        if (imageFile) {
+            formData.append("image", imageFile);
+        }
+
+        try {
+            await updateProfile(formData).unwrap();
+            toast.success("Account settings updated successfully!");
+            setImageFile(null); // Clear selected file after success
+        } catch (err: any) {
+            console.error("Update failed:", err);
+            toast.error(err?.data?.message || "Failed to update account settings. Please try again.");
+        }
     };
 
     if (isLoading) {
@@ -291,13 +389,13 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
                         <div className="relative group">
                             <div className="size-24 rounded-full overflow-hidden ring-4 ring-blue-50">
                                 <img
-                                    src={user?.profileImage ? `${baseUrl}${user.profileImage}` : "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
+                                    src={previewUrl || "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
                                     alt="Profile"
                                     className="size-full object-cover"
                                 />
                             </div>
-                            {isUploading && (
-                                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+                            {isUpdating && (
+                                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center animate-pulse">
                                     <Loader2 className="size-6 text-white animate-spin" />
                                 </div>
                             )}
@@ -307,8 +405,8 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
                                     type="file"
                                     className="hidden"
                                     accept="image/*"
-                                    onChange={handleImageUpload}
-                                    disabled={isUploading}
+                                    onChange={handleImageChange}
+                                    disabled={isUpdating}
                                 />
                             </label>
                         </div>
@@ -322,7 +420,8 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
                         <label className="text-sm font-medium text-gray-700">Full Name</label>
                         <input
                             type="text"
-                            defaultValue={user?.name || ""}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
                             className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                         />
                     </div>
@@ -330,7 +429,8 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
                         <label className="text-sm font-medium text-gray-700">Email Address</label>
                         <input
                             type="email"
-                            defaultValue={user?.email || ""}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                         />
                     </div>
@@ -367,10 +467,15 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
             <div className="flex justify-end pt-4">
                 <button
                     onClick={() => onOpenSave(handleSave)}
-                    className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
+                    disabled={isUpdating}
+                    className="cursor-pointer flex items-center justify-center gap-2 px-6 py-3 min-w-[160px] text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50"
                 >
-                    <Save className="size-4" />
-                    Save Changes
+                    {isUpdating ? (
+                        <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                        <Save className="size-4" />
+                    )}
+                    {isUpdating ? "Saving..." : "Save Changes"}
                 </button>
             </div>
         </div>
@@ -417,7 +522,7 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
         if (profileData) {
             setBusinessName(profileData.business_name || "");
             setCategory(profileData.category || "");
-            setLocation(profileData.location || "");
+            setLocation(profileData.input_location || profileData.location || "");
             setMapUrl(profileData.map_url || "");
             setPhone(profileData.phone_no || "");
             setWebsite(profileData.website || "");
@@ -916,16 +1021,328 @@ const BillingSettings = () => {
 
 
 // ----------------------------------------------------------------------
+// REVIEWS SETTINGS
+// ----------------------------------------------------------------------
+
+const CreateFeedbackModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    const [createReview, { isLoading }] = useCreateReviewMutation();
+    const [rating, setRating] = useState(5);
+    const [content, setContent] = useState("");
+    const [designation, setDesignation] = useState("");
+    const [company, setCompany] = useState("");
+
+    if (!isOpen) return null;
+
+    const handleSubmit = async () => {
+        if (!content) {
+            toast.error("Please enter a review content");
+            return;
+        }
+
+        try {
+            await createReview({ content, rating, designation, company }).unwrap();
+            toast.success("Feedback submitted successfully!");
+            setContent("");
+            setRating(5);
+            setDesignation("");
+            setCompany("");
+            onClose();
+        } catch (err: any) {
+            console.error("Create review failed:", err);
+            toast.error(err?.data?.message || "Failed to submit feedback");
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
+                    <h3 className="text-xl font-bold text-gray-900">Give Your Feedback</h3>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+                        <X className="size-5 text-gray-500" />
+                    </button>
+                </div>
+                <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Rating</label>
+                        <div className="flex gap-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                    key={star}
+                                    onClick={() => setRating(star)}
+                                    className={`p-1 cursor-pointer transition-colors ${rating >= star ? 'text-yellow-400' : 'text-gray-200'}`}
+                                >
+                                    <Star className="size-8" fill={rating >= star ? "currentColor" : "none"} />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Review Content</label>
+                        <textarea
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            placeholder="Share your experience with us..."
+                            rows={4}
+                            className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all resize-none"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Designation (Optional)</label>
+                        <input
+                            type="text"
+                            value={designation}
+                            onChange={(e) => setDesignation(e.target.value)}
+                            placeholder="e.g. Marketing Manager"
+                            className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Company (Optional)</label>
+                        <input
+                            type="text"
+                            value={company}
+                            onChange={(e) => setCompany(e.target.value)}
+                            placeholder="e.g. Acme Corp"
+                            className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        />
+                    </div>
+                </div>
+                <div className="p-6 bg-gray-50 flex gap-3 shrink-0">
+                    <button
+                        onClick={onClose}
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Submit Feedback"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const EditFeedbackModal = ({ isOpen, onClose, review }: { isOpen: boolean, onClose: () => void, review: any }) => {
+    const [updateReview, { isLoading }] = useUpdateReviewMutation();
+    const [rating, setRating] = useState(5);
+    const [content, setContent] = useState("");
+    const [designation, setDesignation] = useState("");
+    const [company, setCompany] = useState("");
+
+    useEffect(() => {
+        if (review) {
+            setRating(review.rating || 5);
+            setContent(review.content || "");
+            setDesignation(review.designation || "");
+            setCompany(review.company || "");
+        }
+    }, [review]);
+
+    if (!isOpen || !review) return null;
+
+    const handleSubmit = async () => {
+        if (!content) {
+            toast.error("Please enter a review content");
+            return;
+        }
+
+        try {
+            await updateReview({ 
+                id: review.reviewId, 
+                data: { content, rating, designation, company } 
+            }).unwrap();
+            toast.success("Feedback updated successfully!");
+            onClose();
+        } catch (err: any) {
+            console.error("Update review failed:", err);
+            toast.error(err?.data?.message || "Failed to update feedback");
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
+                    <h3 className="text-xl font-bold text-gray-900">Edit Feedback</h3>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+                        <X className="size-5 text-gray-500" />
+                    </button>
+                </div>
+                <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Rating</label>
+                        <div className="flex gap-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                    key={star}
+                                    onClick={() => setRating(star)}
+                                    className={`p-1 cursor-pointer transition-colors ${rating >= star ? 'text-yellow-400' : 'text-gray-200'}`}
+                                >
+                                    <Star className="size-8" fill={rating >= star ? "currentColor" : "none"} />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Review Content</label>
+                        <textarea
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            placeholder="Share your experience with us..."
+                            rows={4}
+                            className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all resize-none"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Designation (Optional)</label>
+                        <input
+                            type="text"
+                            value={designation}
+                            onChange={(e) => setDesignation(e.target.value)}
+                            className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-sm font-medium text-gray-700">Company (Optional)</label>
+                        <input
+                            type="text"
+                            value={company}
+                            onChange={(e) => setCompany(e.target.value)}
+                            className="w-full px-4 py-2.5 text-sm text-gray-900 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                        />
+                    </div>
+                </div>
+                <div className="p-6 bg-gray-50 flex gap-3 shrink-0">
+                    <button
+                        onClick={onClose}
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={isLoading}
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Save Changes"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ReviewsSettings = ({ onOpenCreateModal, onOpenEditModal }: { onOpenCreateModal: () => void, onOpenEditModal: (review: any) => void }) => {
+    const { data: reviewsResponse, isLoading } = useGetReviewsQuery({ limit: 100, sortOrder: "desc" });
+    const userId = getUserIdFromToken();
+    const reviews = reviewsResponse?.data || [];
+    
+    // Find the single feedback submitted by the current user
+    const userReview = reviews.find((r: any) => r.userId === userId);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8">
+                <div className="flex justify-between items-center mb-6">
+                    <Skeleton className="h-8 w-48" />
+                    <Skeleton className="h-10 w-32 rounded-xl" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Skeleton className="h-40 w-full rounded-2xl" />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-8 animate-fadeIn">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h2 className="text-xl font-bold text-gray-900">Your Feedback</h2>
+                    <p className="text-sm text-gray-500 mt-1">Manage your submitted feedback</p>
+                </div>
+                {!userReview && (
+                    <button
+                        onClick={onOpenCreateModal}
+                        className="cursor-pointer flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
+                    >
+                        <Plus className="size-4" />
+                        Give your feedback
+                    </button>
+                )}
+            </div>
+
+            {!userReview ? (
+                <div className="text-center py-12 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div className="bg-white size-16 rounded-full flex items-center justify-center mx-auto shadow-sm mb-4">
+                        <MessageSquare className="size-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">No feedback yet</h3>
+                    <p className="text-sm text-gray-500 mt-2 max-w-md mx-auto">
+                        Share your experience to help us improve.
+                    </p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="bg-white p-5 rounded-2xl border border-gray-200 hover:shadow-md transition-shadow relative group">
+                        <div className="flex justify-between items-start mb-3">
+                            <div className="flex gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className={`size-4 ${i < userReview.rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-100 text-gray-200"}`} />
+                                ))}
+                            </div>
+                            <button 
+                                onClick={() => onOpenEditModal(userReview)}
+                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                title="Edit Feedback"
+                            >
+                                <Edit className="size-4" />
+                            </button>
+                        </div>
+                        <p className="text-gray-700 text-sm mb-4 line-clamp-3 leading-relaxed">
+                            "{userReview.content}"
+                        </p>
+                        <div className="flex items-center gap-3">
+                            <div className="size-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-xs shrink-0 uppercase">
+                                {userReview.user?.name?.charAt(0) || "A"}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-xs font-bold text-gray-900 truncate">{userReview.user?.name || "Anonymous"}</p>
+                                <p className="text-[11px] text-gray-500 truncate">
+                                    {[userReview.designation, userReview.company].filter(Boolean).join(" at ") || userReview.user?.email || "User"}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
+// ----------------------------------------------------------------------
 // MAIN PAGE
 // ----------------------------------------------------------------------
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState<Tab>("account");
+    const { data: profileData } = useGetProfileQuery();
 
     // Modal States
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+    const [isCreateFeedbackOpen, setIsCreateFeedbackOpen] = useState(false);
+    const [isEditFeedbackOpen, setIsEditFeedbackOpen] = useState(false);
+    const [selectedReviewToEdit, setSelectedReviewToEdit] = useState<any>(null);
+
     const [onConfirmSave, setOnConfirmSave] = useState<() => void>(() => () => { });
 
     const handleOpenSaveModal = (handler: () => void) => {
@@ -939,6 +1356,7 @@ export default function SettingsPage() {
         { id: "integrations", label: "Integrations", icon: Puzzle },
         { id: "notifications", label: "Notifications", icon: Bell },
         { id: "billing", label: "Billing", icon: CreditCard },
+        { id: "reviews", label: "Review/Feedback", icon: MessageSquare },
     ];
 
     const renderContent = () => {
@@ -963,6 +1381,14 @@ export default function SettingsPage() {
                 return <NotificationSettings {...commonProps} />;
             case "billing":
                 return <BillingSettings />;
+            case "reviews":
+                return <ReviewsSettings 
+                    onOpenCreateModal={() => setIsCreateFeedbackOpen(true)}
+                    onOpenEditModal={(review) => {
+                        setSelectedReviewToEdit(review);
+                        setIsEditFeedbackOpen(true);
+                    }}
+                />;
             default:
                 return null;
         }
@@ -1013,6 +1439,7 @@ export default function SettingsPage() {
             <ChangePasswordModal
                 isOpen={isPasswordModalOpen}
                 onClose={() => setIsPasswordModalOpen(false)}
+                email={profileData?.data?.email || ""}
             />
             <DeleteAccountModal
                 isOpen={isDeleteModalOpen}
@@ -1022,6 +1449,18 @@ export default function SettingsPage() {
                 isOpen={isSaveModalOpen}
                 onClose={() => setIsSaveModalOpen(false)}
                 onConfirm={onConfirmSave}
+            />
+            <CreateFeedbackModal
+                isOpen={isCreateFeedbackOpen}
+                onClose={() => setIsCreateFeedbackOpen(false)}
+            />
+            <EditFeedbackModal
+                isOpen={isEditFeedbackOpen}
+                onClose={() => {
+                    setIsEditFeedbackOpen(false);
+                    setTimeout(() => setSelectedReviewToEdit(null), 200);
+                }}
+                review={selectedReviewToEdit}
             />
         </div>
     );

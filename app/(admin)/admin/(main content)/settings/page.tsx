@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Skeleton from "@/components/ui/Skeleton";
+import { PageHeaderSkeleton, SectionSkeleton } from "@/components/admin/AdminSkeletons";
 import {
     Globe,
     Users,
@@ -8,35 +10,102 @@ import {
     Bell,
     AlertTriangle,
     Save,
+    Loader2,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import toast from "react-hot-toast";
+import {
+    useGetSystemSettingsQuery,
+    useUpdateSystemSettingsMutation,
+} from "@/redux/api/BE/admin/settingsApi";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+function Toggle({ value, onChange }: { value: boolean; onChange: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onChange}
+            className={cn(
+                "h-6 w-11 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer",
+                value ? "bg-blue-600" : "bg-gray-200"
+            )}
+        >
+            <div className={cn(
+                "size-4 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out",
+                value ? "translate-x-5" : "translate-x-0"
+            )} />
+        </button>
+    );
+}
+
 export default function SystemSettings() {
-    const [settings, setSettings] = useState({
-        siteName: "ReviewIQ",
-        siteUrl: "https://reviewiq.com",
-        supportEmail: "support@reviewiq.com",
-        allowSignups: true,
-        requireVerification: true,
-        trialDuration: 14,
-        maxBusinesses: 5,
-        maxLocations: 25,
+    const { data: settingsRes, isLoading } = useGetSystemSettingsQuery();
+    const [updateSettings, { isLoading: isSaving }] = useUpdateSystemSettingsMutation();
+
+    const [form, setForm] = useState({
+        siteName: "",
+        supportEmail: "",
+        supportUrl: "",
+        supportPhone: "",
+        location: "",
+        freeTrialDuration: 14,
+        planLimitMaxBusiness: 5,
+        planLimitMaxLocations: 10,
         emailNotifications: true,
-        slackWebhook: ""
+        allowSignups: true,
+        isMaintenanceMode: false,
     });
 
-    const toggleSetting = (key: keyof typeof settings) => {
-        setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+    // Populate form when API data arrives
+    useEffect(() => {
+        const data = settingsRes?.data;
+        if (data) {
+            setForm({
+                siteName: data.siteName || "",
+                supportEmail: data.supportEmail || "",
+                supportUrl: data.supportUrl || "",
+                supportPhone: data.supportPhone || "",
+                location: data.location || "",
+                freeTrialDuration: data.freeTrialDuration ?? 14,
+                planLimitMaxBusiness: data.planLimitMaxBusiness ?? 5,
+                planLimitMaxLocations: data.planLimitMaxLocations ?? 10,
+                emailNotifications: data.emailNotifications ?? true,
+                allowSignups: data.allowSignups ?? true,
+                isMaintenanceMode: data.isMaintenanceMode ?? false,
+            });
+        }
+    }, [settingsRes]);
+
+    const handleInput = (key: keyof typeof form, value: string | number | boolean) => {
+        setForm(prev => ({ ...prev, [key]: value }));
     };
 
-    const handleInputChange = (key: keyof typeof settings, value: string | number) => {
-        setSettings(prev => ({ ...prev, [key]: value }));
+    const handleSave = async () => {
+        try {
+            await updateSettings(form).unwrap();
+            toast.success("Settings saved successfully!");
+        } catch (err) {
+            toast.error("Failed to save settings. Please try again.");
+            console.error("Failed to save settings", err);
+        }
     };
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8 pb-12">
+                <PageHeaderSkeleton />
+                <div className="space-y-8">
+                    <SectionSkeleton rows={3} />
+                    <SectionSkeleton rows={2} />
+                    <SectionSkeleton rows={2} />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8 pb-12">
@@ -52,22 +121,13 @@ export default function SystemSettings() {
                     <Globe className="size-5 text-blue-600" />
                     <h3 className="text-lg font-bold text-[#0F172A]">General</h3>
                 </div>
-                <div className="mt-6 space-y-4">
+                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase">Site Name</label>
                         <input
                             type="text"
-                            value={settings.siteName}
-                            onChange={(e) => handleInputChange('siteName', e.target.value)}
-                            className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase">Site URL</label>
-                        <input
-                            type="text"
-                            value={settings.siteUrl}
-                            onChange={(e) => handleInputChange('siteUrl', e.target.value)}
+                            value={form.siteName}
+                            onChange={(e) => handleInput('siteName', e.target.value)}
                             className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                         />
                     </div>
@@ -75,8 +135,35 @@ export default function SystemSettings() {
                         <label className="text-xs font-bold text-gray-500 uppercase">Support Email</label>
                         <input
                             type="email"
-                            value={settings.supportEmail}
-                            onChange={(e) => handleInputChange('supportEmail', e.target.value)}
+                            value={form.supportEmail}
+                            onChange={(e) => handleInput('supportEmail', e.target.value)}
+                            className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase">Support URL</label>
+                        <input
+                            type="text"
+                            value={form.supportUrl}
+                            onChange={(e) => handleInput('supportUrl', e.target.value)}
+                            className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase">Support Phone</label>
+                        <input
+                            type="text"
+                            value={form.supportPhone}
+                            onChange={(e) => handleInput('supportPhone', e.target.value)}
+                            className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                        />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase">Location</label>
+                        <input
+                            type="text"
+                            value={form.location}
+                            onChange={(e) => handleInput('location', e.target.value)}
                             className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                         />
                     </div>
@@ -95,43 +182,14 @@ export default function SystemSettings() {
                             <p className="text-sm font-bold text-[#0F172A]">Allow New Signups</p>
                             <p className="text-xs text-gray-500">Enable new user registrations</p>
                         </div>
-                        <button
-                            onClick={() => toggleSetting('allowSignups')}
-                            className={cn(
-                                "h-6 w-11 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer",
-                                settings.allowSignups ? "bg-blue-600" : "bg-gray-200"
-                            )}
-                        >
-                            <div className={cn(
-                                "size-4 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out",
-                                settings.allowSignups ? "translate-x-5" : "translate-x-0"
-                            )} />
-                        </button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-bold text-[#0F172A]">Require Email Verification</p>
-                            <p className="text-xs text-gray-500">Users must verify email before accessing platform</p>
-                        </div>
-                        <button
-                            onClick={() => toggleSetting('requireVerification')}
-                            className={cn(
-                                "h-6 w-11 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer",
-                                settings.requireVerification ? "bg-blue-600" : "bg-gray-200"
-                            )}
-                        >
-                            <div className={cn(
-                                "size-4 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out",
-                                settings.requireVerification ? "translate-x-5" : "translate-x-0"
-                            )} />
-                        </button>
+                        <Toggle value={form.allowSignups} onChange={() => handleInput('allowSignups', !form.allowSignups)} />
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 uppercase">Free Trial Duration (Days)</label>
                         <input
                             type="number"
-                            value={settings.trialDuration}
-                            onChange={(e) => handleInputChange('trialDuration', parseInt(e.target.value))}
+                            value={form.freeTrialDuration}
+                            onChange={(e) => handleInput('freeTrialDuration', parseInt(e.target.value) || 0)}
                             className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                         />
                     </div>
@@ -144,13 +202,13 @@ export default function SystemSettings() {
                     <Smartphone className="size-5 text-blue-600" />
                     <h3 className="text-lg font-bold text-[#0F172A]">Platform Limits</h3>
                 </div>
-                <div className="mt-6 space-y-6">
+                <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-[#0F172A]">Max Businesses Per User</label>
                         <input
                             type="number"
-                            value={settings.maxBusinesses}
-                            onChange={(e) => handleInputChange('maxBusinesses', parseInt(e.target.value))}
+                            value={form.planLimitMaxBusiness}
+                            onChange={(e) => handleInput('planLimitMaxBusiness', parseInt(e.target.value) || 0)}
                             className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                         />
                         <p className="text-[10px] text-gray-400 font-medium">For non-enterprise plans</p>
@@ -159,8 +217,8 @@ export default function SystemSettings() {
                         <label className="text-sm font-bold text-[#0F172A]">Max Locations Per Business</label>
                         <input
                             type="number"
-                            value={settings.maxLocations}
-                            onChange={(e) => handleInputChange('maxLocations', parseInt(e.target.value))}
+                            value={form.planLimitMaxLocations}
+                            onChange={(e) => handleInput('planLimitMaxLocations', parseInt(e.target.value) || 0)}
                             className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                         />
                         <p className="text-[10px] text-gray-400 font-medium">For non-enterprise plans</p>
@@ -174,62 +232,70 @@ export default function SystemSettings() {
                     <Bell className="size-5 text-blue-600" />
                     <h3 className="text-lg font-bold text-[#0F172A]">Notifications</h3>
                 </div>
-                <div className="mt-6 space-y-6">
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-bold text-[#0F172A]">Email Notifications</p>
-                                <p className="text-xs text-gray-500">Send automated email notifications</p>
-                            </div>
-                            <button
-                                onClick={() => toggleSetting('emailNotifications')}
-                                className={cn(
-                                    "h-6 w-11 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer",
-                                    settings.emailNotifications ? "bg-blue-600" : "bg-gray-200"
-                                )}
-                            >
-                                <div className={cn(
-                                    "size-4 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out",
-                                    settings.emailNotifications ? "translate-x-5" : "translate-x-0"
-                                )} />
-                            </button>
+                <div className="mt-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-bold text-[#0F172A]">Email Notifications</p>
+                            <p className="text-xs text-gray-500">Send automated email notifications</p>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">Slack Webhook URL</label>
-                            <input
-                                type="text"
-                                value={settings.slackWebhook}
-                                onChange={(e) => handleInputChange('slackWebhook', e.target.value)}
-                                placeholder="https://hooks.slack.com/services/..."
-                                className="w-full rounded-lg border border-[#E2E8F0] bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
-                            />
-                            <p className="text-[10px] text-gray-400 font-medium italic">Receive important alerts in Slack</p>
-                        </div>
+                        <Toggle value={form.emailNotifications} onChange={() => handleInput('emailNotifications', !form.emailNotifications)} />
                     </div>
                 </div>
             </section>
 
             {/* Danger Zone */}
             <section className="rounded-xl border border-red-100 bg-white p-6 shadow-sm">
-                <h3 className="text-lg font-bold text-red-600">Danger Zone</h3>
+                <div className="flex items-center gap-2 border-b border-red-100 pb-4">
+                    <AlertTriangle className="size-5 text-red-600" />
+                    <h3 className="text-lg font-bold text-red-600">Danger Zone</h3>
+                </div>
                 <div className="mt-4 rounded-lg bg-red-50 p-4 border border-red-100">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-bold text-red-700">Maintenance Mode</p>
-                            <p className="text-xs text-red-600 opacity-80">Disable platform access for all users</p>
+                            <p className="text-xs text-red-600 opacity-80">
+                                {form.isMaintenanceMode
+                                    ? "Platform is currently in maintenance mode — users cannot access it"
+                                    : "Disable platform access for all users"}
+                            </p>
                         </div>
-                        <button className="rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 transition-colors cursor-pointer">
-                            Enable
+                        <button
+                            type="button"
+                            onClick={() => handleInput('isMaintenanceMode', !form.isMaintenanceMode)}
+                            className={cn(
+                                "h-6 w-11 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer",
+                                form.isMaintenanceMode ? "bg-red-600" : "bg-gray-200"
+                            )}
+                        >
+                            <div className={cn(
+                                "size-4 rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out",
+                                form.isMaintenanceMode ? "translate-x-5" : "translate-x-0"
+                            )} />
                         </button>
                     </div>
+                    {form.isMaintenanceMode && (
+                        <p className="mt-3 text-xs font-semibold text-red-700 bg-red-100 rounded-lg px-3 py-2">
+                            ⚠ Warning: Enabling maintenance mode will lock out all non-admin users immediately.
+                        </p>
+                    )}
                 </div>
             </section>
 
             {/* Save Button */}
             <div className="flex justify-end">
-                <button className="flex items-center gap-2 rounded-lg bg-[#3B82F6] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-600 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
-                    <Save className="size-4" />
-                    Save All Settings
+                <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 rounded-lg bg-[#3B82F6] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-600 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+                >
+                    {isSaving ? (
+                        <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                        <>
+                            <Save className="size-4" />
+                            Save All Settings
+                        </>
+                    )}
                 </button>
             </div>
         </div>

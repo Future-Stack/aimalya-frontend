@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Search, Plus, Mail, Phone, ChevronDown, ChevronLeft, ChevronRight, Loader2, Trash2 } from "lucide-react";
+import { Search, Plus, Mail, Phone, ChevronDown, ChevronLeft, ChevronRight, Loader2, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CreateTicketModal from "@/components/user/support/CreateTicketModal";
+import EditTicketModal from "@/components/user/support/EditTicketModal";
 import TicketDetailsModal from "@/components/user/support/TicketDetailsModal";
 import DeleteConfirmationModal from "@/components/user/support/DeleteConfirmationModal";
 import Image from "next/image";
-import { useGetAllSupportTicketsQuery, useDeleteSupportTicketMutation } from "@/redux/api/BE/supportApi";
+import { useGetMySupportTicketsQuery, useDeleteSupportTicketMutation } from "@/redux/api/BE/supportApi";
+import { useGetSystemSettingsQuery } from "@/redux/api/BE/landingApi";
 import toast from "react-hot-toast";
 import Skeleton from "@/components/ui/Skeleton";
 
@@ -83,14 +85,12 @@ export default function SupportPage() {
     const [selectedTicket, setSelectedTicket] = useState<any>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editTicketData, setEditTicketData] = useState<any>(null);
 
-    const { data: ticketsData, isLoading, isFetching } = useGetAllSupportTicketsQuery({
-        page: currentPage,
-        limit: ITEMS_PER_PAGE,
-        search,
-        status: statusFilter || undefined,
-        sortOrder: "desc"
-    });
+    const { data: ticketsResponse, isLoading, isFetching } = useGetMySupportTicketsQuery();
+    const { data: systemRes } = useGetSystemSettingsQuery();
+    const systemData = systemRes?.data;
 
     const [deleteTicket, { isLoading: isDeleting }] = useDeleteSupportTicketMutation();
 
@@ -98,6 +98,12 @@ export default function SupportPage() {
         e.stopPropagation();
         setTicketToDelete(id);
         setIsDeleteModalOpen(true);
+    };
+
+    const handleEdit = (e: React.MouseEvent, ticket: any) => {
+        e.stopPropagation();
+        setEditTicketData(ticket);
+        setIsEditModalOpen(true);
     };
 
     const confirmDelete = async () => {
@@ -117,14 +123,19 @@ export default function SupportPage() {
         setCurrentPage(1);
     }, [search, statusFilter]);
 
-    const tickets = ticketsData?.data || [];
-    const meta = ticketsData?.meta || { total: 0, lastPage: 1 };
-    const totalPages = meta.lastPage;
+    const rawTickets = ticketsResponse?.data?.tickets || [];
+    const stats = ticketsResponse?.data?.stats || { totalTickets: 0, open: 0, inProgress: 0, resolved: 0 };
 
-    // We don't have separate counts for status from the API, so we show total for now
-    // or calculate based on the current page (which is not very accurate for global stats)
-    // For now, I'll just show the total and maybe hide the breakdown or keep it if I can fetch all.
-    // Given the task, I'll focus on the core functionality.
+    const filteredTickets = rawTickets.filter((t: any) => {
+        const matchSearch = t.subject.toLowerCase().includes(search.toLowerCase()) || 
+                            t.description.toLowerCase().includes(search.toLowerCase()) ||
+                            t.supportTicketId.toLowerCase().includes(search.toLowerCase());
+        const matchStatus = statusFilter ? t.status === statusFilter : true;
+        return matchSearch && matchStatus;
+    });
+
+    const totalPages = Math.max(Math.ceil(filteredTickets.length / ITEMS_PER_PAGE), 1);
+    const tickets = filteredTickets.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -144,7 +155,7 @@ export default function SupportPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Support Center</h1>
-                    <p className="text-sm text-gray-500 mt-1">Get help with your ReviewIQ account</p>
+                    <p className="text-sm text-gray-500 mt-1">Get help with your {systemData?.siteName || "Aimalya"} account</p>
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
@@ -161,20 +172,19 @@ export default function SupportPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
                             <p className="font-semibold text-gray-900 text-sm">Total Tickets</p>
-                            <h2 className="text-2xl font-bold text-gray-900 mt-3">{meta.total}</h2>
+                            <h2 className="text-2xl font-bold text-gray-900 mt-3">{stats.totalTickets}</h2>
                         </div>
-                        {/* Placeholder stats as the API doesn't provide them easily */}
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm opacity-50">
-                            <p className="font-semibold text-gray-900 text-sm">Active</p>
-                            <h2 className="text-2xl font-bold text-blue-600 mt-3">-</h2>
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                            <p className="font-semibold text-gray-900 text-sm">Open</p>
+                            <h2 className="text-2xl font-bold text-blue-600 mt-3">{stats.open}</h2>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm opacity-50">
-                            <p className="font-semibold text-gray-900 text-sm">Pending</p>
-                            <h2 className="text-2xl font-bold text-amber-500 mt-3">-</h2>
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                            <p className="font-semibold text-gray-900 text-sm">In Progress</p>
+                            <h2 className="text-2xl font-bold text-amber-500 mt-3">{stats.inProgress}</h2>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm opacity-50">
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
                             <p className="font-semibold text-gray-900 text-sm">Resolved</p>
-                            <h2 className="text-2xl font-bold text-green-500 mt-3">-</h2>
+                            <h2 className="text-2xl font-bold text-green-500 mt-3">{stats.resolved}</h2>
                         </div>
                     </div>
 
@@ -226,7 +236,7 @@ export default function SupportPage() {
                                         <div className="flex justify-between items-start w-full">
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{ticket.supportTicketId.split('-')[0]}</span>
+                                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">TKT-{ticket.supportTicketId.slice(-4)}</span>
 
                                                     <span className={cn(
                                                         "px-2.5 py-0.5 rounded-md text-[10px] font-bold",
@@ -252,13 +262,22 @@ export default function SupportPage() {
                                                 <p className="text-xs text-gray-400 mt-4">Created {formatDate(ticket.createdAt)}</p>
                                             </div>
 
-                                            <button
-                                                onClick={(e) => handleDelete(e, ticket.supportTicketId)}
-                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
-                                                title="Delete Ticket"
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={(e) => handleEdit(e, ticket)}
+                                                    className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                                                    title="Edit Ticket"
+                                                >
+                                                    <Pencil className="size-4" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => handleDelete(e, ticket.supportTicketId)}
+                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                                                    title="Delete Ticket"
+                                                >
+                                                    <Trash2 className="size-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -318,7 +337,7 @@ export default function SupportPage() {
                                     <Image src="/support_img.svg" alt="Support" width={200} height={200} />
                                 </div>
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900">Get help with your ReviewIQ account</h3>
+                            <h3 className="text-lg font-bold text-gray-900">Get help with your {systemData?.siteName || "Aimalya"} account</h3>
                         </div>
 
                         <div className="bg-white/50 rounded-2xl p-4 md:p-6 backdrop-blur-sm space-y-6">
@@ -328,7 +347,9 @@ export default function SupportPage() {
                                     <h3>Email Support</h3>
                                 </div>
                                 <p className="text-xs text-gray-500">Reach out to our team directly</p>
-                                <a href="mailto:support@reviewiq.com" className="block text-green-600 font-medium hover:underline">support@reviewiq.com</a>
+                                <a href={`mailto:${systemData?.supportEmail || "support@example.com"}`} className="block text-green-600 font-medium hover:underline">
+                                    {systemData?.supportEmail || "support@example.com"}
+                                </a>
                             </div>
 
                             <div className="h-px bg-gray-200" />
@@ -339,13 +360,20 @@ export default function SupportPage() {
                                     <h3>Phone Support</h3>
                                 </div>
                                 <p className="text-xs text-gray-500">Available for Business & Enterprise plans</p>
-                                <a href="tel:+18001436156" className="block text-blue-600 font-medium hover:underline">+1 (800)1436156</a>
+                                <a href={`tel:${systemData?.supportPhone || "+18001436156"}`} className="block text-blue-600 font-medium hover:underline">
+                                    {systemData?.supportPhone || "+1 (800)1436156"}
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <CreateTicketModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+                <EditTicketModal 
+                    isOpen={isEditModalOpen} 
+                    onClose={() => setIsEditModalOpen(false)} 
+                    ticket={editTicketData} 
+                />
                 <TicketDetailsModal
                     isOpen={!!selectedTicket}
                     onClose={() => setSelectedTicket(null)}

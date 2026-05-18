@@ -1,9 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, Suspense } from "react";
 import PricingSection from "@/components/user/home/PricingSection";
+import { useSearchParams } from "next/navigation";
+import { toast } from "react-hot-toast";
 
-export default function PricingPage() {
+function PricingContent() {
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (searchParams.get("canceled") === "true" || searchParams.get("fail") === "true" || searchParams.get("error")) {
+            setTimeout(() => {
+                toast.error("Payment failed or was canceled. Please try again.", { duration: 5000 });
+            }, 500); // slight delay to ensure it shows after render
+            
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+        }
+    }, [searchParams]);
+
     return (
         <div className="pb-10">
             <div className="mb-10">
@@ -15,5 +30,13 @@ export default function PricingPage() {
                 <PricingSection isDashboard={true} />
             </div>
         </div>
+    );
+}
+
+export default function PricingPage() {
+    return (
+        <Suspense fallback={<div>Loading plans...</div>}>
+            <PricingContent />
+        </Suspense>
     );
 }
