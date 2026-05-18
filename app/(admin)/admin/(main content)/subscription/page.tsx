@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Skeleton from "@/components/ui/Skeleton";
+import { PageHeaderSkeleton, StatsCardsSkeleton, ChartSkeleton, TableSkeleton } from "@/components/admin/AdminSkeletons";
+import { useGetAllSubscriptionsQuery, useGetSubscriptionStatisticsQuery } from "@/redux/api/BE/admin/subscriptionApi";
 import {
     DollarSign,
     CheckCircle,
@@ -61,6 +64,15 @@ export default function SubscriptionManagement() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
+    // Fetch all subscriptions for frontend filtering (to bypass backend nested joins limitations)
+    const { data: subsData, isLoading } = useGetAllSubscriptionsQuery({
+        page: 1,
+        limit: 1000,
+    });
+
+    const { data: statsRes } = useGetSubscriptionStatisticsQuery();
+    const statsData = statsRes?.data;
+
     const [selectedSubscription, setSelectedSubscription] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -69,22 +81,91 @@ export default function SubscriptionManagement() {
         setIsModalOpen(true);
     };
 
-    const filteredSubscriptions = useMemo(() => {
-        return initialSubscriptions.filter(sub => {
-            const matchesSearch =
-                sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                sub.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const dynamicStats = useMemo(() => {
+        if (!statsData) return stats;
+        return [
+            { label: "Total MRR", value: `$${statsData.totalMRR?.value || 0}`, subValue: `${statsData.totalMRR?.trend >= 0 ? '+' : ''}${statsData.totalMRR?.trend || 0}% from last month`, icon: DollarSign, color: "text-green-600" },
+            { label: "Active", value: `${statsData.active?.value || 0}`, subValue: `${statsData.active?.percentageOfTotal || 0}% of total`, icon: CheckCircle, color: "text-blue-600" },
+            { label: "Trial", value: `${statsData.trial?.value || 0}`, subValue: `${statsData.trial?.convertingSoon || 0} converting soon`, icon: Clock, color: "text-amber-600" },
+            { label: "Past Due", value: `${statsData.pastDue?.value || 0}`, subValue: "Needs attention", icon: AlertTriangle, color: "text-red-600" },
+        ];
+    }, [statsData]);
 
-            const matchesStatus = statusFilter === "All Status" || sub.status === statusFilter;
+    const dynamicRevenueData = useMemo(() => {
+        if (!statsData?.revenueGrowth) return revenueData;
+        return statsData.revenueGrowth.map((r: any) => ({
+            name: r.month,
+            revenue: r.revenue
+        }));
+    }, [statsData]);
+
+    // Client-side search and status filter
+    const filteredSubscriptions = useMemo(() => {
+        if (!subsData?.data) return [];
+        return subsData.data.filter((sub: any) => {
+            const userName = sub.user?.name || "";
+            const userEmail = sub.user?.email || "";
+            const matchesSearch =
+                userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                userEmail.toLowerCase().includes(searchTerm.toLowerCase());
+
+            let status = "Active";
+            if (sub.plan === "NONE") status = "Trial";
+            if (sub.paymentStatus === "FAILED") status = "Past due";
+
+            const matchesStatus = statusFilter === "All Status" || status === statusFilter;
 
             return matchesSearch && matchesStatus;
         });
-    }, [searchTerm, statusFilter]);
+    }, [subsData, searchTerm, statusFilter]);
 
-    const totalPages = Math.ceil(filteredSubscriptions.length / itemsPerPage);
-    const paginatedSubscriptions = filteredSubscriptions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    // Client-side pagination
+    const paginatedSubscriptions = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredSubscriptions.slice(startIndex, startIndex + itemsPerPage).map((sub: any) => {
+            let status = "Active";
+            if (sub.plan === "NONE") status = "Trial";
+            if (sub.paymentStatus === "FAILED") status = "Past due";
+
+            return {
+                ...sub,
+                id: sub.subscriptionId,
+                name: sub.user?.name || "Unknown",
+                email: sub.user?.email || "No email provided",
+                plan: sub.plan === "NONE" ? "Trial" : sub.plan,
+                status: status,
+                amount: `$${sub.balance || 0}`,
+                cycle: sub.durationsPlan ? sub.durationsPlan.toLowerCase() : "none",
+                nextBilling: sub.durationDate ? new Date(sub.durationDate).toLocaleDateString() : "N/A"
+            };
+        });
+    }, [filteredSubscriptions, currentPage]);
+
+    const totalPages = Math.ceil(filteredSubscriptions.length / itemsPerPage) || 1;
+    const totalCount = filteredSubscriptions.length;
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8 pb-10">
+                <PageHeaderSkeleton />
+                <StatsCardsSkeleton />
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div className="lg:col-span-2">
+                        <ChartSkeleton height={300} />
+                    </div>
+                    <div>
+                        <ChartSkeleton height={300} />
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    <Skeleton className="h-11 w-full max-w-md rounded-xl" />
+                    <TableSkeleton rows={6} cols={6} />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -96,7 +177,7 @@ export default function SubscriptionManagement() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat, idx) => (
+                {dynamicStats.map((stat, idx) => (
                     <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
                         <div className="flex items-start justify-between">
                             <div>
@@ -117,7 +198,7 @@ export default function SubscriptionManagement() {
                 <h3 className="text-lg font-bold text-[#0F172A]">Monthly Recurring Revenue</h3>
                 <div className="mt-6 h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={revenueData}>
+                        <LineChart data={dynamicRevenueData}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
@@ -139,7 +220,6 @@ export default function SubscriptionManagement() {
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
-                            setCurrentPage(1);
                         }}
                         className="block w-full rounded-xl border border-[#E2E8F0] bg-white py-2.5 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                         placeholder="Search users by name or email..."
@@ -192,7 +272,7 @@ export default function SubscriptionManagement() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#E2E8F0]">
-                                {paginatedSubscriptions.map((sub) => (
+                                {paginatedSubscriptions.map((sub: any) => (
                                     <tr key={sub.id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-5 py-4">
                                             <div className="flex flex-col min-w-[160px]">  {/* prevents crushing name+email */}
@@ -258,7 +338,7 @@ export default function SubscriptionManagement() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:hidden">
-                    {paginatedSubscriptions.map((sub) => (
+                    {paginatedSubscriptions.map((sub: any) => (
                         <div
                             key={sub.id}
                             className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4 hover:border-blue-200 transition-colors"
@@ -330,15 +410,15 @@ export default function SubscriptionManagement() {
                     <p className="text-xs text-gray-500 font-medium text-center order-2">
                         Showing{" "}
                         <span className="text-[#0F172A] font-bold">
-                            {(currentPage - 1) * itemsPerPage + 1}
+                            {totalCount === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
                         </span>{" "}
                         to{" "}
                         <span className="text-[#0F172A] font-bold">
-                            {Math.min(currentPage * itemsPerPage, filteredSubscriptions.length)}
+                            {Math.min(currentPage * itemsPerPage, totalCount)}
                         </span>{" "}
                         of{" "}
                         <span className="text-[#0F172A] font-bold">
-                            {filteredSubscriptions.length}
+                            {totalCount}
                         </span>{" "}
                         entries
                     </p>

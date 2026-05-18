@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import toast from "react-hot-toast";
+import Skeleton from "@/components/ui/Skeleton";
+import { PageHeaderSkeleton, StatsCardsSkeleton, UsersTableSkeleton } from "@/components/admin/AdminSkeletons";
+import { useGetUsersQuery, useGetUserStatisticsQuery, useDeleteUserMutation } from "@/redux/api/BE/admin/userApi";
 import {
   Users,
   DollarSign,
@@ -18,6 +22,7 @@ import {
   Building2,
   Calendar,
   Ban,
+  Crown,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -28,6 +33,17 @@ import DeleteUserModal from "../../../../../components/admin/users/DeleteUserMod
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+// Helper to construct profile image URL
+const getProfileImageUrl = (user: any) => {
+  if (user.profileImage) {
+    if (user.profileImage.startsWith('http')) return user.profileImage;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.replace('/api/v1', '') || 'https://aimaliya.sakibalhasa.xyz';
+    return `${baseUrl}${user.profileImage}`;
+  }
+  if (user.avatar) return user.avatar;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff&bold=true`;
+};
 
 // Custom scrollbar refinement for premium feel
 const scrollbarStyles = `
@@ -163,9 +179,29 @@ const initialUsers = [
 
 export default function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1); // reset to page 1 on new search
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const { data: usersData, isLoading, isFetching } = useGetUsersQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: debouncedSearch || undefined,
+    status: statusFilter === "All Status" ? undefined : statusFilter.toUpperCase()
+  });
+
+  const { data: statsData } = useGetUserStatisticsQuery();
+  const [deleteUser] = useDeleteUserMutation();
 
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -188,33 +224,103 @@ export default function UserManagement() {
   };
 
   const handleConfirmSuspension = () => {
-    console.log("Suspending user:", selectedUser.id);
+    console.log("Suspending user:", selectedUser.userId);
     // Add logic here to update user status
   };
 
-  const handleConfirmDelete = () => {
-    console.log("Deleting user:", selectedUser.id);
-    // Add logic here to remove user
+  const handleConfirmDelete = async () => {
+    if (!selectedUser?.userId) return;
+    try {
+      await deleteUser(selectedUser.userId).unwrap();
+      toast.success("User deleted successfully!");
+      setIsDeleteModalOpen(false);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to delete user");
+    }
   };
 
-  const filteredUsers = useMemo(() => {
-    return initialUsers.filter((user) => {
-      const matchesSearch =
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "All Status" || user.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [searchTerm, statusFilter]);
+  const dynamicStats = useMemo(() => {
+    if (!statsData?.data) return stats;
+    const d = statsData.data;
+    return [
+      {
+        label: "Total Users",
+        value: d.totalUsers?.value?.toString() || "0",
+        icon: Users,
+        change: `${d.totalUsers?.trend > 0 ? '+' : ''}${d.totalUsers?.trend || 0}${d.totalUsers?.isPercentage ? '%' : ''}`,
+        trend: d.totalUsers?.trend >= 0 ? "up" : "down",
+        color: "bg-blue-500",
+      },
+      {
+        label: "Active User",
+        value: d.activeUsers?.value?.toString() || "0",
+        icon: DollarSign,
+        change: `${d.activeUsers?.trend > 0 ? '+' : ''}${d.activeUsers?.trend || 0}${d.activeUsers?.isPercentage ? '%' : ''}`,
+        trend: d.activeUsers?.trend >= 0 ? "up" : "down",
+        color: "bg-blue-600",
+      },
+      {
+        label: "Trial User",
+        value: d.trialUsers?.value?.toString() || "0",
+        icon: Clock,
+        change: `${d.trialUsers?.trend > 0 ? '+' : ''}${d.trialUsers?.trend || 0}${d.trialUsers?.isPercentage ? '%' : ''}`,
+        trend: d.trialUsers?.trend >= 0 ? "up" : "down",
+        color: "bg-amber-700",
+      },
+      {
+        label: "Suspended User",
+        value: d.suspendedUsers?.value?.toString() || "0",
+        icon: AlertCircle,
+        change: `${d.suspendedUsers?.trend > 0 ? '+' : ''}${d.suspendedUsers?.trend || 0}${d.suspendedUsers?.isPercentage ? '%' : ''}`,
+        trend: d.suspendedUsers?.trend >= 0 ? "up" : "down",
+        color: "bg-red-500",
+      },
+    ];
+  }, [statsData]);
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  const paginatedUsers = useMemo(() => {
+    if (!usersData?.data) return [];
+    
+    return usersData.data.map((user: any) => {
+      const sub = user.subscriptions && user.subscriptions.length > 0 
+        ? user.subscriptions[user.subscriptions.length - 1] 
+        : { plan: "NONE", business: "0", location: "0", balance: 0 };
+        
+      const statusFormat = user.status === "TRIAL" ? "Trial" : user.status === "ACTIVE" ? "Active" : "Suspended";
+        
+      return {
+        ...user,
+        id: user.userId,
+        userId: user.userId,
+        name: user.name || "Unknown",
+        email: user.email,
+        status: statusFormat,
+        plan: sub.plan,
+        businesses: `${sub.business || 0} businesses`,
+        locations: `${sub.location || 0} locations`,
+        mrr: `$${sub.balance || 0}/mo`,
+        lastActive: new Date(user.updatedAt).toLocaleDateString(),
+      };
+    });
+  }, [usersData]);
+
+  const totalPages = usersData?.meta?.lastPage || 1;
+  const totalUsersCount = usersData?.meta?.total || 0;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 md:space-y-8 pb-10">
+        <PageHeaderSkeleton />
+        <StatsCardsSkeleton />
+        <div className="space-y-4">
+          <Skeleton className="h-11 w-full max-w-md rounded-xl" />
+          <UsersTableSkeleton rows={8} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 md:space-y-8 pb-10">
@@ -228,7 +334,7 @@ export default function UserManagement() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, idx) => (
+        {dynamicStats.map((stat, idx) => (
           <div
             key={idx}
             className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm transition-all hover:shadow-md"
@@ -286,7 +392,6 @@ export default function UserManagement() {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setCurrentPage(1);
             }}
             className="block h-11 w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 text-sm text-[#0F172A] placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
             placeholder="Search users by name or email..."
@@ -345,16 +450,18 @@ export default function UserManagement() {
 
       {/* Mobile & Tablet Card View (Visible below lg screens) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:hidden">
-        {paginatedUsers.map((user) => (
+        {paginatedUsers.map((user: any) => (
           <div
             key={user.id}
             className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4 hover:border-blue-200 transition-colors"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="size-10 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100 uppercase font-bold text-blue-600">
-                  {user.name.charAt(0)}
-                </div>
+                <img
+                  src={getProfileImageUrl(user)}
+                  alt={user.name}
+                  className="size-10 rounded-full object-cover shrink-0"
+                />
                 <div className="flex flex-col">
                   <span className="text-sm font-bold text-[#0F172A]">
                     {user.name}
@@ -433,40 +540,32 @@ export default function UserManagement() {
         <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full table-auto text-left text-sm">
-            <thead className="bg-[#F8FAFC] text-[11px] font-bold uppercase tracking-wider text-gray-400">
+            <thead className="bg-[#F8FAFC] text-sm font-bold text-gray-500 border-b border-[#E2E8F0]">
               <tr>
-                <th className="px-5 py-5 whitespace-nowrap">User Profile</th>
-                <th className="px-5 py-5 whitespace-nowrap">Status</th>
-                <th className="px-5 py-5 whitespace-nowrap">Subscription</th>
-                <th className="px-5 py-5 whitespace-nowrap">Assets</th>
-                <th className="px-5 py-5 whitespace-nowrap">MRR</th>
-                <th className="px-5 py-5 whitespace-nowrap">Activity</th>
-                <th className="px-5 py-5 text-right whitespace-nowrap">Actions</th>
+                <th className="px-5 py-4 whitespace-nowrap">User</th>
+                <th className="px-5 py-4 whitespace-nowrap">Status</th>
+                <th className="px-5 py-4 whitespace-nowrap">Plan</th>
+                <th className="px-5 py-4 whitespace-nowrap">Businesses</th>
+                <th className="px-5 py-4 whitespace-nowrap">MRR</th>
+                <th className="px-5 py-4 whitespace-nowrap">Last Active</th>
+                <th className="px-5 py-4 whitespace-nowrap text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8F0]">
-              {paginatedUsers.map((user) => (
+              {paginatedUsers.map((user: any) => (
                 <tr
                   key={user.id}
-                  className="group hover:bg-blue-50/30 transition-all"
+                  className="group hover:bg-gray-50/50 transition-all border-b border-[#E2E8F0] last:border-b-0"
                 >
-                  <td className="px-5 py-5">
-                    <div className="flex items-center gap-4 min-w-[220px]">
-                      <div className="relative flex-shrink-0">
-                        <img
-                          src={`https://ui-avatars.com/api/?name=${user.name}&background=6366f1&color=fff&bold=true`}
-                          alt={user.name}
-                          className="size-10 rounded-full object-cover ring-2 ring-transparent group-hover:ring-blue-100 transition-all"
-                        />
-                        <div
-                          className={cn(
-                            "absolute -bottom-1 -right-1 size-3 rounded-full border-2 border-white",
-                            user.status === "Active" ? "bg-green-500" : "bg-gray-400"
-                          )}
-                        />
-                      </div>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={getProfileImageUrl(user)}
+                        alt={user.name}
+                        className="size-10 rounded-full object-cover shrink-0"
+                      />
                       <div className="flex flex-col min-w-0">
-                        <span className="font-bold text-[#0F172A] truncate">
+                        <span className="font-bold text-sm text-[#0F172A] truncate">
                           {user.name}
                         </span>
                         <span className="text-xs text-gray-500 truncate">
@@ -476,92 +575,71 @@ export default function UserManagement() {
                     </div>
                   </td>
 
-                  <td className="px-5 py-5 whitespace-nowrap">
-                    {/* Status badge – same as before */}
+                  <td className="px-5 py-4 whitespace-nowrap">
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
-                        user.status === "Active" && "bg-green-50 text-green-700",
-                        user.status === "Trial" && "bg-blue-50 text-blue-700",
-                        user.status === "Suspended" && "bg-red-50 text-red-700"
+                        "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider capitalize",
+                        user.status === "Active" && "bg-green-100 text-green-700",
+                        user.status === "Trial" && "bg-blue-100 text-blue-700",
+                        user.status === "Suspended" && "bg-red-100 text-red-700"
                       )}
                     >
-                      <span
-                        className={cn(
-                          "size-1.5 rounded-full",
-                          user.status === "Active" && "bg-green-500",
-                          user.status === "Trial" && "bg-blue-500",
-                          user.status === "Suspended" && "bg-red-500"
-                        )}
-                      />
                       {user.status}
                     </span>
                   </td>
 
-                  <td className="px-5 py-5 whitespace-nowrap">
-                    <div className="flex flex-col">
-                      <span className="text-[#0F172A] font-bold text-sm tracking-tight">
+                  <td className="px-5 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      {user.plan === "Enterprise" && <Crown className="size-4 text-amber-500" />}
+                      <span className="text-[#0F172A] font-bold text-sm">
                         {user.plan}
                       </span>
-                      <span className="text-[10px] text-gray-400 font-medium">
-                        Billed Monthly
-                      </span>
                     </div>
                   </td>
 
-                  <td className="px-5 py-5">
-                    <div className="flex items-center gap-4 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-1.5">
-                          <Building2 className="size-3.5 text-blue-500" />
-                          <span className="text-[#0F172A] font-bold text-sm">
-                            {user.businesses.split(" ")[0]}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-gray-400 lowercase">
-                          {user.locations}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-5 whitespace-nowrap">
+                  <td className="px-5 py-4 whitespace-nowrap">
                     <div className="flex flex-col">
-                      <span className="font-black text-[#0F172A] text-sm">
-                        {user.mrr}
+                      <span className="text-[#0F172A] font-bold text-sm">
+                        {user.businesses}
                       </span>
-                      <span className="text-[10px] text-green-500 font-bold uppercase">
-                        LTV: $1,240
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-5 whitespace-nowrap">
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <Clock className="size-3.5" />
-                      <span className="text-xs font-medium">
-                        {user.lastActive}
+                      <span className="text-xs text-gray-400">
+                        {user.locations}
                       </span>
                     </div>
                   </td>
 
-                  <td className="px-6 py-5 text-right">
-                    <div className="flex items-center justify-end gap-2.5 transition-all">
+                  <td className="px-5 py-4 whitespace-nowrap">
+                    <span className="font-bold text-green-600 text-sm">
+                      {user.mrr}
+                    </span>
+                  </td>
+
+                  <td className="px-5 py-4 whitespace-nowrap">
+                    <span className="text-xs text-gray-500">
+                      {user.lastActive}
+                    </span>
+                  </td>
+
+                  <td className="px-5 py-4 text-right">
+                    <div className="flex items-center justify-end gap-4">
                       <button
                         onClick={() => handleViewDetails(user)}
-                        className="flex items-center justify-center size-9 rounded-xl text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white transition-all cursor-pointer shadow-sm"
+                        className="text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
+                        title="View Details"
                       >
                         <Eye className="size-4" />
                       </button>
                       <button
                         onClick={() => handleOpenSuspension(user)}
-                        className="flex items-center justify-center size-9 rounded-xl text-amber-600 bg-amber-50 hover:bg-amber-600 hover:text-white transition-all cursor-pointer shadow-sm"
+                        className="text-amber-500 hover:text-amber-700 transition-colors cursor-pointer"
+                        title="Suspend User"
                       >
                         <Ban className="size-4" />
                       </button>
                       <button
                         onClick={() => handleOpenDelete(user)}
-                        className="flex items-center justify-center size-9 rounded-xl text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition-all cursor-pointer shadow-sm"
+                        className="text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+                        title="Delete User"
                       >
                         <Trash2 className="size-4" />
                       </button>
@@ -591,15 +669,15 @@ export default function UserManagement() {
         <p className="text-xs text-gray-500 font-medium text-center order-2">
           Showing{" "}
           <span className="text-[#0F172A] font-bold">
-            {(currentPage - 1) * itemsPerPage + 1}
+            {totalUsersCount === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
           </span>{" "}
           to{" "}
           <span className="text-[#0F172A] font-bold">
-            {Math.min(currentPage * itemsPerPage, filteredUsers.length)}
+            {Math.min(currentPage * itemsPerPage, totalUsersCount)}
           </span>{" "}
           of{" "}
           <span className="text-[#0F172A] font-bold">
-            {filteredUsers.length}
+            {totalUsersCount}
           </span>{" "}
           users
         </p>

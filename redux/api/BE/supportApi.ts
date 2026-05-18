@@ -27,6 +27,22 @@ export const supportApi = baseApi.injectEndpoints({
             ]
           : [{ type: "SupportTicket" as const, id: "LIST" }],
     }),
+    getMySupportTickets: builder.query<any, void>({
+      query: () => ({
+        url: "/support-ticket/my-tickets",
+        method: "GET",
+      }),
+      providesTags: (result) =>
+        result?.data?.tickets
+          ? [
+              ...result.data.tickets.map(({ supportTicketId }: any) => ({
+                type: "SupportTicket" as const,
+                id: supportTicketId,
+              })),
+              { type: "SupportTicket" as const, id: "LIST" },
+            ]
+          : [{ type: "SupportTicket" as const, id: "LIST" }],
+    }),
     getSupportTicketById: builder.query<any, string>({
       query: (id) => ({
         url: `/support-ticket/${id}`,
@@ -58,6 +74,7 @@ export const supportApi = baseApi.injectEndpoints({
 export const {
   useCreateSupportTicketMutation,
   useGetAllSupportTicketsQuery,
+  useGetMySupportTicketsQuery,
   useGetSupportTicketByIdQuery,
   useUpdateSupportTicketMutation,
   useDeleteSupportTicketMutation,

@@ -24,6 +24,7 @@ import { useGetCompetitorAnalysisQuery } from "@/redux/api/AI/competitorsApi";
 import { getUserIdFromToken } from "@/utils/authUtils";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import Skeleton from "@/components/ui/Skeleton";
+import { toast } from "react-hot-toast";
 
 // Mock Data
 
@@ -135,10 +136,10 @@ export default function CompetitorsPage() {
             await setGoalsApi(payload).unwrap();
             setIsModalOpen(false);
             setForm({ competitors: '', selectedGoals: [] });
-            alert("Competitor data saved successfully!");
+            toast.success("Competitor data saved successfully!");
         } catch (err: any) {
             console.error("Error saving competitor data:", err);
-            alert("Failed to save data. Please try again.");
+            toast.error("Failed to save data. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -429,7 +430,7 @@ export default function CompetitorsPage() {
                                 <div>
                                     <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Business Name</label>
                                     <div className="relative">
-                                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-auth-subtitle-color" size={18} />
+                                        <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" size={18} />
                                         <input
                                             type="text"
                                             value={selectedBusiness}
@@ -442,7 +443,7 @@ export default function CompetitorsPage() {
                                 <div>
                                     <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Location</label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-auth-subtitle-color" size={18} />
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" size={18} />
                                         <input
                                             type="text"
                                             value={selectedAddress}
@@ -464,20 +465,20 @@ export default function CompetitorsPage() {
                                         value={form.selectedGoals}
                                         onChange={(val) => setForm({ ...form, selectedGoals: val as string[] })}
                                         placeholder="Select goals"
-                                        selectedColor="#22D3EE"
-                                        selectedBgColor="#ecf9fbff"
-                                        icon={<Target size={18} className="text-cyan-400" />}
+                                        selectedColor="#2563EB"
+                                        selectedBgColor="#eff6ff"
+                                        icon={<Target size={18} className="text-blue-600" />}
                                     />
                                 </div>
 
                                 <div>
                                     <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Competitors Google Maps URLs (Optional)</label>
                                     <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" size={18} />
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" size={18} />
                                         <input
                                             type="text"
                                             placeholder="Enter competitor URLs, separated by commas"
-                                            className="w-full h-12 bg-white border border-zinc-200 focus:border-auth-subtitle-color rounded-xl pl-12 pr-4 text-[14px] outline-none transition-all"
+                                            className="w-full h-12 bg-white border border-zinc-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl pl-12 pr-4 text-[14px] outline-none transition-all"
                                             value={form.competitors}
                                             onChange={(e) => setForm({ ...form, competitors: e.target.value })}
                                         />

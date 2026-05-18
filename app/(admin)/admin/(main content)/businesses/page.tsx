@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Skeleton from "@/components/ui/Skeleton";
+import { PageHeaderSkeleton, StatsCardsSkeleton } from "@/components/admin/AdminSkeletons";
 import {
     Building2,
     MapPin,
@@ -10,7 +12,8 @@ import {
     MessageSquare,
     TrendingUp,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    StarHalf
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -19,16 +22,103 @@ import BusinessDetailsModal from "../../../../../components/admin/buisnesses/Bus
 import {
     useGetBusinessManagementQuery,
 } from "@/redux/api/AI/businessmanagementApi";
+import { useGetUserByIdQuery } from "@/redux/api/BE/admin/userApi";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+const StarRating = ({ rating, size = 12 }: { rating: number, size?: number }) => {
+    const stars = [];
+    
+    for (let i = 1; i <= 5; i++) {
+        // Calculate the fill percentage for the current star
+        const fillPercentage = Math.min(Math.max(rating - (i - 1), 0), 1) * 100;
+
+        stars.push(
+            <div key={i} className="relative" style={{ width: size, height: size }}>
+                <Star 
+                    className="absolute top-0 left-0 text-gray-300" 
+                    size={size} 
+                />
+                <div 
+                    className="absolute top-0 left-0 h-full overflow-hidden" 
+                    style={{ width: `${fillPercentage}%` }}
+                >
+                    <Star 
+                        className="absolute top-0 left-0 fill-amber-500 text-amber-500" 
+                        size={size} 
+                    />
+                </div>
+            </div>
+        );
+    }
+    return <div className="flex items-center gap-0.5">{stars}</div>;
+};
+
+const BusinessCard = ({ biz, handleViewDetails }: { biz: any, handleViewDetails: (biz: any) => void }) => {
+    const { data: userData } = useGetUserByIdQuery(biz.owner_id, { skip: !biz.owner_id });
+    const ownerName = userData?.data?.name || biz.owner_name || "N/A";
+    const imageUrl = biz?.primary_photo?.photo_url || biz?.photo?.photo_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400";
+
+    return (
+        <div className="group overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm transition-all hover:shadow-md">
+            <div className="relative h-48 w-full overflow-hidden">
+                <img
+                    src={imageUrl}
+                    alt={biz.business_name}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute right-3 top-3 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700">
+                    active
+                </div>
+            </div>
+            <div className="p-5">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h4 className="font-bold text-[#0F172A]">{biz.business_name}</h4>
+                        <p className="text-xs text-gray-500 capitalize">{biz.category}</p>
+                    </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                    <div className="flex justify-between text-xs text-gray-500">
+                        <span>Owner:</span>
+                        <span className="font-semibold text-[#0F172A]">{ownerName}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500">
+                        <span>Locations:</span>
+                        <span className="font-semibold text-[#0F172A]">{biz.location_count}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500">
+                        <span>Reviews:</span>
+                        <span className="font-semibold text-[#0F172A]">{biz.reviews?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500">
+                        <span>Rating:</span>
+                        <span className="flex items-center gap-1 font-semibold text-amber-500">
+                            <StarRating rating={biz.ratings || biz.rating || 0} />
+                            <span>{biz.ratings || biz.rating || 0}</span>
+                        </span>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => handleViewDetails(biz)}
+                    className="mt-6 w-full rounded-lg border border-blue-100 bg-blue-50 py-2.5 text-xs font-bold text-blue-600 transition-colors hover:bg-blue-600 hover:text-white cursor-pointer"
+                >
+                    View Details
+                </button>
+            </div>
+        </div>
+    );
+};
+
 export default function BusinessManagement() {
     const { data: managementData, isLoading } = useGetBusinessManagementQuery();
     
     const [searchTerm, setSearchTerm] = useState("");
-    const [cityFilter, setCityFilter] = useState("All location");
+    const [businessFilter, setBusinessFilter] = useState("All Businesses");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
@@ -63,7 +153,7 @@ export default function BusinessManagement() {
             label: "Avg Rating", 
             value: managementData?.avg_rating?.toString() || "0", 
             icon: Star, 
-            change: "★★★★½", 
+            change: <StarRating rating={managementData?.avg_rating || 0} />, 
             trend: "neutral", 
             color: "text-amber-600", 
             bgColor: "bg-amber-50" 
@@ -81,18 +171,57 @@ export default function BusinessManagement() {
 
     const initialBusinesses = managementData?.businesses || [];
 
+    const uniqueBusinesses = useMemo(() => {
+        const names = new Set<string>();
+        initialBusinesses.forEach((biz: any) => {
+            if (biz.business_name) {
+                names.add(biz.business_name);
+            }
+        });
+        return ["All Businesses", ...Array.from(names)];
+    }, [initialBusinesses]);
+
     const filteredBusinesses = useMemo(() => {
         return initialBusinesses.filter((biz: any) => {
             const matchesSearch = biz.business_name.toLowerCase().includes(searchTerm.toLowerCase());
-            // The API doesn't seem to have city, but I'll keep the filter logic if needed or hide it if not applicable
-            return matchesSearch;
+            const matchesBusiness = businessFilter === "All Businesses" || biz.business_name === businessFilter;
+            return matchesSearch && matchesBusiness;
         });
-    }, [searchTerm, initialBusinesses]);
+    }, [searchTerm, businessFilter, initialBusinesses]);
 
     const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage);
     const paginatedBusinesses = filteredBusinesses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8 pb-8">
+                <PageHeaderSkeleton />
+                <StatsCardsSkeleton />
+                <div className="space-y-4">
+                    <Skeleton className="h-11 w-full max-w-md rounded-xl" />
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {Array(8).fill(0).map((_, idx) => (
+                            <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4">
+                                <Skeleton className="h-48 w-full rounded-lg" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-3 w-1/4" />
+                                </div>
+                                <div className="space-y-2 pt-2">
+                                    <Skeleton className="h-3 w-full" />
+                                    <Skeleton className="h-3 w-full" />
+                                    <Skeleton className="h-3 w-full" />
+                                </div>
+                                <Skeleton className="h-9 w-full rounded-lg" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8 pb-8">
@@ -152,23 +281,23 @@ export default function BusinessManagement() {
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         className="flex items-center gap-2 text-nowrap rounded-xl border border-[#E2E8F0] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
-                        {cityFilter}
+                        {businessFilter}
                         <ChevronDown className="size-4 text-gray-500" />
                     </button>
 
                     {isDropdownOpen && (
-                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-lg">
-                            {["All location", "New York", "London", "Dubai"].map((city) => (
+                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-lg max-h-60 overflow-y-auto custom-scrollbar">
+                            {uniqueBusinesses.map((bizName) => (
                                 <button
-                                    key={city}
+                                    key={bizName}
                                     onClick={() => {
-                                        setCityFilter(city);
+                                        setBusinessFilter(bizName);
                                         setCurrentPage(1);
                                         setIsDropdownOpen(false);
                                     }}
-                                    className="w-full rounded-xl px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+                                    className="w-full rounded-xl px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer truncate"
                                 >
-                                    {city}
+                                    {bizName}
                                 </button>
                             ))}
                         </div>
@@ -187,55 +316,7 @@ export default function BusinessManagement() {
                         </div>
                     ))
                 ) : paginatedBusinesses.map((biz: any, idx: number) => (
-                    <div key={idx} className="group overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm transition-all hover:shadow-md">
-                        <div className="relative h-48 w-full overflow-hidden">
-                            <img
-                                src={biz.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400"}
-                                alt={biz.business_name}
-                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                            <div className="absolute right-3 top-3 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700">
-                                active
-                            </div>
-                        </div>
-                        <div className="p-5">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h4 className="font-bold text-[#0F172A]">{biz.business_name}</h4>
-                                    <p className="text-xs text-gray-500 capitalize">{biz.category}</p>
-                                </div>
-                            </div>
-
-                            <div className="mt-4 space-y-2">
-                                <div className="flex justify-between text-xs text-gray-500">
-                                    <span>Owner:</span>
-                                    <span className="font-semibold text-[#0F172A]">{biz.owner_name || "N/A"}</span>
-                                </div>
-                                <div className="flex justify-between text-xs text-gray-500">
-                                    <span>Locations:</span>
-                                    <span className="font-semibold text-[#0F172A]">{biz.location_count}</span>
-                                </div>
-                                <div className="flex justify-between text-xs text-gray-500">
-                                    <span>Reviews:</span>
-                                    <span className="font-semibold text-[#0F172A]">{biz.reviews.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between text-xs text-gray-500">
-                                    <span>Rating:</span>
-                                    <span className="flex items-center gap-1 font-semibold text-amber-500">
-                                        <Star className="size-3 fill-current" />
-                                        {biz.ratings}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => handleViewDetails(biz)}
-                                className="mt-6 w-full rounded-lg border border-blue-100 bg-blue-50 py-2.5 text-xs font-bold text-blue-600 transition-colors hover:bg-blue-600 hover:text-white cursor-pointer"
-                            >
-                                View Details
-                            </button>
-                        </div>
-                    </div>
+                    <BusinessCard key={idx} biz={biz} handleViewDetails={handleViewDetails} />
                 ))}
             </div>
 

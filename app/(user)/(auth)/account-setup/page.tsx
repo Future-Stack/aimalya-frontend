@@ -106,7 +106,7 @@ const StepConnect = ({ onNext, onBack }: { onNext: () => void, onBack: () => voi
                 <span className="text-[13px] text-zinc-400">Paste Google Maps link</span>
             </button>
 
-            <button
+            {/* <button
                 className="cursor-pointer w-full bg-white border border-zinc-100 p-6 rounded-2xl flex flex-col items-center gap-3 transition-all relative overflow-hidden"
             >
                 <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ const StepConnect = ({ onNext, onBack }: { onNext: () => void, onBack: () => voi
                     <span className="font-bold text-[#1A1A1A]">Connect with Google</span>
                 </div>
                 <span className="text-[12px] text-zinc-400">Click below to authenticate with your Google Business Profile account</span>
-            </button>
+            </button> */}
         </div>
 
         <div className="flex justify-start">

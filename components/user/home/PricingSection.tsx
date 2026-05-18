@@ -7,6 +7,8 @@ import { toast } from "react-hot-toast";
 import gsap from "gsap";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useCreateSubscriptionMutation } from "@/redux/api/BE/user/planApi";
+import { getUserIdFromToken } from "@/utils/authUtils";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -19,43 +21,80 @@ interface PricingSectionProps {
 const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDashboard }, ref) => {
     const router = useRouter();
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+    const [createSubscription] = useCreateSubscriptionMutation();
 
-    const handlePlanClick = (planName: string) => {
+    const handlePlanClick = async (planName: string) => {
         setLoadingPlan(planName);
+        const userId = getUserIdFromToken();
 
-        // Show toast
-        toast.error("Please login to purchase this plan", {
-            duration: 3000,
-            position: "top-center",
-            style: {
-                borderRadius: '12px',
-                background: '#1a1a1a',
-                color: '#fff',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                zIndex: 9999,
-            },
-        });
-
-        // Start Page Exit Animation
-        const mainElement = document.querySelector('main');
-        const navbarElement = document.querySelector('nav');
-
-        if (mainElement) {
-            gsap.to([mainElement, navbarElement].filter(Boolean), {
-                opacity: 0,
-                y: -30,
-                duration: 0.8,
-                ease: "power2.inOut",
-                onComplete: () => {
-                    router.push("/login");
-                }
+        if (!userId) {
+            toast.error("Please login to purchase this plan", {
+                duration: 3000,
+                position: "top-center",
+                style: {
+                    borderRadius: '12px',
+                    background: '#1a1a1a',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    fontSize: '14px',
+                    zIndex: 9999,
+                },
             });
-        } else {
-            // Fallback if elements not found
-            setTimeout(() => {
-                router.push("/login");
-            }, 1000);
+
+            // Start Page Exit Animation
+            const mainElement = document.querySelector('main');
+            const navbarElement = document.querySelector('nav');
+
+            if (mainElement) {
+                gsap.to([mainElement, navbarElement].filter(Boolean), {
+                    opacity: 0,
+                    y: -30,
+                    duration: 0.8,
+                    ease: "power2.inOut",
+                    onComplete: () => {
+                        router.push("/login");
+                    }
+                });
+            } else {
+                setTimeout(() => {
+                    router.push("/login");
+                }, 1000);
+            }
+            return;
+        }
+
+        if (planName === "Enterprise") {
+            setLoadingPlan(null);
+            // Example enterprise action, currently just returning
+            toast.success("Redirecting to contact sales...");
+            return;
+        }
+
+        try {
+            const payload = {
+                plan: planName.toUpperCase(),
+                review: "Excellent experience!",
+                location: "6",
+                balance: planName === "Starter" ? 49 : 149,
+                business: planName === "Starter" ? 1 : 5,
+                reportPlan: planName === "Starter" ? ["WEEKLY"] : ["WEEKLY", "MONTHLY"],
+                competitor: planName === "Professional",
+                durationDate: "2026-12-31T23:59:59Z",
+                durationsPlan: "MONTHLY"
+            };
+            
+            const res = await createSubscription(payload).unwrap();
+            
+            if (res?.data?.url) {
+                // Navigate to Stripe Checkout
+                window.location.href = res.data.url;
+            } else {
+                toast.error("Failed to generate checkout link.");
+                setLoadingPlan(null);
+            }
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Something went wrong creating your subscription.");
+            setLoadingPlan(null);
         }
     };
 

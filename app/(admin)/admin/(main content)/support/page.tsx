@@ -1,6 +1,12 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Skeleton from "@/components/ui/Skeleton";
+import { PageHeaderSkeleton, StatsCardsSkeleton, SupportTableSkeleton } from "@/components/admin/AdminSkeletons";
+import {
+    useGetAdminSupportSummaryQuery,
+    useUpdateSupportTicketAdminMutation
+} from "@/redux/api/BE/admin/supportApi";
 import {
     Inbox,
     Clock,
@@ -20,23 +26,10 @@ function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-const stats = [
-    { label: "Open Tickets", value: "23", icon: Inbox, color: "text-cyan-600" },
-    { label: "In Progress", value: "12", icon: Clock, color: "text-amber-600" },
-    { label: "Resolved Today", value: "18", icon: CheckCircle2, color: "text-green-600" },
-    { label: "Avg Response Time", value: "2.5h", icon: Timer, color: "text-purple-600" },
-];
-
-const initialTickets = [
-    { id: "TKT-1001", name: "John Doe", email: "john.doe@example.com", subject: "Unable to connect Google Business Pro", priority: "High", status: "In Progress", category: "Integration", updated: "2 hours ago" },
-    { id: "TKT-1002", name: "Jane Smith", email: "jane.smith@company.com", subject: "Payment failed for subscription renewal", priority: "Urgent", status: "Open", category: "Billing", updated: "30 min ago" },
-    { id: "TKT-1003", name: "Robert Johnson", email: "robert.j@business.com", subject: "Request for report customization", priority: "Medium", status: "Open", category: "Feature Request", updated: "1 day ago" },
-    { id: "TKT-1004", name: "Sarah Williams", email: "sarah.w@enterprise.com", subject: "Enterprise plan inquiry", priority: "High", status: "Resolved", category: "Sales", updated: "3 hours ago" },
-    { id: "TKT-1005", name: "Michael Brown", email: "michael@test.com", subject: "Login issue", priority: "Low", status: "Resolved", category: "Auth", updated: "5 hours ago" },
-    { id: "TKT-1006", name: "Alice Green", email: "alice@example.com", subject: "Invoice request", priority: "Medium", status: "Open", category: "Billing", updated: "6 hours ago" },
-];
-
 export default function SupportTickets() {
+    const { data: summaryRes, isLoading } = useGetAdminSupportSummaryQuery();
+    const [updateTicketStatus] = useUpdateSupportTicketAdminMutation();
+
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All Status");
     const [currentPage, setCurrentPage] = useState(1);
@@ -50,8 +43,65 @@ export default function SupportTickets() {
         setIsModalOpen(true);
     };
 
+    const handleUpdateStatus = async (id: string, status: string) => {
+        try {
+            await updateTicketStatus({ id, status }).unwrap();
+        } catch (err) {
+            console.error("Failed to update status", err);
+        }
+    };
+
+    const dynamicStats = useMemo(() => {
+        const statsData = summaryRes?.data?.stats;
+        return [
+            { label: "Open Tickets", value: statsData?.openTickets?.toString() || "0", icon: Inbox, color: "text-cyan-600" },
+            { label: "In Progress", value: statsData?.inProgress?.toString() || "0", icon: Clock, color: "text-amber-600" },
+            { label: "Resolved Today", value: statsData?.resolvedToday?.toString() || "0", icon: CheckCircle2, color: "text-green-600" },
+            { label: "Urgent Tickets", value: statsData?.urgentTickets?.toString() || "0", icon: Timer, color: "text-purple-600" },
+        ];
+    }, [summaryRes]);
+
+    const formattedTickets = useMemo(() => {
+        if (!summaryRes?.data?.tickets) return [];
+        return summaryRes.data.tickets.map((tkt: any) => {
+            const user = tkt.users?.[0] || {};
+            
+            // Format priority (e.g. MEDIUM -> Medium)
+            let formattedPriority = "Medium";
+            if (tkt.priority) {
+                formattedPriority = tkt.priority.charAt(0).toUpperCase() + tkt.priority.slice(1).toLowerCase();
+            }
+
+            // Format status (e.g. OPEN -> Open)
+            let formattedStatus = "Open";
+            if (tkt.status === "IN_PROGRESS") formattedStatus = "In Progress";
+            else if (tkt.status === "RESOLVED") formattedStatus = "Resolved";
+            else if (tkt.status === "OPEN") formattedStatus = "Open";
+
+            // Format category (e.g. GENERAL_QUESTION -> General question)
+            let formattedCategory = tkt.category || "General";
+            if (tkt.category) {
+                formattedCategory = tkt.category.replace(/_/g, " ").toLowerCase();
+                formattedCategory = formattedCategory.charAt(0).toUpperCase() + formattedCategory.slice(1);
+            }
+
+            return {
+                id: `TKT-${tkt.supportTicketId.slice(0, 4).toUpperCase()}`,
+                supportTicketId: tkt.supportTicketId,
+                name: user.name || "Unknown",
+                email: user.email || "No email provided",
+                subject: tkt.subject,
+                description: tkt.description,
+                priority: formattedPriority,
+                status: formattedStatus,
+                category: formattedCategory,
+                updated: tkt.updatedAt ? new Date(tkt.updatedAt).toLocaleDateString() : "N/A"
+            };
+        });
+    }, [summaryRes]);
+
     const filteredTickets = useMemo(() => {
-        return initialTickets.filter(ticket => {
+        return formattedTickets.filter((ticket: any) => {
             const matchesSearch =
                 ticket.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 ticket.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,12 +111,25 @@ export default function SupportTickets() {
 
             return matchesSearch && matchesStatus;
         });
-    }, [searchTerm, statusFilter]);
+    }, [formattedTickets, searchTerm, statusFilter]);
 
-    const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredTickets.length / itemsPerPage) || 1;
     const paginatedTickets = filteredTickets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8 pb-10">
+                <PageHeaderSkeleton />
+                <StatsCardsSkeleton />
+                <div className="space-y-4">
+                    <Skeleton className="h-11 w-full max-w-md rounded-xl" />
+                    <SupportTableSkeleton rows={8} />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -78,7 +141,7 @@ export default function SupportTickets() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {stats.map((stat, idx) => (
+                {dynamicStats.map((stat, idx) => (
                     <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
                         <div className="flex items-start justify-between">
                             <div className="flex flex-col">
@@ -161,7 +224,7 @@ export default function SupportTickets() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#E2E8F0]">
-                            {paginatedTickets.map((tkt) => (
+                            {paginatedTickets.map((tkt: any) => (
                                 <tr key={tkt.id} className="hover:bg-gray-50/60 transition-colors">
                                     <td className="px-4 py-4 font-bold text-[#0F172A] whitespace-nowrap">
                                         {tkt.id}
@@ -236,7 +299,7 @@ export default function SupportTickets() {
           CARDS – mobile & tablet (< xl)
       ──────────────────────────────────────────────── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:hidden">
-                {paginatedTickets.map((tkt) => (
+                {paginatedTickets.map((tkt: any) => (
                     <div
                         key={tkt.id}
                         className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4 hover:border-cyan-200 transition-colors"
@@ -378,6 +441,7 @@ export default function SupportTickets() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 ticket={selectedTicket}
+                onUpdateStatus={handleUpdateStatus}
             />
         </div>
     );

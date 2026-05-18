@@ -44,7 +44,7 @@ export default function AllRecommendationsPage() {
         );
     }
 
-    if (!insights || insights.actionable_recommendations.length === 0) {
+    if (!insights || !insights.actionable_recommendations || insights.actionable_recommendations.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
                 <div className="bg-gray-100 p-6 rounded-full mb-6">
@@ -71,13 +71,13 @@ export default function AllRecommendationsPage() {
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-xl border border-blue-100">
                     <Settings className="size-4 text-blue-600" />
-                    <span className="text-sm font-bold text-blue-900">{insights.actionable_recommendations.length} Suggestions</span>
+                    <span className="text-sm font-bold text-blue-900">{insights.actionable_recommendations?.length || 0} Suggestions</span>
                 </div>
             </div>
 
             {/* Recommendations List */}
             <div className="space-y-6">
-                {insights.actionable_recommendations.map((plan, i) => (
+                {insights.actionable_recommendations?.map((plan, i) => (
                     <div key={i} className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm transition-all hover:border-blue-100">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                             <h4 className="text-lg font-bold text-gray-900">{plan.title}</h4>
@@ -106,14 +106,14 @@ export default function AllRecommendationsPage() {
                             </div>
                             <div className="p-4 bg-green-50 rounded-2xl">
                                 <span className="text-xs text-green-600/80 font-medium tracking-tight">Expected Improvement</span>
-                                <p className="text-sm text-green-900 font-semibold mt-1">{plan.expected_improvement}</p>
+                                <p className="text-sm text-green-900 font-semibold mt-1">{plan.expected_improvement || plan.improvement}</p>
                             </div>
                         </div>
 
                         <div className="bg-blue-100/50 p-6 rounded-2xl border border-blue-100">
                             <h5 className="font-bold text-blue-900 text-sm mb-4">Recommended Actions</h5>
                             <div className="space-y-3 mb-6">
-                                {plan.actions.map((step, j) => (
+                                {(plan.actions || plan.actions_to_do)?.map((step, j) => (
                                     <div key={j} className="flex items-center gap-3">
                                         <div className="flex items-center justify-center size-6 rounded-full bg-blue-100 text-blue-600 text-xs font-bold shrink-0">
                                             {j + 1}
