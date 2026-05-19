@@ -30,7 +30,7 @@ import StylishDropdown from "@/components/ui/StylishDropdown";
 import { useState, useEffect, useMemo } from "react";
 import { useGetMonthlyReportQuery } from "@/redux/api/AI/reportsApi";
 import { useSelector } from "react-redux";
-import { getUserIdFromToken } from "@/utils/authUtils";
+import { getUserIdFromToken, getSubscriptionFromCookie } from "@/utils/authUtils";
 import { Loader2 } from "lucide-react";
 import { downloadReportPDF, downloadReportExcel } from "@/utils/reportExport";
 import Skeleton from "@/components/ui/Skeleton";
@@ -163,7 +163,11 @@ export default function ReportsPage() {
     const userId = getUserIdFromToken();
     const { selectedBusiness, selectedAddress } = useSelector((state: any) => state.business);
 
-    const [viewMode, setViewMode] = useState<"Weekly" | "Monthly">("Monthly");
+    const subscriptionToken = getSubscriptionFromCookie();
+    const reportPlan = subscriptionToken?.reportPlan || ["WEEKLY", "MONTHLY"];
+    const initialViewMode = reportPlan.includes("MONTHLY") ? "Monthly" : "Weekly";
+
+    const [viewMode, setViewMode] = useState<"Weekly" | "Monthly">(initialViewMode);
     const [baseDate, setBaseDate] = useState(new Date());
     const [activeIndex, setActiveIndex] = useState(0);
 
@@ -236,7 +240,7 @@ export default function ReportsPage() {
                     <div className="space-y-3">
                         {isLoading || isFetching ? (
                             [...Array(5)].map((_, i) => (
-                                <div key={i} className="p-4 bg-white rounded-xl border border-gray-100 space-y-2">
+                                <div key={i} className="p-4 user-card rounded-xl space-y-2">
                                     <div className="flex gap-3">
                                         <Skeleton className="size-5 rounded" />
                                         <div className="flex-1 space-y-2">
@@ -254,7 +258,7 @@ export default function ReportsPage() {
                                     "p-4 rounded-xl border transition-all cursor-pointer group",
                                     activeIndex === i
                                         ? "bg-blue-50 border-blue-200 shadow-sm"
-                                        : "bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm"
+                                        : "user-card hover:shadow-md"
                                 )}
                             >
                                 <div className="flex items-start gap-3">
@@ -321,8 +325,8 @@ export default function ReportsPage() {
                         <div className="w-40">
                             <StylishDropdown
                                 options={[
-                                    { label: "Weekly View", value: "Weekly" },
-                                    { label: "Monthly View", value: "Monthly" }
+                                    ...(reportPlan.includes("WEEKLY") ? [{ label: "Weekly View", value: "Weekly" }] : []),
+                                    ...(reportPlan.includes("MONTHLY") ? [{ label: "Monthly View", value: "Monthly" }] : [])
                                 ]}
                                 value={viewMode}
                                 onChange={(val) => {
@@ -368,7 +372,7 @@ export default function ReportsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 md:p-8 space-y-8">
+                <div className="user-card rounded-3xl p-6 md:p-8 space-y-8">
                     {isFetching ? (
                         <div className="space-y-8 animate-pulse">
                             <div className="space-y-2">

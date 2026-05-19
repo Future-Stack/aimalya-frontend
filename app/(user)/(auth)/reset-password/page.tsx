@@ -6,15 +6,50 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 
-export default function ResetPasswordPage() {
+import { useSearchParams } from "next/navigation";
+import { useResetPasswordMutation } from "@/redux/api/BE/user/authApi";
+import { toast } from "react-hot-toast";
+import { Suspense } from "react";
+
+function ResetPasswordContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email") || "";
+    const code = searchParams.get("code") || "";
+
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [resetPassword, { isLoading }] = useResetPasswordMutation();
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Reset Logic here
-        router.push("/login");
+        
+        if (!email || !code) {
+            toast.error("Invalid reset request. Please start again from the Forgot Password page.");
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            toast.error("Password must be at least 6 characters long.");
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            toast.error("Passwords do not match.");
+            return;
+        }
+
+        try {
+            const res = await resetPassword({ email, code, newPassword }).unwrap();
+            toast.success(res?.message || "Password reset successful! Please login.");
+            router.push("/login");
+        } catch (err: any) {
+            console.error("Error resetting password:", err);
+            toast.error(err?.data?.message || err?.message || "Failed to reset password. Please try again.");
+        }
     };
 
     return (
@@ -56,6 +91,8 @@ export default function ResetPasswordPage() {
                                 type={showPassword ? "text" : "password"}
                                 placeholder="Type your password"
                                 required
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
                                 className="w-full bg-slate-50/50 h-12 rounded-xl px-4 pr-12 text-[15px] border border-zinc-200 focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400"
                             />
                             <button
@@ -76,6 +113,8 @@ export default function ResetPasswordPage() {
                                 type={showConfirmPassword ? "text" : "password"}
                                 placeholder="Type your password"
                                 required
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
                                 className="w-full bg-slate-50/50 h-12 rounded-xl px-4 pr-12 text-[15px] border border-zinc-200 focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400"
                             />
                             <button
@@ -90,12 +129,21 @@ export default function ResetPasswordPage() {
 
                     <button
                         type="submit"
-                        className="cursor-pointer w-full h-12 bg-auth-subtitle-color text-white rounded-xl font-bold text-[15px] hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 mt-4"
+                        disabled={isLoading}
+                        className="cursor-pointer w-full h-12 bg-auth-subtitle-color text-white rounded-xl font-bold text-[15px] hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 mt-4 disabled:opacity-50"
                     >
-                        Reset
+                        {isLoading ? "Resetting..." : "Reset"}
                     </button>
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-[#E0F2FE]">Loading...</div>}>
+            <ResetPasswordContent />
+        </Suspense>
     );
 }

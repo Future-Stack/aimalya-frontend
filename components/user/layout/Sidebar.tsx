@@ -4,12 +4,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-    LayoutDashboard,
-    MessageSquare,
-    BrainCircuit,
-    FileText,
+    LayoutGrid,
+    PieChart,
+    Lightbulb,
+    FileBadge2,
     Users,
-    LifeBuoy,
     Bell,
     Settings,
     LogOut,
@@ -32,18 +31,41 @@ import { useDispatch, useSelector } from "react-redux";
 import { setSelectedBusiness, setSelectedLocation, setSelectedAddress } from "@/redux/slices/businessSlice";
 import AddBusinessModal from "./AddBusinessModal";
 import AddLocationModal from "./AddLocationModal";
+import { getSubscriptionFromCookie } from "@/utils/authUtils";
+import { toast } from "react-hot-toast";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+const SupportIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        {/* User round silhouette */}
+        <path d="M15 21a6 6 0 0 0-12 0" />
+        <circle cx="9" cy="14" r="3.5" />
+        {/* Chat bubble with dots */}
+        <path d="M17 11.5a3.5 3.5 0 1 0-3.5-3.5c0 .6.15 1.15.4 1.65L12.5 11.5l1.85-.6c.75.4 1.6.6 2.65.6z" />
+        <circle cx="16" cy="8" r="0.6" fill="currentColor" />
+        <circle cx="18" cy="8" r="0.6" fill="currentColor" />
+    </svg>
+);
+
 const menuItems = [
-    { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
-    { icon: MessageSquare, label: "Review", href: "/review" },
-    { icon: BrainCircuit, label: "AI Insights", href: "/ai-insights" },
-    { icon: FileText, label: "Reports", href: "/reports" },
+    { icon: LayoutGrid, label: "Overview", href: "/dashboard" },
+    { icon: PieChart, label: "Review", href: "/review" },
+    { icon: Lightbulb, label: "AI Insights", href: "/ai-insights" },
+    { icon: FileBadge2, label: "Reports", href: "/reports" },
     { icon: Users, label: "Competitors", href: "/competitors" },
-    { icon: LifeBuoy, label: "Support", href: "/support" },
+    { icon: SupportIcon, label: "Support", href: "/support" },
     { icon: Bell, label: "Notification", href: "/notification" },
     { icon: Settings, label: "Settings", href: "/settings" },
 ];
@@ -62,6 +84,8 @@ export default function Sidebar() {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
     const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false);
+
+    const subscriptionToken = getSubscriptionFromCookie();
 
     // Fetch Business Names
     const { data: namesData, isLoading: isLoadingNames } = useGetBusinessNamesQuery(userId || "", {
@@ -131,13 +155,21 @@ export default function Sidebar() {
             )}
         >
             {/* Header Section */}
-            <div className="flex h-20 items-center px-4 overflow-hidden mb-2 shrink-0 justify-between">
+            <div className="flex h-20 items-center px-4 overflow-hidden mb-2 shrink-0 justify-between relative">
                 <div className={cn(
                     "flex items-center transition-all duration-300",
                     isSmallScreen && !isExpanded ? "w-0 opacity-0" : "w-auto opacity-100"
                 )}>
-                    <Link href="/dashboard">
-                        <Image src="/logo.svg" alt="Logo" width={150} height={50} priority />
+                    <Link href="/dashboard" className="block">
+                        <Image
+                            src="/auth_icon.svg"
+                            alt="Logo"
+                            width={207}
+                            height={60}
+                            style={{ width: "207px", height: "60px" }}
+                            className="object-contain"
+                            priority
+                        />
                     </Link>
                 </div>
 
@@ -159,9 +191,16 @@ export default function Sidebar() {
 
             {/* Collapsed Logo (only when small screen and not expanded) */}
             {isSmallScreen && !isExpanded && (
-                <div className="absolute top-5 left-4 z-10 pointer-events-none transition-all duration-300">
-                    <Link href="/dashboard">
-                        <Image src="/short-logo.svg" alt="Logo" width={40} height={40} priority />
+                <div className="absolute top-5 left-4 z-10 transition-all duration-300 w-10 h-10 flex items-center justify-center">
+                    <Link href="/dashboard" className="block">
+                        <Image
+                            src="/admin_logo_small.png"
+                            alt="Logo"
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-contain"
+                            priority
+                        />
                     </Link>
                 </div>
             )}
@@ -177,10 +216,19 @@ export default function Sidebar() {
                     onChange={(val) => dispatch(setSelectedBusiness(val as string))}
                     icon={<Store className="size-4 shrink-0" />}
                     className="h-10"
+                    selectedColor="#06B6D4"
+                    selectedBgColor="rgba(34, 211, 238, 0.1)"
                     footer={
                         <button
-                            onClick={() => setIsAddBusinessModalOpen(true)}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors whitespace-nowrap"
+                            onClick={() => {
+                                const limit = Number(subscriptionToken?.business || 1);
+                                if (shopOptions.length >= limit) {
+                                    toast.error(`You have reached your limit of ${limit} business(es). Upgrade to add more.`);
+                                    return;
+                                }
+                                setIsAddBusinessModalOpen(true);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-[#06B6D4] hover:bg-[#22D3EE]/10 transition-colors whitespace-nowrap cursor-pointer"
                         >
                             <Plus size={16} />
                             Add Business
@@ -199,10 +247,19 @@ export default function Sidebar() {
                     }}
                     icon={<MapPin className="size-4 shrink-0" />}
                     className="h-10"
+                    selectedColor="#06B6D4"
+                    selectedBgColor="rgba(34, 211, 238, 0.1)"
                     footer={
                         <button
-                            onClick={() => setIsAddLocationModalOpen(true)}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors whitespace-nowrap"
+                            onClick={() => {
+                                const limit = Number(subscriptionToken?.location || 1);
+                                if (locationOptions.length >= limit) {
+                                    toast.error(`You have reached your limit of ${limit} location(s) for this business.`);
+                                    return;
+                                }
+                                setIsAddLocationModalOpen(true);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-[#06B6D4] hover:bg-[#22D3EE]/10 transition-colors whitespace-nowrap cursor-pointer"
                         >
                             <Plus size={16} />
                             Add Location
@@ -219,7 +276,12 @@ export default function Sidebar() {
 
             {/* Navigation Items */}
             <nav className="flex-1 min-h-0 px-3 space-y-1.5 overflow-x-hidden overflow-y-auto custom-scrollbar">
-                {menuItems.map((item) => {
+                {menuItems.filter(item => {
+                    if (item.label === "Competitors" && subscriptionToken && subscriptionToken.competitor === false) {
+                        return false;
+                    }
+                    return true;
+                }).map((item) => {
                     const isActive = pathname.startsWith(item.href);
                     return (
                         <Link
@@ -228,7 +290,7 @@ export default function Sidebar() {
                             className={cn(
                                 "relative flex items-center h-11 rounded-xl transition-all duration-200 cursor-pointer",
                                 isActive
-                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                                    ? "bg-[#22D3EE] text-white shadow-lg shadow-[#22D3EE]/20"
                                     : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                             )}
                         >
@@ -247,7 +309,7 @@ export default function Sidebar() {
             </nav>
 
             <div className="mt-auto border-t border-gray-100 bg-gray-50/50 p-4 shrink-0">
-                <button 
+                <button
                     onClick={() => logout()}
                     className={cn(
                         "w-full flex items-center h-11 rounded-xl transition-all duration-200 cursor-pointer text-red-500 hover:bg-red-50 hover:text-red-600",
@@ -266,13 +328,13 @@ export default function Sidebar() {
                 </button>
             </div>
 
-            <AddBusinessModal 
-                isOpen={isAddBusinessModalOpen} 
-                onClose={() => setIsAddBusinessModalOpen(false)} 
+            <AddBusinessModal
+                isOpen={isAddBusinessModalOpen}
+                onClose={() => setIsAddBusinessModalOpen(false)}
             />
-            <AddLocationModal 
-                isOpen={isAddLocationModalOpen} 
-                onClose={() => setIsAddLocationModalOpen(false)} 
+            <AddLocationModal
+                isOpen={isAddLocationModalOpen}
+                onClose={() => setIsAddLocationModalOpen(false)}
                 businessName={selectedShop as string}
             />
         </aside>

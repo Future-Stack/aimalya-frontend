@@ -1,16 +1,35 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import AuthLayout from "@/components/admin/auth/AuthLayout";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { UserCircle, Loader2 } from "lucide-react";
+import { useAdminForgotPasswordMutation } from "@/redux/api/BE/admin/forgetPassApi";
+import { toast } from "react-hot-toast";
 
 const ForgetPasswordPage = () => {
     const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [forgotPassword, { isLoading }] = useAdminForgotPasswordMutation();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        router.push("/admin/verify-otp");
+        
+        if (!email) {
+            toast.error("Please enter your email address");
+            return;
+        }
+
+        try {
+            await forgotPassword({ email }).unwrap();
+            toast.success("OTP sent to your email!");
+            sessionStorage.setItem("adminResetEmail", email);
+            router.push("/admin/verify-otp");
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to send OTP. Please try again.");
+            console.error("Forgot password error:", error);
+        }
     };
 
     return (
@@ -28,20 +47,19 @@ const ForgetPasswordPage = () => {
         >
             <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
-                    <label className="block text-blue-200/80 text-sm mb-2 ml-1" htmlFor="email">
+                    <label className="block text-white text-sm mb-2 ml-1" htmlFor="email">
                         Email
                     </label>
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-300/50 group-focus-within:text-blue-400 transition-colors">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                <polyline points="22,6 12,13 2,6"></polyline>
-                            </svg>
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white transition-colors">
+                            <UserCircle className="size-5" />
                         </div>
                         <input
                             className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 !text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
                             id="email"
                             type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             placeholder="admin@reviewiq.com"
                         />
                     </div>
@@ -55,9 +73,11 @@ const ForgetPasswordPage = () => {
                         Cancel
                     </Link>
                     <button
-                        className="flex-[1.5] bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center cursor-pointer"
+                        className="flex-[1.5] bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] hover:from-[#6d28d9] hover:to-[#4338ca] text-white font-semibold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                         type="submit"
+                        disabled={isLoading}
                     >
+                        {isLoading && <Loader2 className="size-5 animate-spin" />}
                         Send OTP
                     </button>
                 </div>

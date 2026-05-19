@@ -9,6 +9,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useCreateSubscriptionMutation } from "@/redux/api/BE/user/planApi";
 import { getUserIdFromToken } from "@/utils/authUtils";
+import ContactUsModal from "./ContactUsModal";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -22,6 +23,7 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
     const router = useRouter();
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
     const [createSubscription] = useCreateSubscriptionMutation();
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
     const handlePlanClick = async (planName: string) => {
         setLoadingPlan(planName);
@@ -65,26 +67,23 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
 
         if (planName === "Enterprise") {
             setLoadingPlan(null);
-            // Example enterprise action, currently just returning
-            toast.success("Redirecting to contact sales...");
+            setIsContactModalOpen(true);
             return;
         }
 
         try {
             const payload = {
                 plan: planName.toUpperCase(),
-                review: "Excellent experience!",
-                location: "6",
+                review: planName === "Starter" ? "500" : "Unlimited",
                 balance: planName === "Starter" ? 49 : 149,
-                business: planName === "Starter" ? 1 : 5,
                 reportPlan: planName === "Starter" ? ["WEEKLY"] : ["WEEKLY", "MONTHLY"],
                 competitor: planName === "Professional",
                 durationDate: "2026-12-31T23:59:59Z",
                 durationsPlan: "MONTHLY"
             };
-            
+
             const res = await createSubscription(payload).unwrap();
-            
+
             if (res?.data?.url) {
                 // Navigate to Stripe Checkout
                 window.location.href = res.data.url;
@@ -111,7 +110,7 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
 
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
                 {/* Starter */}
-                <div className="gsap-pricing-card bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm hover:shadow-xl transition-all reveal-up">
+                <div className="gsap-pricing-card bg-white p-10 rounded-[40px] border border-gray-100 shadow-none hover:shadow-none transition-all reveal-up">
                     <h3 className="text-[22px] font-black mb-2 tracking-tight text-[#0F172A]">Starter</h3>
                     <div className="flex items-baseline gap-1 mb-8">
                         <span className="text-[48px] font-black tracking-tighter text-[#0F172A]">$49</span>
@@ -136,7 +135,7 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                 </div>
 
                 {/* Professional - Featured */}
-                <div className="gsap-pricing-card bg-[#0066FF] p-10 rounded-[40px] shadow-2xl shadow-blue-200 lg:scale-110 z-10 relative overflow-hidden reveal-up">
+                <div className="gsap-pricing-card bg-[#0066FF] p-10 rounded-[40px] shadow-none lg:scale-110 z-10 relative overflow-hidden reveal-up">
                     <div className="absolute top-5 left-0 w-full text-center">
                         <span className="text-[11px] text-white/90 font-black uppercase tracking-[2px]">Most Popular</span>
                     </div>
@@ -170,7 +169,7 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                 </div>
 
                 {/* Enterprise */}
-                <div className="gsap-pricing-card bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm hover:shadow-xl transition-all reveal-up">
+                <div className="gsap-pricing-card bg-white p-10 rounded-[40px] border border-gray-100 shadow-none hover:shadow-none transition-all reveal-up">
                     <h3 className="text-[22px] font-black mb-2 tracking-tight text-[#0F172A]">Enterprise</h3>
                     <div className="flex items-baseline gap-1 mb-8">
                         <span className="text-[48px] font-black tracking-tighter text-[#0F172A]">Custom</span>
@@ -199,6 +198,11 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                     </button>
                 </div>
             </div>
+            <ContactUsModal
+                isOpen={isContactModalOpen}
+                onClose={() => setIsContactModalOpen(false)}
+                initialSubject="Enterprise Plan Inquiry"
+            />
         </section>
     );
 });

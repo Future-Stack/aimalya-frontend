@@ -194,7 +194,7 @@ export default function AnalyticsDashboard() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {dynamicStats.map((stat, idx) => (
-                    <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+                    <div key={idx} className="admin-card rounded-xl p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium text-gray-500">{stat.label}</p>
@@ -222,7 +222,7 @@ export default function AnalyticsDashboard() {
             {/* Main Charts */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* User Growth Chart */}
-                 <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+                 <div className="rounded-xl admin-card p-6">
                     <h3 className="text-lg font-bold text-[#0F172A]">User Growth & Churn</h3>
                     <div className="mt-6 h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -240,7 +240,10 @@ export default function AnalyticsDashboard() {
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
-                                <Tooltip />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '8px', border: '1px solid #BFDBFE', backgroundColor: '#FFFFFF', boxShadow: 'none' }}
+                                    labelStyle={{ color: '#000000', fontWeight: 'bold' }}
+                                />
                                 <Area type="monotone" dataKey="users" name="Users" stroke="#3B82F6" strokeWidth={2} fillOpacity={1} fill="url(#colorUsers)" />
                                 <Area type="monotone" dataKey="churn" name="Churn" stroke="#EF4444" strokeWidth={2} fillOpacity={1} fill="url(#colorChurn)" />
                             </AreaChart>
@@ -249,7 +252,7 @@ export default function AnalyticsDashboard() {
                 </div>
 
                 {/* Reviews Processed Chart */}
-                <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+                <div className="rounded-xl admin-card p-6">
                     <h3 className="text-lg font-bold text-[#0F172A]">Reviews Processed</h3>
                     <div className="mt-6 h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -257,7 +260,10 @@ export default function AnalyticsDashboard() {
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
-                                <Tooltip />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '8px', border: '1px solid #BFDBFE', backgroundColor: '#FFFFFF', boxShadow: 'none' }}
+                                    labelStyle={{ color: '#000000', fontWeight: 'bold' }}
+                                />
                                 <Bar dataKey="reviews" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
@@ -268,7 +274,7 @@ export default function AnalyticsDashboard() {
             {/* Bottom Section */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 {/* Business Categories Pie Chart */}
-                <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+                <div className="rounded-xl admin-card p-6">
                     <h3 className="text-lg font-bold text-[#0F172A]">Business Categories</h3>
                     <div className="mt-6 flex h-[250px] items-center justify-center">
                         <ResponsiveContainer width="100%" height="100%">
@@ -286,7 +292,10 @@ export default function AnalyticsDashboard() {
                                         <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
                                 </Pie>
-                                <Tooltip />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '8px', border: '1px solid #BFDBFE', backgroundColor: '#FFFFFF', boxShadow: 'none' }}
+                                    labelStyle={{ color: '#000000', fontWeight: 'bold' }}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
@@ -302,7 +311,7 @@ export default function AnalyticsDashboard() {
                 </div>
 
                 {/* Conversion Funnel */}
-                <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm lg:col-span-2">
+                <div className="rounded-xl admin-card p-6 lg:col-span-2">
                     <h3 className="text-lg font-bold text-[#0F172A]">Conversion Funnel</h3>
                     <div className="mt-6 space-y-6">
                         {dynamicFunnelData.map((item, idx) => (

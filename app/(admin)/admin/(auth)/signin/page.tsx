@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import AuthLayout from "@/components/admin/auth/AuthLayout";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, UserCircle, Lock } from "lucide-react";
 import { useLoginMutation } from "@/redux/api/BE/user/authApi";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast";
@@ -38,15 +38,12 @@ const SignInPage = () => {
         <AuthLayout title="Admin Portal" subtitle="ReviewIQ Management System">
             <form className="space-y-6" onSubmit={handleLogin}>
                 <div>
-                    <label className="block text-blue-200/80 text-sm mb-2 ml-1" htmlFor="email">
+                    <label className="block text-white text-sm mb-2 ml-1" htmlFor="email">
                         Admin Email
                     </label>
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-300/50 group-focus-within:text-blue-400 transition-colors">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white transition-colors">
+                            <UserCircle className="size-5" />
                         </div>
                         <input
                             className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-4 !text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
@@ -61,15 +58,12 @@ const SignInPage = () => {
                 </div>
 
                 <div>
-                    <label className="block text-blue-200/80 text-sm mb-2 ml-1" htmlFor="password">
+                    <label className="block text-white text-sm mb-2 ml-1" htmlFor="password">
                         Password
                     </label>
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-300/50 group-focus-within:text-blue-400 transition-colors">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </svg>
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-white transition-colors">
+                            <Lock className="size-5" />
                         </div>
                         <input
                             className="w-full bg-[#334155]/50 border border-white/5 rounded-xl py-4 pl-12 pr-12 !text-white placeholder-blue-300/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-[#334155]/80 transition-all text-sm"
@@ -117,12 +111,6 @@ const SignInPage = () => {
                     {isLoading ? "Signing In..." : "Sign In"}
                 </button>
 
-                <p className="text-center text-sm text-blue-200/60 mt-6">
-                    Don't have an account?{' '}
-                    <Link href="/admin/signup" className="text-blue-400 font-semibold hover:text-blue-300 hover:underline transition-all">
-                        Sign Up
-                    </Link>
-                </p>
             </form>
         </AuthLayout>
     );

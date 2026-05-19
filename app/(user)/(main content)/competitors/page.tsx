@@ -21,7 +21,8 @@ import { cn } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { useSetGoalsMutation } from "@/redux/api/AI/signupflowApi";
 import { useGetCompetitorAnalysisQuery } from "@/redux/api/AI/competitorsApi";
-import { getUserIdFromToken } from "@/utils/authUtils";
+import { getUserIdFromToken, getSubscriptionFromCookie } from "@/utils/authUtils";
+import { useRouter } from "next/navigation";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import Skeleton from "@/components/ui/Skeleton";
 import { toast } from "react-hot-toast";
@@ -34,6 +35,18 @@ export default function CompetitorsPage() {
     const userId = getUserIdFromToken();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+    const subscriptionToken = getSubscriptionFromCookie();
+    
+    useEffect(() => {
+        if (subscriptionToken && subscriptionToken.competitor === false) {
+            router.push("/dashboard");
+        }
+    }, [subscriptionToken, router]);
+
+    if (subscriptionToken && subscriptionToken.competitor === false) {
+        return null;
+    }
     
     const [form, setForm] = useState({
         competitors: '',
@@ -178,7 +191,7 @@ export default function CompetitorsPage() {
                     {/* Competitor Cards Skeleton */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                            <div key={i} className="p-5 user-card rounded-2xl space-y-4">
                                 <Skeleton className="h-6 w-3/4" />
                                 <div className="space-y-2">
                                     {[...Array(4)].map((_, j) => (
@@ -194,13 +207,13 @@ export default function CompetitorsPage() {
                     </div>
 
                     {/* Performance Comparison Skeleton */}
-                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+                    <div className="user-card p-8 rounded-3xl">
                         <Skeleton className="h-6 w-48 mb-6" />
                         <Skeleton className="h-[300px] w-full" />
                     </div>
 
                     {/* Criteria Comparison Skeleton */}
-                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-8">
+                    <div className="user-card p-8 rounded-3xl space-y-8">
                         <Skeleton className="h-6 w-48" />
                         <div className="space-y-6">
                             {[...Array(3)].map((_, i) => (
@@ -224,7 +237,7 @@ export default function CompetitorsPage() {
                         key={i}
                         className={cn(
                             "p-5 rounded-2xl border shadow-sm",
-                            comp.isBusiness ? "bg-blue-50/50 border-blue-200" : "bg-white border-gray-100"
+                            comp.isBusiness ? "bg-blue-50/50 border-blue-200" : "user-card"
                         )}
                     >
                         <div className="flex items-center justify-between">
@@ -265,7 +278,7 @@ export default function CompetitorsPage() {
             </div>
 
             {/* Performance Comparison Bar Chart */}
-            <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+            <div className="user-card p-6 md:p-8 rounded-3xl">
                 <h3 className="font-bold text-gray-900 mb-6">Performance Comparison</h3>
                 <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -290,7 +303,7 @@ export default function CompetitorsPage() {
             </div>
 
             {/* Category Radar Chart */}
-            <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+            <div className="user-card p-6 md:p-8 rounded-3xl">
                 <h3 className="font-bold text-gray-900 mb-6">Category Performance Radar</h3>
                 <div className="h-[400px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -325,7 +338,7 @@ export default function CompetitorsPage() {
             </div>
 
             {/* Criteria Comparison Progress Bars */}
-            <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-8">
+            <div className="user-card p-6 md:p-8 rounded-3xl space-y-8">
                 <h3 className="font-bold text-gray-900">Criteria Comparison</h3>
                 <div className="space-y-6">
                     {criteria.map((c, i) => (
@@ -350,7 +363,7 @@ export default function CompetitorsPage() {
             {/* Excel & Advantages Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Where Competitors Excel */}
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <div className="user-card p-6 rounded-3xl">
                     <div className="flex items-center gap-2 mb-6">
                         <AlertCircle className="size-5 text-orange-500" />
                         <h3 className="font-bold text-gray-900">Where Competitors Excel</h3>
@@ -367,7 +380,7 @@ export default function CompetitorsPage() {
                 </div>
 
                 {/* Your Competitive Advantages */}
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <div className="user-card p-6 rounded-3xl">
                     <div className="flex items-center gap-2 mb-6">
                         <Award className="size-5 text-green-500" />
                         <h3 className="font-bold text-gray-900">Your Competitive Advantages</h3>

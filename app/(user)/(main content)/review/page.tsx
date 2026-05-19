@@ -162,7 +162,7 @@ export default function ReviewPage() {
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {statsData.map((stat, i) => (
-                    <div key={i} className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all hover:shadow-md">
+                    <div key={i} className="p-5 user-card rounded-2xl transition-all">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-semibold text-gray-700">{stat.label}</p>
@@ -199,7 +199,7 @@ export default function ReviewPage() {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-4 user-card p-2 rounded-xl">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                     <input
@@ -244,7 +244,7 @@ export default function ReviewPage() {
                     <>
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
                             {[...Array(4)].map((_, i) => (
-                                <div key={i} className="p-5 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                                <div key={i} className="p-5 user-card rounded-2xl space-y-4">
                                     <div className="flex justify-between items-start">
                                         <div className="space-y-2">
                                             <Skeleton className="h-4 w-24" />
@@ -257,7 +257,7 @@ export default function ReviewPage() {
                             ))}
                         </div>
                         {[...Array(3)].map((_, i) => (
-                            <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 space-y-4">
+                            <div key={i} className="user-card p-6 rounded-2xl space-y-4">
                                 <div className="flex gap-3">
                                     <Skeleton className="size-12 rounded-full" />
                                     <div className="flex-1 space-y-2">
@@ -279,7 +279,7 @@ export default function ReviewPage() {
                         <div
                             key={idx}
                             onClick={() => handleCardClick(review)}
-                            className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group active:scale-[0.99]"
+                            className="user-card p-4 sm:p-6 rounded-2xl transition-all cursor-pointer group active:scale-[0.99]"
                         >
                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                                 <div className="flex gap-3">
@@ -345,7 +345,7 @@ export default function ReviewPage() {
                         </div>
                     ))
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 border-dashed">
+                    <div className="flex flex-col items-center justify-center py-20 user-card rounded-2xl border-dashed">
                         <MessageSquare className="size-10 text-gray-300 mb-2" />
                         <p className="text-gray-500 font-medium">No reviews found matching your filters.</p>
                         <button

@@ -63,7 +63,7 @@ export default function AdminDashboard() {
             icon: Users, 
             change: `${statsData.data.totalUsers.trend > 0 ? "+" : ""}${statsData.data.totalUsers.trend}${statsData.data.totalUsers.isPercentage ? "%" : ""}`, 
             trend: statsData.data.totalUsers.trend >= 0 ? "up" : "down", 
-            color: "bg-blue-500" 
+            color: "bg-[#2F80ED]" 
         },
         { 
             label: "Monthly Revenue", 
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
             icon: DollarSign, 
             change: `${statsData.data.monthlyRevenue.trend > 0 ? "+" : ""}${statsData.data.monthlyRevenue.trend}${statsData.data.monthlyRevenue.isPercentage ? "%" : ""}`, 
             trend: statsData.data.monthlyRevenue.trend >= 0 ? "up" : "down", 
-            color: "bg-blue-600" 
+            color: "bg-[#2F66B1]" 
         },
         { 
             label: "Active Businesses", 
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
             icon: Building2, 
             change: `${statsData.data.activeBusinesses.trend > 0 ? "+" : ""}${statsData.data.activeBusinesses.trend}${statsData.data.activeBusinesses.isPercentage ? "%" : ""}`, 
             trend: statsData.data.activeBusinesses.trend >= 0 ? "up" : "down", 
-            color: "bg-amber-700" 
+            color: "bg-[#826C2B]" 
         },
         { 
             label: "Support Tickets", 
@@ -117,14 +117,14 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {statsLoading ? (
                     Array(4).fill(0).map((_, idx) => (
-                        <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm animate-pulse">
+                        <div key={idx} className="admin-card rounded-xl p-6 animate-pulse">
                             <div className="h-10 bg-gray-200 rounded w-1/2 mb-4" />
                             <div className="h-6 bg-gray-100 rounded w-1/4" />
                         </div>
                     ))
                 ) : (
                     stats.map((stat, idx) => (
-                        <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+                        <div key={idx} className="admin-card border border-blue-100 bg-white shadow-none rounded-xl p-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">{stat.label}</p>
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
             {/* Charts Section */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 {/* Revenue & User Growth Chart */}
-                <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm lg:col-span-2">
+                <div className="admin-card border border-blue-100 bg-white shadow-none rounded-xl p-6 lg:col-span-2">
                     <h3 className="text-lg font-bold text-[#0F172A]">Revenue & User Growth</h3>
                     <div className="mt-6 h-[300px] w-full">
                         {chartsLoading ? (
@@ -185,7 +185,8 @@ export default function AdminDashboard() {
                                         tick={{ fontSize: 12, fill: '#94A3B8' }}
                                     />
                                     <Tooltip
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        contentStyle={{ borderRadius: '8px', border: '1px solid #BFDBFE', backgroundColor: '#FFFFFF', boxShadow: 'none' }}
+                                        labelStyle={{ color: '#000000', fontWeight: 'bold' }}
                                     />
                                     <Area
                                         type="monotone"
@@ -212,7 +213,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Plan Distribution Chart */}
-                <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+                <div className="admin-card border border-blue-100 bg-white shadow-none rounded-xl p-6">
                     <h3 className="text-lg font-bold text-[#0F172A]">Plan Distribution</h3>
                     <div className="mt-6 flex h-[250px] items-center justify-center">
                         {chartsLoading ? (
@@ -233,12 +234,15 @@ export default function AdminDashboard() {
                                             <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                                         ))}
                                     </Pie>
-                                    <Tooltip />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: '8px', border: '1px solid #BFDBFE', backgroundColor: '#FFFFFF', boxShadow: 'none' }}
+                                        labelStyle={{ color: '#000000', fontWeight: 'bold' }}
+                                    />
                                 </PieChart>
                             </ResponsiveContainer>
                         )}
                     </div>
-                    <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div className="mt-4 grid grid-cols-1 gap-1">
                         {pieData.map((item: any, idx: number) => (
                             <div key={idx} className="flex items-center gap-2">
                                 <div className="size-2 rounded-full" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
@@ -251,7 +255,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Recent Activity */}
-            <div className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+            <div className="admin-card border border-blue-100 bg-white shadow-none rounded-xl p-6">
                 <h3 className="text-lg font-bold text-[#0F172A]">Recent Activity</h3>
                 <div className="mt-6 space-y-6">
                     {logsLoading ? (

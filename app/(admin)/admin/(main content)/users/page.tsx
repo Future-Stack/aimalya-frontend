@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import toast from "react-hot-toast";
 import Skeleton from "@/components/ui/Skeleton";
 import { PageHeaderSkeleton, StatsCardsSkeleton, UsersTableSkeleton } from "@/components/admin/AdminSkeletons";
-import { useGetUsersQuery, useGetUserStatisticsQuery, useDeleteUserMutation } from "@/redux/api/BE/admin/userApi";
+import { useGetUsersQuery, useGetUserStatisticsQuery, useDeleteUserMutation, useSuspendUserMutation } from "@/redux/api/BE/admin/userApi";
 import {
   Users,
   DollarSign,
@@ -23,12 +23,15 @@ import {
   Calendar,
   Ban,
   Crown,
+  Unlock,
+  MoreVertical,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import UserDetailsModal from "../../../../../components/admin/users/UserDetailsModal";
 import SuspensionModal from "../../../../../components/admin/users/SuspensionModal";
 import DeleteUserModal from "../../../../../components/admin/users/DeleteUserModal";
+import AddEnterpriseModal from "../../../../../components/admin/users/AddEnterpriseModal";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -202,11 +205,29 @@ export default function UserManagement() {
 
   const { data: statsData } = useGetUserStatisticsQuery();
   const [deleteUser] = useDeleteUserMutation();
+  const [suspendUser] = useSuspendUserMutation();
 
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isSuspensionModalOpen, setIsSuspensionModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEnterpriseModalOpen, setIsEnterpriseModalOpen] = useState(false);
+  const [activeActionUserId, setActiveActionUserId] = useState<string | null>(null);
+
+  // Close any active actions menu when clicking outside
+  useEffect(() => {
+    const handleGlobalClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.closest(".actions-dropdown-container")) {
+        return;
+      }
+      setActiveActionUserId(null);
+    };
+    document.addEventListener("mousedown", handleGlobalClick);
+    return () => {
+      document.removeEventListener("mousedown", handleGlobalClick);
+    };
+  }, []);
 
   const handleViewDetails = (user: any) => {
     setSelectedUser(user);
@@ -223,9 +244,23 @@ export default function UserManagement() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmSuspension = () => {
-    console.log("Suspending user:", selectedUser.userId);
-    // Add logic here to update user status
+  const handleOpenEnterprise = (user: any) => {
+    setSelectedUser(user);
+    setIsEnterpriseModalOpen(true);
+  };
+
+  const handleConfirmSuspension = async () => {
+    if (!selectedUser?.userId) return;
+    const isCurrentlySuspended = selectedUser.status === "Suspended";
+    try {
+      await suspendUser({
+        id: selectedUser.userId,
+        suspend: !isCurrentlySuspended
+      }).unwrap();
+      toast.success(`User ${isCurrentlySuspended ? "unsuspended" : "suspended"} successfully!`);
+    } catch (err: any) {
+      toast.error(err?.data?.message || `Failed to ${isCurrentlySuspended ? "unsuspend" : "suspend"} user`);
+    }
   };
 
   const handleConfirmDelete = async () => {
@@ -249,7 +284,7 @@ export default function UserManagement() {
         icon: Users,
         change: `${d.totalUsers?.trend > 0 ? '+' : ''}${d.totalUsers?.trend || 0}${d.totalUsers?.isPercentage ? '%' : ''}`,
         trend: d.totalUsers?.trend >= 0 ? "up" : "down",
-        color: "bg-blue-500",
+        color: "bg-[#2F80ED]",
       },
       {
         label: "Active User",
@@ -257,7 +292,7 @@ export default function UserManagement() {
         icon: DollarSign,
         change: `${d.activeUsers?.trend > 0 ? '+' : ''}${d.activeUsers?.trend || 0}${d.activeUsers?.isPercentage ? '%' : ''}`,
         trend: d.activeUsers?.trend >= 0 ? "up" : "down",
-        color: "bg-blue-600",
+        color: "bg-[#2F66B1]",
       },
       {
         label: "Trial User",
@@ -265,7 +300,7 @@ export default function UserManagement() {
         icon: Clock,
         change: `${d.trialUsers?.trend > 0 ? '+' : ''}${d.trialUsers?.trend || 0}${d.trialUsers?.isPercentage ? '%' : ''}`,
         trend: d.trialUsers?.trend >= 0 ? "up" : "down",
-        color: "bg-amber-700",
+        color: "bg-[#826C2B]",
       },
       {
         label: "Suspended User",
@@ -337,7 +372,7 @@ export default function UserManagement() {
         {dynamicStats.map((stat, idx) => (
           <div
             key={idx}
-            className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm transition-all hover:shadow-md"
+            className="admin-card rounded-xl p-5"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -350,7 +385,7 @@ export default function UserManagement() {
               </div>
               <div
                 className={cn(
-                  "rounded-xl p-2.5 text-white shadow-lg shadow-current/10",
+                  "rounded-xl p-2.5 text-white shadow-none",
                   stat.color,
                 )}
               >
@@ -382,7 +417,7 @@ export default function UserManagement() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border border-[#E2E8F0] p-3 rounded-xl bg-white">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between admin-card p-3 rounded-xl">
         <div className="relative w-full max-w-8xl">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
             <Search className="size-4 text-gray-400" />
@@ -393,7 +428,7 @@ export default function UserManagement() {
             onChange={(e) => {
               setSearchTerm(e.target.value);
             }}
-            className="block h-11 w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 text-sm text-[#0F172A] placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-sm"
+            className="block h-11 w-full rounded-xl border border-blue-100 bg-white pl-10 pr-4 text-sm text-[#0F172A] placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all shadow-none"
             placeholder="Search users by name or email..."
           />
         </div>
@@ -401,7 +436,7 @@ export default function UserManagement() {
         <div className="relative">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-[#E2E8F0] bg-white px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer shadow-sm md:w-auto min-w-[140px]"
+            className="flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-blue-100 bg-white px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer shadow-none md:w-auto min-w-[140px]"
           >
             <span className="flex items-center gap-2">
               {/* <span className="size-2 rounded-full bg-blue-500" /> */}
@@ -421,7 +456,7 @@ export default function UserManagement() {
                 className="fixed inset-0 z-10"
                 onClick={() => setIsDropdownOpen(false)}
               />
-              <div className="absolute right-0 z-20 mt-2 w-full origin-top-right rounded-xl border border-[#E2E8F0] bg-white p-1.5 shadow-xl md:w-48 animate-in fade-in zoom-in duration-200">
+              <div className="absolute right-0 z-20 mt-2 w-full origin-top-right rounded-xl border border-blue-100 bg-white p-1.5 shadow-none md:w-48 animate-in fade-in zoom-in duration-200">
                 {["All Status", "Active", "Trial", "Suspended"].map(
                   (status) => (
                     <button
@@ -453,7 +488,7 @@ export default function UserManagement() {
         {paginatedUsers.map((user: any) => (
           <div
             key={user.id}
-            className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4 hover:border-blue-200 transition-colors"
+            className="admin-card rounded-xl p-5 space-y-4 hover:border-blue-200 transition-colors"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -520,9 +555,15 @@ export default function UserManagement() {
               </button>
               <button
                 onClick={() => handleOpenSuspension(user)}
-                className="flex items-center justify-center size-10 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all cursor-pointer"
+                className={cn(
+                  "flex items-center justify-center size-10 rounded-lg transition-all cursor-pointer",
+                  user.status === "Suspended"
+                    ? "bg-green-50 text-green-600 hover:bg-green-600 hover:text-white"
+                    : "bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white"
+                )}
+                title={user.status === "Suspended" ? "Unsuspend User" : "Suspend User"}
               >
-                <Ban className="size-4" />
+                {user.status === "Suspended" ? <Unlock className="size-4" /> : <Ban className="size-4" />}
               </button>
               <button
                 onClick={() => handleOpenDelete(user)}
@@ -536,7 +577,7 @@ export default function UserManagement() {
       </div>
 
       {/* Desktop Table View (Visible from lg screens up) */}
-      <div className="hidden xl:block overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
+      <div className="hidden xl:block overflow-hidden rounded-2xl admin-card">
         <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full table-auto text-left text-sm">
@@ -552,11 +593,13 @@ export default function UserManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E8F0]">
-              {paginatedUsers.map((user: any) => (
-                <tr
-                  key={user.id}
-                  className="group hover:bg-gray-50/50 transition-all border-b border-[#E2E8F0] last:border-b-0"
-                >
+              {paginatedUsers.map((user: any, idx: number) => {
+                const isLastRows = idx >= paginatedUsers.length - 3 && paginatedUsers.length > 3;
+                return (
+                  <tr
+                    key={user.id}
+                    className="group hover:bg-gray-50/50 transition-all border-b border-[#E2E8F0] last:border-b-0"
+                  >
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <img
@@ -621,39 +664,86 @@ export default function UserManagement() {
                   </td>
 
                   <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-4">
-                      <button
-                        onClick={() => handleViewDetails(user)}
-                        className="text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"
-                        title="View Details"
-                      >
-                        <Eye className="size-4" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenSuspension(user)}
-                        className="text-amber-500 hover:text-amber-700 transition-colors cursor-pointer"
-                        title="Suspend User"
-                      >
-                        <Ban className="size-4" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenDelete(user)}
-                        className="text-red-500 hover:text-red-700 transition-colors cursor-pointer"
-                        title="Delete User"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
+                    <div className="flex items-center justify-end">
+                      <div className="relative actions-dropdown-container">
+                        <button
+                          onClick={() => {
+                            setActiveActionUserId(activeActionUserId === user.id ? null : user.id);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer focus:outline-none"
+                        >
+                          <MoreVertical className="size-4" />
+                        </button>
+
+                        {activeActionUserId === user.id && (
+                          <div className={cn(
+                            "absolute right-0 w-44 rounded-xl border border-blue-50 bg-white p-1.5 shadow-xl z-20 text-left animate-in fade-in zoom-in-95 duration-100",
+                            isLastRows ? "bottom-full mb-1 origin-bottom" : "top-full mt-1 origin-top"
+                          )}>
+                            <button
+                              onClick={() => {
+                                handleViewDetails(user);
+                                setActiveActionUserId(null);
+                              }}
+                              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                            >
+                              <Eye className="size-3.5 text-blue-500" />
+                              View Details
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleOpenSuspension(user);
+                                setActiveActionUserId(null);
+                              }}
+                              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                            >
+                              {user.status === "Suspended" ? (
+                                <>
+                                  <Unlock className="size-3.5 text-green-500" />
+                                  Unsuspend User
+                                </>
+                              ) : (
+                                <>
+                                  <Ban className="size-3.5 text-amber-500" />
+                                  Suspend User
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleOpenDelete(user);
+                                setActiveActionUserId(null);
+                              }}
+                              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-all cursor-pointer"
+                            >
+                              <Trash2 className="size-3.5 text-red-500" />
+                              Delete User
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleOpenEnterprise(user);
+                                setActiveActionUserId(null);
+                              }}
+                              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#0891B2] transition-all cursor-pointer border-t border-gray-100 mt-1 pt-2"
+                            >
+                              <Crown className="size-3.5 text-amber-500" />
+                              Add Enterprise
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
       {paginatedUsers.length === 0 && (
-        <div className="py-20 flex flex-col items-center justify-center bg-white rounded-2xl border border-dashed border-gray-300">
+        <div className="py-20 flex flex-col items-center justify-center admin-card rounded-2xl border-dashed">
           <div className="size-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
             <Search className="size-8 text-gray-300" />
           </div>
@@ -737,6 +827,12 @@ export default function UserManagement() {
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
+        user={selectedUser}
+      />
+
+      <AddEnterpriseModal
+        isOpen={isEnterpriseModalOpen}
+        onClose={() => setIsEnterpriseModalOpen(false)}
         user={selectedUser}
       />
     </div>

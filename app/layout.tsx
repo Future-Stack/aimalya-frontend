@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "@/redux/store/StoreProvider";
+import { SocketProvider } from "@/context/SocketContext";
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
@@ -31,7 +32,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <StoreProvider>
-          {children}
+          <SocketProvider>
+            {children}
+          </SocketProvider>
           <Toaster 
             position="top-right" 
             reverseOrder={false}

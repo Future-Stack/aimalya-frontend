@@ -78,7 +78,7 @@ export default function AllRecommendationsPage() {
             {/* Recommendations List */}
             <div className="space-y-6">
                 {insights.actionable_recommendations?.map((plan, i) => (
-                    <div key={i} className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm transition-all hover:border-blue-100">
+                    <div key={i} className="user-card p-6 md:p-8 rounded-3xl transition-all">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                             <h4 className="text-lg font-bold text-gray-900">{plan.title}</h4>
                             <span className={cn(

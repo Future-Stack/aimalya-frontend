@@ -3,11 +3,13 @@
 import { Search, Bell } from "lucide-react";
 import Link from "next/link";
 import { useGetProfileQuery } from "@/redux/api/BE/user/profileApi";
+import { useSocket } from "@/context/SocketContext";
 
 export default function Navbar() {
     const { data: profileData } = useGetProfileQuery();
     const user = profileData?.data;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.split("/api/v1")[0];
+    const { unreadCount } = useSocket();
 
     return (
         <nav className="sticky top-0 z-30 flex h-20 py-4 w-full items-center justify-between border-b border-[#E2E8F0] bg-white/80 backdrop-blur-md px-4 md:px-6 lg:px-8 transition-all">
@@ -19,7 +21,9 @@ export default function Navbar() {
                 {/* Notifications */}
                 <Link href="/notification" className="relative flex items-center justify-center size-10 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all cursor-pointer">
                     <Bell className="size-5" />
-                    <span className="absolute right-2 top-2 size-2.5 rounded-full border-2 border-white bg-red-500 ring-4 ring-transparent animate-pulse" />
+                    {unreadCount > 0 && (
+                        <span className="absolute right-2 top-2 size-2.5 rounded-full border-2 border-white bg-red-500 ring-4 ring-transparent animate-pulse" />
+                    )}
                 </Link>
 
                 {/* Profile Section */}

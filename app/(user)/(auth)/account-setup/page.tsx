@@ -18,11 +18,12 @@ import {
 } from "lucide-react";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import { useFetchBusinessDataMutation, useSetGoalsMutation } from "@/redux/api/AI/signupflowApi";
-import { getUserIdFromToken } from "@/utils/authUtils";
+import { getUserIdFromToken, getSubscriptionFromCookie } from "@/utils/authUtils";
+import { toast } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setSelectedBusiness } from "@/redux/slices/businessSlice";
+import Cookies from "js-cookie";
 
-// --- Helpers ---
-
-// --- Types ---
 
 interface Location {
     id: string;
@@ -37,9 +38,6 @@ interface Business {
     locations: Location[];
 }
 
-// --- Components ---
-
-// --- Sub-components ---
 
 const Stepper = ({ currentStep }: { currentStep: number }) => {
     const steps = [
@@ -132,10 +130,26 @@ const StepConnect = ({ onNext, onBack }: { onNext: () => void, onBack: () => voi
 
 const StepStructure = ({ businesses, setBusinesses, onNext, onBack, isLoading }: { businesses: Business[], setBusinesses: React.Dispatch<React.SetStateAction<Business[]>>, onNext: () => void, onBack: () => void, isLoading: boolean }) => {
     const addBusiness = () => {
+        const subscriptionToken = getSubscriptionFromCookie();
+        const limit = Number(subscriptionToken?.business || 1);
+        
+        if (businesses.length >= limit) {
+            toast.error(`You have reached your limit of ${limit} business(es). Upgrade to add more.`);
+            return;
+        }
+
         setBusinesses([...businesses, { id: Date.now().toString(), name: '', category: '', locations: [{ id: Date.now().toString() + 'l', name: '', address: '' }] }]);
     };
 
     const addLocation = (bizIndex: number) => {
+        const subscriptionToken = getSubscriptionFromCookie();
+        const limit = Number(subscriptionToken?.location || 1);
+
+        if (businesses[bizIndex].locations.length >= limit) {
+            toast.error(`You have reached your limit of ${limit} location(s) for this business.`);
+            return;
+        }
+
         const newBusinesses = [...businesses];
         newBusinesses[bizIndex].locations.push({ id: Date.now().toString(), name: '', address: '' });
         setBusinesses(newBusinesses);
@@ -563,7 +577,47 @@ export default function AccountSetupPage() {
         selectedGoals: [] as string[]
     });
     const [savedGoals, setSavedGoals] = useState<any[]>([]);
+    const dispatch = useDispatch();
     
+    // Save Google OAuth tokens if present in URL
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const accessToken = params.get('accessToken');
+            const refreshToken = params.get('refreshToken');
+            const userStr = params.get('user');
+            const subscription = params.get('subscription');
+            
+            let updated = false;
+
+            if (accessToken) {
+                Cookies.set('accessToken', accessToken, { expires: 7 });
+                updated = true;
+            }
+            if (refreshToken) {
+                Cookies.set('refreshToken', refreshToken, { expires: 7 });
+                updated = true;
+            }
+            if (userStr) {
+                Cookies.set('user', userStr, { expires: 7 });
+                updated = true;
+            }
+            if (subscription) {
+                try {
+                    const encodedSub = btoa(subscription);
+                    Cookies.set('subscription', encodedSub, { expires: 7 });
+                } catch (e) {
+                    Cookies.set('subscription', subscription, { expires: 7 });
+                }
+                updated = true;
+            }
+
+            if (updated) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+    }, []);
+
     // Mutations
     const [fetchBusinessData, { isLoading: isFetchingBusiness }] = useFetchBusinessDataMutation();
     const [setGoalsApi, { isLoading: isSettingGoals }] = useSetGoalsMutation();
@@ -637,6 +691,11 @@ export default function AccountSetupPage() {
             console.log("Sending bulk goals payload:", JSON.stringify(payload, null, 2));
             await setGoalsApi(payload).unwrap();
             
+            // Auto select the first set up business for the dashboard
+            if (savedGoals.length > 0) {
+                dispatch(setSelectedBusiness(savedGoals[0].businessName));
+            }
+
             router.push("/dashboard");
         } catch (err: any) {
             console.error("Error setting goals:", err);

@@ -65,7 +65,7 @@ export default function SupportTickets() {
         if (!summaryRes?.data?.tickets) return [];
         return summaryRes.data.tickets.map((tkt: any) => {
             const user = tkt.users?.[0] || {};
-            
+
             // Format priority (e.g. MEDIUM -> Medium)
             let formattedPriority = "Medium";
             if (tkt.priority) {
@@ -142,7 +142,7 @@ export default function SupportTickets() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {dynamicStats.map((stat, idx) => (
-                    <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+                    <div key={idx} className="admin-card rounded-xl p-6">
                         <div className="flex items-start justify-between">
                             <div className="flex flex-col">
                                 <p className="flex items-center gap-2 text-sm font-medium text-gray-500">
@@ -157,7 +157,7 @@ export default function SupportTickets() {
             </div>
 
             {/* Search and Filters */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-[#E2E8F0] p-3 rounded-xl bg-white">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between admin-card p-3 rounded-xl">
                 <div className="relative w-full max-w-8xl">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <Search className="size-4 text-gray-400" />
@@ -169,7 +169,7 @@ export default function SupportTickets() {
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="block w-full rounded-xl border border-[#E2E8F0] bg-white py-2 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="block w-full rounded-xl border border-blue-100 bg-white py-2 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         placeholder="Search tickets by ID, name or subject..."
                     />
                 </div>
@@ -177,14 +177,14 @@ export default function SupportTickets() {
                 <div className="relative">
                     <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex items-center gap-2 text-nowrap rounded-xl border border-[#E2E8F0] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 text-nowrap rounded-xl border border-blue-100 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                         {statusFilter}
                         <ChevronDown className="size-4 text-gray-500" />
                     </button>
 
                     {isDropdownOpen && (
-                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-lg">
+                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-xl border border-blue-100 bg-white p-1 shadow-none">
                             {["All Status", "Open", "In Progress", "Resolved"].map((status) => (
                                 <button
                                     key={status}
@@ -208,7 +208,7 @@ export default function SupportTickets() {
 
             {/* Tickets Table */}
             {/* DESKTOP TABLE – visible from xl upwards */}
-            <div className="hidden xl:block overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm">
+            <div className="hidden xl:block overflow-hidden rounded-xl admin-card">
                 <div className="overflow-x-auto">
                     <table className="w-full table-auto text-left text-sm">
                         <thead className="bg-[#F8FAFC] text-xs font-semibold uppercase text-gray-500">
@@ -231,10 +231,10 @@ export default function SupportTickets() {
                                     </td>
                                     <td className="px-4 py-4">
                                         <div className="flex flex-col min-w-[140px]">
-                                            <span className="font-medium text-[#0F172A] truncate max-w-[180px]">
+                                            <span className="font-medium text-[#0F172A] truncate max-w-[220px]">
                                                 {tkt.name}
                                             </span>
-                                            <span className="text-xs text-gray-500 truncate max-w-[180px]">
+                                            <span className="text-xs text-gray-500 truncate max-w-[220px]">
                                                 {tkt.email}
                                             </span>
                                         </div>
@@ -302,7 +302,7 @@ export default function SupportTickets() {
                 {paginatedTickets.map((tkt: any) => (
                     <div
                         key={tkt.id}
-                        className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4 hover:border-cyan-200 transition-colors"
+                        className="admin-card rounded-xl p-5 space-y-4 hover:border-cyan-200 transition-colors"
                     >
                         {/* Top row: ID + Status */}
                         <div className="flex items-start justify-between gap-3">
@@ -376,7 +376,7 @@ export default function SupportTickets() {
                 ))}
 
                 {paginatedTickets.length === 0 && (
-                    <div className="col-span-1 md:col-span-2 py-16 flex flex-col items-center justify-center bg-white rounded-xl border border-dashed border-gray-300">
+                    <div className="col-span-1 md:col-span-2 py-16 flex flex-col items-center justify-center admin-card rounded-xl border-dashed">
                         <p className="text-gray-500 font-medium">No tickets found</p>
                         <p className="text-gray-400 text-sm mt-1">
                             Try changing search or status filter

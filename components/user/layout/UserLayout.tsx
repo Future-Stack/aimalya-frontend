@@ -40,11 +40,11 @@ export default function UserLayout({ children }: UserLayoutProps) {
     }, [router]);
 
     if (!mounted) {
-        return <div className="min-h-screen bg-[#F8FAFC]" />;
+        return <div className="min-h-screen bg-[#F9FCFF]" />;
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#F8FAFC]">
+        <div className="flex h-screen overflow-hidden bg-[#F9FCFF]">
             <Sidebar />
 
             <div

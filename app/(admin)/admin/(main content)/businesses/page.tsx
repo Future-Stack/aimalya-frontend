@@ -62,7 +62,7 @@ const BusinessCard = ({ biz, handleViewDetails }: { biz: any, handleViewDetails:
     const imageUrl = biz?.primary_photo?.photo_url || biz?.photo?.photo_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400";
 
     return (
-        <div className="group overflow-hidden rounded-xl border border-[#E2E8F0] bg-white shadow-sm transition-all hover:shadow-md">
+        <div className="group overflow-hidden rounded-xl admin-card">
             <div className="relative h-48 w-full overflow-hidden">
                 <img
                     src={imageUrl}
@@ -203,7 +203,7 @@ export default function BusinessManagement() {
                     <Skeleton className="h-11 w-full max-w-md rounded-xl" />
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {Array(8).fill(0).map((_, idx) => (
-                            <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm space-y-4">
+                            <div key={idx} className="rounded-xl admin-card p-5 space-y-4">
                                 <Skeleton className="h-48 w-full rounded-lg" />
                                 <div className="space-y-2">
                                     <Skeleton className="h-4 w-3/4" />
@@ -234,7 +234,7 @@ export default function BusinessManagement() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {stats.map((stat, idx) => (
-                    <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+                    <div key={idx} className="admin-card rounded-xl p-6">
                         <div className="flex items-start justify-between">
                             <div>
                                 <p className="text-sm font-medium text-gray-500">{stat.label}</p>
@@ -259,7 +259,7 @@ export default function BusinessManagement() {
             </div>
 
             {/* Search and Filters */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-[#E2E8F0] p-3 rounded-xl bg-white">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between admin-card p-3 rounded-xl">
                 <div className="relative w-full max-w-8xl">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <Search className="size-4 text-gray-400" />
@@ -271,7 +271,7 @@ export default function BusinessManagement() {
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className="block w-full rounded-xl border border-[#E2E8F0] bg-white py-2 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
+                        className="block w-full rounded-xl border border-blue-100 bg-white py-2 pl-10 pr-3 text-sm text-[#0F172A] placeholder-gray-500 focus:border-[#3B82F6] focus:outline-none focus:ring-1 focus:ring-[#3B82F6]"
                         placeholder="Search business name..."
                     />
                 </div>
@@ -279,14 +279,14 @@ export default function BusinessManagement() {
                 <div className="relative">
                     <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex items-center gap-2 text-nowrap rounded-xl border border-[#E2E8F0] bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 text-nowrap rounded-xl border border-blue-100 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                         {businessFilter}
                         <ChevronDown className="size-4 text-gray-500" />
                     </button>
 
                     {isDropdownOpen && (
-                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-xl border border-[#E2E8F0] bg-white p-1 shadow-lg max-h-60 overflow-y-auto custom-scrollbar">
+                        <div className="absolute right-0 z-10 mt-2 w-48 rounded-xl border border-blue-100 bg-white p-1 shadow-none max-h-60 overflow-y-auto custom-scrollbar">
                             {uniqueBusinesses.map((bizName) => (
                                 <button
                                     key={bizName}
@@ -309,7 +309,7 @@ export default function BusinessManagement() {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {isLoading ? (
                     Array(4).fill(0).map((_, idx) => (
-                        <div key={idx} className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-sm animate-pulse">
+                        <div key={idx} className="rounded-xl admin-card p-5 animate-pulse">
                             <div className="h-48 bg-gray-200 rounded-lg mb-4" />
                             <div className="h-4 bg-gray-100 rounded w-3/4 mb-2" />
                             <div className="h-3 bg-gray-50 rounded w-1/4" />
@@ -321,7 +321,7 @@ export default function BusinessManagement() {
             </div>
 
             {paginatedBusinesses.length === 0 && (
-                <div className="py-20 text-center text-gray-500">
+                <div className="py-20 text-center text-gray-500 admin-card rounded-xl border-dashed">
                     No businesses found in this location.
                 </div>
             )}
