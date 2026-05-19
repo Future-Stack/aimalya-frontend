@@ -14,7 +14,9 @@ import {
     Globe,
     Target,
     User,
-    Pencil
+    Pencil,
+    Settings2,
+    SettingsIcon
 } from "lucide-react";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import { useFetchBusinessDataMutation, useSetGoalsMutation } from "@/redux/api/AI/signupflowApi";
@@ -90,7 +92,7 @@ const StepConnect = ({ onNext, onBack }: { onNext: () => void, onBack: () => voi
     <div className="py-6">
         <div className="text-center mb-10">
             <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-6">
-                <Globe className="text-auth-subtitle-color" size={28} />
+                <Image src="/step2.png" alt="Google" width={24} height={24} />
             </div>
             <h2 className="text-[24px] font-bold text-[#1A1A1A]">Connect Your Google Business</h2>
         </div>
@@ -132,7 +134,7 @@ const StepStructure = ({ businesses, setBusinesses, onNext, onBack, isLoading }:
     const addBusiness = () => {
         const subscriptionToken = getSubscriptionFromCookie();
         const limit = Number(subscriptionToken?.business || 1);
-        
+
         if (businesses.length >= limit) {
             toast.error(`You have reached your limit of ${limit} business(es). Upgrade to add more.`);
             return;
@@ -164,8 +166,8 @@ const StepStructure = ({ businesses, setBusinesses, onNext, onBack, isLoading }:
     return (
         <div>
             <div className="text-center mb-8">
-                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Building2 className="text-auth-subtitle-color" size={24} />
+                <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-6">
+                    <Image src="/step3.svg" alt="Google" width={24} height={24} />
                 </div>
                 <h2 className="text-[24px] font-bold text-[#1A1A1A]">Business Profile Setup</h2>
             </div>
@@ -578,7 +580,7 @@ export default function AccountSetupPage() {
     });
     const [savedGoals, setSavedGoals] = useState<any[]>([]);
     const dispatch = useDispatch();
-    
+
     // Save Google OAuth tokens if present in URL
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -587,7 +589,7 @@ export default function AccountSetupPage() {
             const refreshToken = params.get('refreshToken');
             const userStr = params.get('user');
             const subscription = params.get('subscription');
-            
+
             let updated = false;
 
             if (accessToken) {
@@ -690,7 +692,7 @@ export default function AccountSetupPage() {
 
             console.log("Sending bulk goals payload:", JSON.stringify(payload, null, 2));
             await setGoalsApi(payload).unwrap();
-            
+
             // Auto select the first set up business for the dashboard
             if (savedGoals.length > 0) {
                 dispatch(setSelectedBusiness(savedGoals[0].businessName));
@@ -700,8 +702,8 @@ export default function AccountSetupPage() {
         } catch (err: any) {
             console.error("Error setting goals:", err);
             const detail = err?.data?.detail;
-            const errorMessage = typeof detail === 'string' 
-                ? detail 
+            const errorMessage = typeof detail === 'string'
+                ? detail
                 : detail?.[0]?.msg || err?.data?.message || err?.message || "Failed to save goals. Please try again.";
             alert(errorMessage);
             setStep(4);
