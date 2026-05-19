@@ -31,10 +31,15 @@ export const adminSubscriptionApi = baseApi.injectEndpoints({
       query: () => "/subscription/statistics",
       providesTags: ["Subscription"] as any,
     }),
+    getSubscriptionById: builder.query<any, string>({
+      query: (id) => `/subscription/${id}`,
+      providesTags: ["Subscription"] as any,
+    }),
   }),
 });
 
 export const {
   useGetAllSubscriptionsQuery,
   useGetSubscriptionStatisticsQuery,
+  useGetSubscriptionByIdQuery,
 } = adminSubscriptionApi;

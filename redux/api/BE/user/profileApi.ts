@@ -29,6 +29,13 @@ export const profileApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    deleteAccount: builder.mutation<any, void>({
+      query: () => ({
+        url: "/users/me",
+        method: "DELETE",
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -36,5 +43,6 @@ export const {
   useGetProfileQuery, 
   useUploadProfileImageMutation, 
   useUpdateProfileMutation,
-  useChangePasswordMutation 
+  useChangePasswordMutation,
+  useDeleteAccountMutation 
 } = profileApi;

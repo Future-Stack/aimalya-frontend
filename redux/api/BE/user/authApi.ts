@@ -76,6 +76,20 @@ export const authApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+    forgotPassword: builder.mutation<any, { email: string }>({
+      query: (body) => ({
+        url: "/auth/forgot-password",
+        method: "POST",
+        body,
+      }),
+    }),
+    resetPassword: builder.mutation<any, { email: string; code: string; newPassword: string }>({
+      query: (body) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -87,5 +101,7 @@ export const {
   useInitiateGoogleLoginQuery,
   useGoogleLoginCallbackQuery,
   useGetMeQuery,
-  useLazyGetMeQuery
+  useLazyGetMeQuery,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
 } = authApi;

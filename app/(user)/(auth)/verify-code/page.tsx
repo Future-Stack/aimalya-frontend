@@ -5,10 +5,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function VerifyCodePage() {
+import { useSearchParams } from "next/navigation";
+import { useForgotPasswordMutation } from "@/redux/api/BE/user/authApi";
+import { toast } from "react-hot-toast";
+import { Suspense } from "react";
+
+function VerifyCodeContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email") || "your email";
+    
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+    const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+    const [forgotPassword, { isLoading: isResending }] = useForgotPasswordMutation();
 
     useEffect(() => {
         // Focus first input on mount
@@ -17,9 +28,22 @@ export default function VerifyCodePage() {
         }
     }, []);
 
+    useEffect(() => {
+        if (timeLeft <= 0) return;
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => prev - 1);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [timeLeft]);
+
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s < 10 ? "0" : ""}${s}`;
+    };
+
     const handleChange = (index: number, value: string) => {
         if (value.length > 1) {
-            // Handle paste potentially
             value = value.slice(0, 1);
         }
 
@@ -27,7 +51,6 @@ export default function VerifyCodePage() {
         newOtp[index] = value;
         setOtp(newOtp);
 
-        // Move to next input if value is entered
         if (value && index < 5 && inputRefs.current[index + 1]) {
             inputRefs.current[index + 1]?.focus();
         }
@@ -35,15 +58,43 @@ export default function VerifyCodePage() {
 
     const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Backspace" && !otp[index] && index > 0 && inputRefs.current[index - 1]) {
-            // Move to previous input on backspace if current is empty
             inputRefs.current[index - 1]?.focus();
+        }
+    };
+
+    const handlePaste = (e: React.ClipboardEvent) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData("text").trim().slice(0, 6);
+        if (/^\d+$/.test(pastedData)) {
+            const newOtp = [...otp];
+            for (let i = 0; i < pastedData.length; i++) {
+                newOtp[i] = pastedData[i];
+            }
+            setOtp(newOtp);
+            const focusIndex = Math.min(pastedData.length, 5);
+            inputRefs.current[focusIndex]?.focus();
+        }
+    };
+
+    const handleResend = async () => {
+        if (timeLeft > 0 || isResending) return;
+        try {
+            const res = await forgotPassword({ email }).unwrap();
+            toast.success(res?.message || "A new code has been sent!");
+            setTimeLeft(180);
+        } catch (err: any) {
+            toast.error(err?.data?.message || "Failed to resend code");
         }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Verify logic here
-        router.push("/reset-password");
+        const code = otp.join("");
+        if (code.length < 6) {
+            toast.error("Please enter the 6-digit code");
+            return;
+        }
+        router.push(`/reset-password?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`);
     };
 
     return (
@@ -72,12 +123,12 @@ export default function VerifyCodePage() {
                     <p className="text-zinc-500 text-sm sm:text-[15px] max-w-[450px] mx-auto leading-relaxed">
                         We have sent you a 6 digit OTP code to your provided email:
                         <br />
-                        <span className="font-bold text-zinc-800">example@email.com</span> please input that code here to proceed.
+                        <span className="font-bold text-zinc-800">{email}</span> please input that code here to proceed.
                     </p>
                 </div>
 
                 <div className="flex justify-center">
-                    <span className="text-[#FF5B5B] font-bold text-[18px]">2:59</span>
+                    <span className="text-[#FF5B5B] font-bold text-[18px]">{formatTime(timeLeft)}</span>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
@@ -91,14 +142,24 @@ export default function VerifyCodePage() {
                                 value={digit}
                                 onChange={(e) => handleChange(index, e.target.value)}
                                 onKeyDown={(e) => handleKeyDown(index, e)}
+                                onPaste={handlePaste}
                                 className="w-12 h-12 md:w-14 md:h-14 text-center text-xl font-bold bg-slate-50/50 rounded-xl border border-zinc-200 focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all text-zinc-800"
                             />
                         ))}
                     </div>
 
                     <div className="text-center">
-                        <button type="button" className="text-auth-subtitle-color font-bold text-[15px] hover:underline cursor-pointer">
-                            Resend
+                        <button
+                            type="button"
+                            onClick={handleResend}
+                            disabled={timeLeft > 0 || isResending}
+                            className={`font-bold text-[15px] cursor-pointer ${
+                                timeLeft > 0 || isResending
+                                    ? "text-zinc-400 cursor-not-allowed"
+                                    : "text-auth-subtitle-color hover:underline"
+                            }`}
+                        >
+                            {isResending ? "Resending..." : "Resend"}
                         </button>
                     </div>
 
@@ -119,5 +180,13 @@ export default function VerifyCodePage() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function VerifyCodePage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center bg-[#E0F2FE]">Loading...</div>}>
+            <VerifyCodeContent />
+        </Suspense>
     );
 }

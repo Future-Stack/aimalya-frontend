@@ -14,92 +14,40 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Skeleton from "@/components/ui/Skeleton";
-
-// Mock Data
-const initialNotifications = [
-    {
-        id: 1,
-        type: "alert", // critical
-        title: "Rating Drop Detected",
-        message: "Your overall rating decreased from 4.6 to 4.5 in the last 24 hours due to 2 new 2-star reviews.",
-        time: "2 hours ago",
-        unread: true,
-        category: "Alerts"
-    },
-    {
-        id: 2,
-        type: "alert",
-        title: "New Negative Review",
-        message: "You received a 1-star review mentioning \"rude staff\" and \"cold coffee\". Immediate response recommended.",
-        time: "5 hours ago",
-        unread: true,
-        category: "Alerts"
-    },
-    {
-        id: 3,
-        type: "report",
-        title: "Monthly Report Ready",
-        message: "Your January 2026 monthly business intelligence report has been generated and is ready to download.",
-        time: "1 day ago",
-        unread: true,
-        category: "Reports"
-    },
-    {
-        id: 4,
-        type: "info",
-        title: "Competitor Update",
-        message: "Bean & Brew's rating increased to 4.8. They've received 45 new reviews this week.",
-        time: "1 day ago",
-        unread: false,
-        category: "Info"
-    },
-    {
-        id: 5,
-        type: "warning",
-        title: "Response Rate Alert",
-        message: "Your response rate dropped to 68%. You have 15 unanswered reviews from the past week.",
-        time: "2 days ago",
-        unread: false,
-        category: "Alerts"
-    },
-    {
-        id: 6,
-        type: "success",
-        title: "New Positive Trend",
-        message: "Mentions of \"quality coffee\" increased by 23% this month. Great job!",
-        time: "3 days ago",
-        unread: false,
-        category: "Info"
-    },
-    {
-        id: 7,
-        type: "report",
-        title: "Weekly Summary Available",
-        message: "Your weekly performance summary is ready. 52 new reviews analyzed.",
-        time: "5 days ago",
-        unread: false,
-        category: "Reports"
-    },
-    {
-        id: 8,
-        type: "alert",
-        title: "Peak Hour Issue Detected",
-        message: "AI detected increasing complaints about service speed during 11am-1pm. 18 mentions in past week.",
-        time: "1 week ago",
-        unread: false,
-        category: "Alerts"
-    }
-];
+import { useSocket, Notification } from "@/context/SocketContext";
+import { useRouter } from "next/navigation";
 
 const categories = ["All", "Alerts", "Reports", "Info", "Unread"];
 
-export default function NotificationPage() {
-    const [notifications, setNotifications] = useState(initialNotifications);
-    const [activeTab, setActiveTab] = useState("All");
-    const [isLoading, setIsLoading] = useState(false); // Can be linked to real API later
-    const isFetching = false; // Placeholder
+const formatRelativeTime = (isoString: string) => {
+    try {
+        const date = new Date(isoString);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        if (diffMins < 1) return "Just now";
+        if (diffMins < 60) return `${diffMins}m ago`;
+        const diffHours = Math.floor(diffMins / 60);
+        if (diffHours < 24) return `${diffHours}h ago`;
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return date.toLocaleDateString();
+    } catch (e) {
+        return "Recent";
+    }
+};
 
-    const unreadCount = notifications.filter(n => n.unread).length;
+export default function NotificationPage() {
+    const {
+        notifications,
+        unreadCount,
+        markAsRead,
+        markAllRead,
+        clearAll,
+        removeNotification
+    } = useSocket();
+    const [activeTab, setActiveTab] = useState("All");
+    const router = useRouter();
 
     // Filter Logic
     const filteredNotifications = notifications.filter(n => {
@@ -108,21 +56,17 @@ export default function NotificationPage() {
         return n.category === activeTab;
     });
 
-    // Actions
-    const markAllRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
-    };
-
-    const clearAll = () => {
-        setNotifications([]);
-    };
-
-    const markAsRead = (id: number) => {
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, unread: false } : n));
-    };
-
-    const removeNotification = (id: number) => {
-        setNotifications(prev => prev.filter(n => n.id !== id));
+    const handleViewAction = (notification: Notification) => {
+        markAsRead(notification.id);
+        if (notification.type === "report") {
+            router.push("/reports");
+        } else if (notification.type === "alert") {
+            router.push("/dashboard");
+        } else if (notification.type === "success" && notification.title?.includes("Subscription")) {
+            router.push("/settings?tab=billing");
+        } else {
+            router.push("/dashboard");
+        }
     };
 
     // Helper to get icon and styles based on type
@@ -150,13 +94,13 @@ export default function NotificationPage() {
                     border: "border-orange-100",
                     iconRaw: TrendingDown,
                     iconColor: "text-orange-500",
-                    btn: "bg-blue-600 hover:bg-blue-700" // Standard btn
+                    btn: "bg-blue-600 hover:bg-blue-700"
                 };
             case "success":
                 return {
                     bg: "bg-white",
                     border: "border-gray-100",
-                    iconRaw: Star, // Or TrendingUp
+                    iconRaw: Star,
                     iconColor: "text-green-500",
                     btn: "bg-blue-600 hover:bg-blue-700"
                 };
@@ -164,8 +108,8 @@ export default function NotificationPage() {
                 return {
                     bg: "bg-white",
                     border: "border-gray-100",
-                    iconRaw: Info, // or Star if competitor update
-                    iconColor: "text-green-500", // As per image green star
+                    iconRaw: Info,
+                    iconColor: "text-green-500",
                     btn: "bg-blue-600 hover:bg-blue-700"
                 };
             default:
@@ -225,26 +169,10 @@ export default function NotificationPage() {
 
             {/* Notification List */}
             <div className="space-y-3">
-                {isLoading || isFetching ? (
-                    <>
-                        {[...Array(5)].map((_, i) => (
-                            <div key={i} className="p-5 bg-white rounded-2xl border border-gray-100 space-y-3">
-                                <div className="flex items-start gap-4">
-                                    <Skeleton className="size-5 rounded shrink-0" />
-                                    <div className="flex-1 space-y-2">
-                                        <Skeleton className="h-4 w-1/3" />
-                                        <Skeleton className="h-4 w-full" />
-                                        <Skeleton className="h-3 w-20" />
-                                    </div>
-                                    <Skeleton className="h-8 w-24 rounded-lg shrink-0" />
-                                </div>
-                            </div>
-                        ))}
-                    </>
-                ) : filteredNotifications.length > 0 ? (
+                {filteredNotifications.length > 0 ? (
                     filteredNotifications.map((notification) => {
                         const style = getNotificationStyle(notification.type);
-                        const Icon = style.iconRaw; // Assuming simple conditional logic for icons above is enough for mock
+                        const Icon = style.iconRaw;
 
                         return (
                             <div
@@ -271,19 +199,25 @@ export default function NotificationPage() {
                                         </p>
                                         <div className="flex items-center gap-2 mt-3">
                                             <Clock className="size-3.5 text-gray-400" />
-                                            <span className="text-xs text-gray-400 font-medium">{notification.time}</span>
+                                            <span className="text-xs text-gray-400 font-medium">
+                                                {formatRelativeTime(notification.time)}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    {/* Actions - Visible on hover or always on desktop? Design shows buttons. */}
+                                    {/* Actions */}
                                     <div className="flex items-center gap-3 shrink-0 self-end md:self-center mt-4 md:mt-0 ml-auto md:ml-0">
-                                        {/* "View Details" or "View Report" button */}
-                                        <button className={cn(
-                                            "px-4 py-1.5 text-xs font-semibold text-white rounded-lg transition-colors shadow-sm cursor-pointer",
-                                            style.btn
-                                        )}>
-                                            {notification.type === 'report' ? 'View Report' : 'View Details'}
-                                        </button>
+                                        {notification.type === 'report' && (
+                                            <button
+                                                onClick={() => handleViewAction(notification)}
+                                                className={cn(
+                                                    "px-4 py-1.5 text-xs font-semibold text-white rounded-lg transition-colors shadow-sm cursor-pointer",
+                                                    style.btn
+                                                )}
+                                            >
+                                                View Report
+                                            </button>
+                                        )}
 
                                         {notification.unread && (
                                             <button

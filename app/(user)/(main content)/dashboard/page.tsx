@@ -75,6 +75,45 @@ export default function DashboardPage() {
 
     const paymentToastShown = React.useRef(false);
 
+    // Save Google OAuth tokens if present in URL
+    React.useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const accessToken = params.get('accessToken');
+            const refreshToken = params.get('refreshToken');
+            const userStr = params.get('user');
+            const subscriptionParams = params.get('subscription');
+            
+            let updated = false;
+
+            if (accessToken) {
+                Cookies.set('accessToken', accessToken, { expires: 7 });
+                updated = true;
+            }
+            if (refreshToken) {
+                Cookies.set('refreshToken', refreshToken, { expires: 7 });
+                updated = true;
+            }
+            if (userStr) {
+                Cookies.set('user', userStr, { expires: 7 });
+                updated = true;
+            }
+            if (subscriptionParams) {
+                try {
+                    const encodedSub = btoa(subscriptionParams);
+                    Cookies.set('subscription', encodedSub, { expires: 7 });
+                } catch (e) {
+                    Cookies.set('subscription', subscriptionParams, { expires: 7 });
+                }
+                updated = true;
+            }
+
+            if (updated) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+    }, []);
+
     React.useEffect(() => {
         if ((searchParams.get("success") === "true" || searchParams.get("session_id")) && !paymentToastShown.current) {
             paymentToastShown.current = true;
@@ -171,7 +210,7 @@ export default function DashboardPage() {
                 {/* Stats Cards Skeleton */}
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                     {[...Array(3)].map((_, i) => (
-                        <div key={i} className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                        <div key={i} className="p-6 user-card rounded-2xl space-y-4">
                             <div className="flex justify-between items-start">
                                 <div className="space-y-2">
                                     <Skeleton className="h-4 w-24" />
@@ -185,7 +224,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Chart Skeleton */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="user-card p-6 rounded-2xl">
                     <div className="flex items-center justify-between mb-6">
                         <Skeleton className="h-6 w-32" />
                         <Skeleton className="h-8 w-24" />
@@ -194,7 +233,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Performance Criteria Skeleton */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+                <div className="user-card p-6 rounded-2xl space-y-6">
                     <Skeleton className="h-6 w-48 mb-6" />
                     {[...Array(5)].map((_, i) => (
                         <div key={i} className="grid grid-cols-[100px_1fr_60px_80px] gap-4 items-center">
@@ -213,7 +252,7 @@ export default function DashboardPage() {
         <div className="space-y-8 pb-8">
             {/* Upgrade Banner */}
             {isNonePlan && isBannerVisible && (
-                <div className="bg-[#0066FF] rounded-3xl p-8 text-white shadow-2xl shadow-blue-100 flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden group">
+                <div className="bg-[#22D3EE] rounded-3xl p-8 text-white shadow-2xl shadow-cyan-100 flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden group">
                     {/* Abstract Shapes */}
                     <div className="absolute top-0 right-0 -mt-12 -mr-12 size-48 bg-white/10 rounded-full blur-3xl" />
                     <div className="absolute bottom-0 left-0 -mb-12 -ml-12 size-32 bg-white/10 rounded-full blur-2xl" />
@@ -231,7 +270,7 @@ export default function DashboardPage() {
                         </div>
                         <div>
                             <h2 className="text-2xl font-black tracking-tight">Upgrade to Premium</h2>
-                            <p className="text-blue-50 text-sm mt-2 max-w-lg font-medium opacity-90">
+                            <p className="text-cyan-50 text-sm mt-2 max-w-lg font-medium opacity-90">
                                 You are currently exploring Aimalya on the Free plan. Unlock unlimited locations, detailed AI competitor analysis, and priority support today!
                             </p>
                         </div>
@@ -239,7 +278,7 @@ export default function DashboardPage() {
 
                     <Link
                         href="/pricing"
-                        className="bg-white text-[#0066FF] px-10 py-4 rounded-2xl font-black text-sm hover:bg-blue-50 transition-all hover:scale-105 hover:shadow-xl shadow-lg relative z-10 cursor-pointer whitespace-nowrap"
+                        className="bg-white text-[#0891B2] px-10 py-4 rounded-2xl font-black text-sm hover:bg-cyan-50 transition-all hover:scale-105 hover:shadow-xl shadow-lg relative z-10 cursor-pointer whitespace-nowrap"
                     >
                         View Upgrade Plans
                     </Link>
@@ -255,7 +294,7 @@ export default function DashboardPage() {
             {/* Stats Cards */}
             <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                 {/* Overall Rating */}
-                <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="p-6 user-card rounded-2xl">
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-sm font-medium text-gray-500">Overall Rating</p>
@@ -269,7 +308,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Satisfaction Index */}
-                <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="p-6 user-card rounded-2xl">
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-sm font-medium text-gray-500">Satisfaction Index</p>
@@ -283,7 +322,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Review Volume */}
-                <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="p-6 user-card rounded-2xl">
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="text-sm font-medium text-gray-500">Review Volume</p>
@@ -314,7 +353,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Sentiment Trend Chart */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="user-card p-6 rounded-2xl">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-semibold text-gray-900">Sentiment Trend</h3>
 
@@ -406,7 +445,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Performance by Criteria */}
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="user-card p-6 rounded-2xl">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Performance by Criteria</h3>
                 <div className="space-y-6">
                     {(performanceCriteria ? Object.entries(performanceCriteria) : performanceData.map(d => [d.label, { score: d.value, growth: { display: d.change, direction: d.change.startsWith("+") ? "up" : "down" } }])).map(([label, data]: any) => (
@@ -435,7 +474,7 @@ export default function DashboardPage() {
             {/* Bottom Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Key Issues */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="user-card p-6 rounded-2xl">
                     <div className="flex items-center gap-2 mb-6">
                         <AlertCircle className="size-5 text-red-500" />
                         <h3 className="text-lg font-semibold text-gray-900">Key Issues</h3>
@@ -462,7 +501,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Key Strengths */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="user-card p-6 rounded-2xl">
                     <div className="flex items-center gap-2 mb-6">
                         <CheckCircle className="size-5 text-green-500" />
                         <h3 className="text-lg font-semibold text-gray-900">Key Strengths</h3>

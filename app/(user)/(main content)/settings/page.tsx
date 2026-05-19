@@ -33,14 +33,17 @@ import {
 import { cn } from "@/lib/utils";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import Image from "next/image";
-import { useGetProfileQuery, useUploadProfileImageMutation, useUpdateProfileMutation, useChangePasswordMutation } from "@/redux/api/BE/user/profileApi";
+import { useGetProfileQuery, useUploadProfileImageMutation, useUpdateProfileMutation, useChangePasswordMutation, useDeleteAccountMutation } from "@/redux/api/BE/user/profileApi";
 import { useGetBusinessProfileQuery, useUpdateBusinessProfileMutation } from "@/redux/api/AI/businessSettingsApi";
 import { getUserIdFromToken } from "@/utils/authUtils";
 import { useLoginMutation } from "@/redux/api/BE/user/authApi";
+import { useAuth } from "@/hooks/useAuth";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast"; // Assuming toast is used for notifications
 import { Loader2, Camera } from "lucide-react";
 import Skeleton from "@/components/ui/Skeleton";
+import { useGetNotificationSettingsQuery, useUpdateNotificationSettingsMutation } from "@/redux/api/BE/user/notificationApi";
+import { useGetMyBillingQuery } from "@/redux/api/BE/user/settingsApi";
 
 import { useGetReviewsQuery, useCreateReviewMutation, useUpdateReviewMutation } from "@/redux/api/BE/reviewsApi";
 
@@ -203,7 +206,65 @@ const ChangePasswordModal = ({ isOpen, onClose, email }: { isOpen: boolean, onCl
 
 const DeleteAccountModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const [confirmText, setConfirmText] = useState("");
+    const [showConfirmStep, setShowConfirmStep] = useState(false);
+    const [deleteAccount, { isLoading }] = useDeleteAccountMutation();
+    const { logout } = useAuth();
+
+    useEffect(() => {
+        if (!isOpen) {
+            setConfirmText("");
+            setShowConfirmStep(false);
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
+
+    const handleDelete = async () => {
+        try {
+            await deleteAccount().unwrap();
+            toast.success("Account and associated data successfully deleted");
+            logout("/login");
+        } catch (err: any) {
+            console.error("Failed to delete account:", err);
+            toast.error(err?.data?.message || "Failed to delete account. Please try again.");
+        }
+    };
+
+    if (showConfirmStep) {
+        return (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+                <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+                    <div className="p-8 text-center space-y-6">
+                        <div className="size-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                            <AlertTriangle className="size-8 text-red-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-900">Are you absolutely sure?</h3>
+                            <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                                This is your final warning. Once deleted, all your data is gone forever.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="p-6 bg-red-50 flex gap-3">
+                        <button
+                            disabled={isLoading}
+                            onClick={() => setShowConfirmStep(false)}
+                            className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+                        >
+                            Go Back
+                        </button>
+                        <button
+                            disabled={isLoading}
+                            onClick={handleDelete}
+                            className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                        >
+                            {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Yes, Delete"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
@@ -237,14 +298,15 @@ const DeleteAccountModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                 <div className="p-6 bg-red-50 flex gap-3">
                     <button
                         onClick={onClose}
-                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
+                        disabled={isLoading}
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
                     >
                         Cancel
                     </button>
                     <button
-                        disabled={confirmText !== "DELETE"}
-                        onClick={onClose}
-                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={confirmText !== "DELETE" || isLoading}
+                        onClick={() => setShowConfirmStep(true)}
+                        className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         Delete Permanently
                     </button>
@@ -358,7 +420,7 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
     if (isLoading) {
         return (
             <div className="space-y-8">
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 space-y-6">
+                <div className="user-card p-6 rounded-2xl space-y-6">
                     <div className="flex items-center gap-6 pb-6 border-b border-gray-100">
                         <Skeleton className="size-24 rounded-full" />
                         <div className="space-y-2">
@@ -383,7 +445,7 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
         <div className="space-y-8 animate-fadeIn">
             <div>
                 <h2 className="text-xl font-bold text-gray-900">Account Settings</h2>
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 mt-4 space-y-6">
+                <div className="user-card p-6 rounded-2xl mt-4 space-y-6">
                     {/* Profile Image Upload */}
                     <div className="flex flex-col items-center sm:flex-row gap-6 pb-6 border-b border-gray-100">
                         <div className="relative group">
@@ -585,7 +647,7 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
         <div className="space-y-8 animate-fadeIn">
             <div>
                 <h2 className="text-xl font-bold text-gray-900">Business Settings</h2>
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 mt-4 space-y-6">
+                <div className="user-card p-6 rounded-2xl mt-4 space-y-6">
                     {/* Business Name */}
                     <div className="space-y-1">
                         <label className="text-sm font-medium text-gray-700">Business Name</label>
@@ -736,7 +798,7 @@ const IntegrationsSettings = () => {
             <h2 className="text-xl font-bold text-gray-900">Integrations</h2>
 
             {/* Google */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="user-card p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                     <div className="size-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                         {/* Placeholder for Google Logo */}
@@ -821,7 +883,7 @@ const NotificationItem = ({
         </div>
         <div className={cn(
             "relative w-11 h-6 transition-colors duration-200 ease-in-out bg-gray-200 rounded-full cursor-pointer",
-            isActive ? "bg-blue-600" : "bg-gray-200"
+            isActive ? "bg-[#22D3EE]" : "bg-gray-200"
         )}>
             <div className={cn(
                 "absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out shadow-sm",
@@ -832,22 +894,57 @@ const NotificationItem = ({
 );
 
 const NotificationSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => {
+    const { data: settingsData, isLoading } = useGetNotificationSettingsQuery();
+    const [updateSettings, { isLoading: isUpdating }] = useUpdateNotificationSettingsMutation();
+    
     const [preferences, setPreferences] = useState({
-        monthlyReports: true,
-        importantAlerts: true,
-        weeklySummary: false,
-        newReview: true,
-        ratingDrop: true,
-        reportReady: true,
+        emailMonthlyReports: true,
+        emailImportantAlerts: true,
+        emailWeeklySummary: false,
+        inAppNegativeReview: true,
+        inAppRatingDrop: true,
+        inAppMonthlyReport: true,
     });
+
+    useEffect(() => {
+        if (settingsData?.data) {
+            setPreferences({
+                emailMonthlyReports: settingsData.data.emailMonthlyReports ?? true,
+                emailImportantAlerts: settingsData.data.emailImportantAlerts ?? true,
+                emailWeeklySummary: settingsData.data.emailWeeklySummary ?? false,
+                inAppNegativeReview: settingsData.data.inAppNegativeReview ?? true,
+                inAppRatingDrop: settingsData.data.inAppRatingDrop ?? true,
+                inAppMonthlyReport: settingsData.data.inAppMonthlyReport ?? true,
+            });
+        }
+    }, [settingsData]);
 
     const handleToggle = (key: keyof typeof preferences) => {
         setPreferences(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
-    const handleSave = () => {
-        console.log("Notification preferences saved:", preferences);
+    const handleSave = async () => {
+        try {
+            await updateSettings(preferences).unwrap();
+            toast.success("Notification preferences saved successfully!");
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to save preferences. Please try again.");
+            console.error("Failed to update notification settings", error);
+        }
     };
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8 animate-fadeIn">
+                <Skeleton className="h-8 w-48" />
+                <div className="space-y-4">
+                    <Skeleton className="h-6 w-32" />
+                    <Skeleton className="h-20 w-full rounded-xl" />
+                    <Skeleton className="h-20 w-full rounded-xl" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8 animate-fadeIn">
@@ -860,20 +957,20 @@ const NotificationSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">)
                         <NotificationItem
                             title="Monthly Reports"
                             description="Receive monthly business intelligence reports"
-                            isActive={preferences.monthlyReports}
-                            onToggle={() => handleToggle("monthlyReports")}
+                            isActive={preferences.emailMonthlyReports}
+                            onToggle={() => handleToggle("emailMonthlyReports")}
                         />
                         <NotificationItem
                             title="Important Alerts"
                             description="Rating drops, negative review spikes"
-                            isActive={preferences.importantAlerts}
-                            onToggle={() => handleToggle("importantAlerts")}
+                            isActive={preferences.emailImportantAlerts}
+                            onToggle={() => handleToggle("emailImportantAlerts")}
                         />
                         <NotificationItem
                             title="Weekly Summary"
                             description="Quick overview of the week's performance"
-                            isActive={preferences.weeklySummary}
-                            onToggle={() => handleToggle("weeklySummary")}
+                            isActive={preferences.emailWeeklySummary}
+                            onToggle={() => handleToggle("emailWeeklySummary")}
                         />
                     </div>
                 </div>
@@ -884,31 +981,32 @@ const NotificationSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">)
                         <NotificationItem
                             title="New Negative Review"
                             description="Get notified immediately of 1-2 star reviews"
-                            isActive={preferences.newReview}
-                            onToggle={() => handleToggle("newReview")}
+                            isActive={preferences.inAppNegativeReview}
+                            onToggle={() => handleToggle("inAppNegativeReview")}
                         />
                         <NotificationItem
                             title="Rating Drop"
                             description="Alert when your overall rating decreases"
-                            isActive={preferences.ratingDrop}
-                            onToggle={() => handleToggle("ratingDrop")}
+                            isActive={preferences.inAppRatingDrop}
+                            onToggle={() => handleToggle("inAppRatingDrop")}
                         />
                         <NotificationItem
                             title="Monthly Report Ready"
                             description="Notify when new monthly report is generated"
-                            isActive={preferences.reportReady}
-                            onToggle={() => handleToggle("reportReady")}
+                            isActive={preferences.inAppMonthlyReport}
+                            onToggle={() => handleToggle("inAppMonthlyReport")}
                         />
                     </div>
                 </div>
             </div>
             <div className="flex justify-end pt-4">
                 <button
+                    disabled={isUpdating}
                     onClick={() => onOpenSave(handleSave)}
-                    className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all"
+                    className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[#22D3EE] rounded-xl hover:bg-[#06B6D4] shadow-md shadow-[#22D3EE]/20 transition-all disabled:opacity-50"
                 >
-                    <Save className="size-4" />
-                    Save Preferences
+                    {isUpdating ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                    {isUpdating ? "Saving..." : "Save Preferences"}
                 </button>
             </div>
         </div>
@@ -918,6 +1016,63 @@ const NotificationSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">)
 
 // 5. Billing Settings
 const BillingSettings = () => {
+    const { data: billingData, isLoading } = useGetMyBillingQuery();
+    const billingInfo = billingData?.data;
+    const currentPlan = billingInfo?.currentPlan;
+    const usage = billingInfo?.usage;
+    const billingHistory = billingInfo?.billingHistory || [];
+
+    const formatDate = (dateStr: string) => {
+        try {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const formatAmount = (amount: number) => {
+        return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
+    };
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8 animate-fadeIn">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-32 w-full rounded-2xl" />
+                <Skeleton className="h-40 w-full rounded-xl" />
+            </div>
+        );
+    }
+
+    // Determine plan info
+    const planName = currentPlan || "Free Tier";
+    let planPrice = "$0";
+    let planPeriod = "per month";
+    let planDesc = "Up to 1 location, 100 reviews";
+
+    if (planName.toUpperCase() === "STARTER") {
+        planPrice = "$49";
+        planDesc = "Up to 1 location, 500 reviews";
+    } else if (planName.toUpperCase() === "PROFESSIONAL") {
+        planPrice = "$149";
+        planDesc = "Up to 5 locations, unlimited reviews";
+    } else if (planName.toUpperCase() === "ENTERPRISE") {
+        planPrice = "Custom";
+        planPeriod = "custom pricing";
+        planDesc = "Unlimited locations and reviews";
+    }
+
+    const locationUsed = usage?.locations?.used ?? 0;
+    const locationLimit = usage?.locations?.limit ?? 1;
+    const isLocationUnlimited = typeof locationLimit === 'string' && locationLimit.toLowerCase() === 'unlimited';
+    const locationPercent = isLocationUnlimited ? 100 : Math.min(100, (locationUsed / (Number(locationLimit) || 1)) * 100);
+
+    const reviewUsed = usage?.reviews?.used ?? 0;
+    const reviewLimit = usage?.reviews?.limit ?? 100;
+    const isReviewUnlimited = typeof reviewLimit === 'string' && reviewLimit.toLowerCase() === 'unlimited';
+    const reviewPercent = isReviewUnlimited ? 100 : Math.min(100, (reviewUsed / (Number(reviewLimit) || 1)) * 100);
+
     return (
         <div className="space-y-8 animate-fadeIn">
             <div>
@@ -928,9 +1083,9 @@ const BillingSettings = () => {
                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <div className="flex items-baseline gap-2">
-                                <span className="text-xl font-bold text-gray-900">Professional</span>
+                                <span className="text-xl font-bold text-gray-900 capitalize">{planName.toLowerCase()}</span>
                             </div>
-                            <p className="text-sm text-gray-500 mt-1">Up to 5 locations, unlimited reviews</p>
+                            <p className="text-sm text-gray-500 mt-1">{planDesc}</p>
                             <div className="flex items-center gap-3 mt-4">
                                 <button className="cursor-pointer px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                                     Upgrade Plan
@@ -941,8 +1096,8 @@ const BillingSettings = () => {
                             </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-3xl font-bold text-gray-900">$149</div>
-                            <div className="text-xs text-gray-500">per month</div>
+                            <div className="text-3xl font-bold text-gray-900">{planPrice}</div>
+                            <div className="text-xs text-gray-500">{planPeriod}</div>
                         </div>
                     </div>
                 </div>
@@ -954,20 +1109,20 @@ const BillingSettings = () => {
                         <div>
                             <div className="flex justify-between text-xs font-medium text-gray-600 mb-2">
                                 <span>Locations</span>
-                                <span>1 / 5</span>
+                                <span>{locationUsed} / {locationLimit}</span>
                             </div>
                             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-blue-600 w-1/5 rounded-full" />
+                                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${locationPercent}%` }} />
                             </div>
                         </div>
 
                         <div>
                             <div className="flex justify-between text-xs font-medium text-gray-600 mb-2">
                                 <span>Reviews This Month</span>
-                                <span>234 / Unlimited</span>
+                                <span>{reviewUsed} / {reviewLimit}</span>
                             </div>
                             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-green-500 w-full rounded-full" />
+                                <div className="h-full bg-green-500 rounded-full" style={{ width: `${reviewPercent}%` }} />
                             </div>
                         </div>
                     </div>
@@ -993,26 +1148,33 @@ const BillingSettings = () => {
 
                 <div className="mt-8">
                     <h3 className="text-sm font-bold text-gray-900 mb-4">Billing History</h3>
-                    <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100 bg-white">
-                        {[
-                            { date: "Jan 1, 2026", amount: "$149.00", status: "Paid" },
-                            { date: "Dec 1, 2025", amount: "$149.00", status: "Paid" },
-                            { date: "Nov 1, 2025", amount: "$149.00", status: "Paid" }
-                        ].map((invoice, i) => (
-                            <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-sm text-gray-600 font-medium w-24">{invoice.date}</span>
-                                    <span className="text-sm font-bold text-gray-900">{invoice.amount}</span>
-                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 uppercase tracking-wide">
-                                        {invoice.status}
-                                    </span>
+                    {billingHistory.length === 0 ? (
+                        <div className="text-center py-8 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                            <p className="text-sm text-gray-500">No invoice or billing history found.</p>
+                        </div>
+                    ) : (
+                        <div className="border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-100 bg-white">
+                            {billingHistory.map((invoice: any, i: number) => (
+                                <div key={i} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm text-gray-600 font-medium w-28">{formatDate(invoice.date)}</span>
+                                        <span className="text-sm font-bold text-gray-900">{formatAmount(invoice.amount)}</span>
+                                        <span className={cn(
+                                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide",
+                                            invoice.status?.toLowerCase() === "paid" 
+                                                ? "bg-green-100 text-green-700" 
+                                                : "bg-amber-100 text-amber-700"
+                                        )}>
+                                            {invoice.status}
+                                        </span>
+                                    </div>
+                                    <button className="cursor-pointer text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
+                                        Download
+                                    </button>
                                 </div>
-                                <button className="cursor-pointer text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
-                                    Download
-                                </button>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -1404,7 +1566,7 @@ export default function SettingsPage() {
             <div className="flex flex-col md:flex-row gap-8 items-start">
                 {/* Sidebar */}
                 <div className="w-full md:w-64 shrink-0 space-y-1">
-                    <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm sticky top-6">
+                    <div className="user-card rounded-2xl p-4 sticky top-6">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             const isActive = activeTab === tab.id;
@@ -1415,7 +1577,7 @@ export default function SettingsPage() {
                                     className={cn(
                                         "cursor-pointer w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 mb-3",
                                         isActive
-                                            ? "bg-blue-600 text-white shadow-md shadow-blue-600/20 translate-x-1"
+                                            ? "bg-[#22D3EE] text-white shadow-md shadow-[#22D3EE]/20 translate-x-1"
                                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                                     )}
                                 >
@@ -1429,7 +1591,7 @@ export default function SettingsPage() {
 
                 {/* Content Area */}
                 <div className="flex-1 min-w-0 w-full">
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8 min-h-[600px]">
+                    <div className="user-card rounded-2xl p-6 md:p-8 min-h-[600px]">
                         {renderContent()}
                     </div>
                 </div>

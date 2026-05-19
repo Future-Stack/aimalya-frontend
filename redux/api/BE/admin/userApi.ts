@@ -40,6 +40,14 @@ export const userApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    suspendUser: builder.mutation<any, { id: string; suspend: boolean }>({
+      query: ({ id, suspend }) => ({
+        url: `/users/${id}/suspend`,
+        method: "PATCH",
+        body: { suspend },
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -48,4 +56,5 @@ export const {
   useGetUserStatisticsQuery,
   useGetUserByIdQuery,
   useDeleteUserMutation,
+  useSuspendUserMutation,
 } = userApi;

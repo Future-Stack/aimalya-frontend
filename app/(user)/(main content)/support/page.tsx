@@ -170,26 +170,26 @@ export default function SupportPage() {
                 <div className="flex-1 space-y-6">
                     {/* Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="user-card p-5 rounded-2xl">
                             <p className="font-semibold text-gray-900 text-sm">Total Tickets</p>
                             <h2 className="text-2xl font-bold text-gray-900 mt-3">{stats.totalTickets}</h2>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="user-card p-5 rounded-2xl">
                             <p className="font-semibold text-gray-900 text-sm">Open</p>
                             <h2 className="text-2xl font-bold text-blue-600 mt-3">{stats.open}</h2>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="user-card p-5 rounded-2xl">
                             <p className="font-semibold text-gray-900 text-sm">In Progress</p>
                             <h2 className="text-2xl font-bold text-amber-500 mt-3">{stats.inProgress}</h2>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div className="user-card p-5 rounded-2xl">
                             <p className="font-semibold text-gray-900 text-sm">Resolved</p>
                             <h2 className="text-2xl font-bold text-green-500 mt-3">{stats.resolved}</h2>
                         </div>
                     </div>
 
                     {/* Filters */}
-                    <div className="flex flex-col sm:flex-row gap-4 bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="flex flex-col sm:flex-row gap-4 user-card p-2 rounded-xl">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                             <input
@@ -208,7 +208,7 @@ export default function SupportPage() {
                         {isLoading || isFetching ? (
                             <>
                                 {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 space-y-4">
+                                    <div key={i} className="user-card p-6 rounded-2xl space-y-4">
                                         <div className="flex items-center gap-2">
                                             <Skeleton className="h-4 w-16" />
                                             <Skeleton className="h-4 w-20" />
@@ -283,7 +283,7 @@ export default function SupportPage() {
                                 </div>
                             ))
                         ) : (
-                            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 border-dashed">
+                            <div className="flex flex-col items-center justify-center py-20 user-card rounded-2xl border-dashed">
                                 <p className="text-gray-500 font-medium">No tickets found.</p>
                             </div>
                         )}

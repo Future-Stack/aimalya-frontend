@@ -5,13 +5,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { useForgotPasswordMutation } from "@/redux/api/BE/user/authApi";
+import { toast } from "react-hot-toast";
+
 export default function ForgotPasswordPage() {
     const router = useRouter();
+    const [email, setEmail] = React.useState("");
+    const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, you would send the OTP to the email here
-        router.push("/verify-code");
+        try {
+            const res = await forgotPassword({ email }).unwrap();
+            toast.success(res?.message || "Password reset code sent to your email");
+            router.push(`/verify-code?email=${encodeURIComponent(email)}`);
+        } catch (err: any) {
+            console.error("Error requesting reset code:", err);
+            const errorMessage = err?.data?.message || err?.message || "Something went wrong. Please try again.";
+            toast.error(errorMessage);
+        }
     };
 
     return (
@@ -50,10 +62,12 @@ export default function ForgotPasswordPage() {
                             type="email"
                             placeholder="e.g. example@email.com"
                             required
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className="w-full bg-slate-50/50 h-12 rounded-xl px-4 text-[15px] border border-zinc-200 focus:border-auth-subtitle-color focus:ring focus:ring-auth-subtitle-color outline-none transition-all placeholder:text-zinc-400"
                         />
                     </div>
-
+ 
                     <div className="grid grid-cols-2 gap-4">
                         <Link
                             href="/login"
@@ -63,9 +77,10 @@ export default function ForgotPasswordPage() {
                         </Link>
                         <button
                             type="submit"
-                            className="cursor-pointer w-full h-12 bg-auth-subtitle-color hover:bg-cyan-300 text-white rounded-xl font-bold text-[15px] transition-all shadow-lg shadow-blue-200"
+                            disabled={isLoading}
+                            className="cursor-pointer w-full h-12 bg-auth-subtitle-color hover:bg-cyan-300 text-white rounded-xl font-bold text-[15px] transition-all shadow-lg shadow-blue-200 disabled:opacity-50"
                         >
-                            Send OTP
+                            {isLoading ? "Sending..." : "Send OTP"}
                         </button>
                     </div>
                 </form>

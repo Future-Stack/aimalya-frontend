@@ -11,8 +11,11 @@ import {
 } from "lucide-react";
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import { useFetchBusinessDataMutation } from "@/redux/api/AI/signupflowApi";
-import { getUserIdFromToken } from "@/utils/authUtils";
+import { useGetBusinessNamesQuery } from "@/redux/api/AI/nameFatchingApi";
+import { getUserIdFromToken, getSubscriptionFromCookie } from "@/utils/authUtils";
 import { toast } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setSelectedBusiness, setSelectedLocation, setSelectedAddress } from "@/redux/slices/businessSlice";
 
 interface Location {
     id: string;
@@ -38,8 +41,25 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
     ]);
 
     const [fetchBusinessData, { isLoading }] = useFetchBusinessDataMutation();
+    const dispatch = useDispatch();
+
+    const userId = getUserIdFromToken();
+    const { data: namesData } = useGetBusinessNamesQuery(userId || "", {
+        skip: !userId,
+    });
 
     const addBusiness = () => {
+        const subscriptionToken = getSubscriptionFromCookie();
+        const limit = Number(subscriptionToken?.business || 1);
+        
+        const existingNames = namesData?.business_names || [];
+        const uniqueNamesCount = new Set(existingNames).size;
+        
+        if (uniqueNamesCount + businesses.length >= limit) {
+            toast.error(`You have reached your limit of ${limit} business(es). Upgrade to add more.`);
+            return;
+        }
+
         setBusinesses([...businesses, { 
             id: Date.now().toString(), 
             name: '', 
@@ -49,6 +69,12 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
     };
 
     const addLocation = (bizIndex: number) => {
+        const subscriptionToken = getSubscriptionFromCookie();
+        const limit = Number(subscriptionToken?.location || 1);
+        if (businesses[bizIndex].locations.length >= limit) {
+            toast.error(`You have reached your limit of ${limit} location(s) for this business.`);
+            return;
+        }
         const newBusinesses = [...businesses];
         newBusinesses[bizIndex].locations.push({ id: Date.now().toString(), name: '', address: '' });
         setBusinesses(newBusinesses);
@@ -117,6 +143,17 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
         try {
             await fetchBusinessData(payload).unwrap();
             toast.success("Businesses added successfully!");
+            
+            // Auto select the newly added business and location
+            if (businesses.length > 0) {
+                const addedBiz = businesses[businesses.length - 1];
+                dispatch(setSelectedBusiness(addedBiz.name));
+                if (addedBiz.locations.length > 0) {
+                    dispatch(setSelectedLocation(addedBiz.locations[0].name));
+                    dispatch(setSelectedAddress(addedBiz.locations[0].address));
+                }
+            }
+
             onClose();
             setBusinesses([{ id: Date.now().toString(), name: '', category: '', locations: [{ id: Date.now().toString() + 'l1', name: '', address: '' }] }]);
         } catch (err: any) {

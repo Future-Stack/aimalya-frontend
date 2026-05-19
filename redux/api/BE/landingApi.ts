@@ -21,6 +21,13 @@ export interface SystemSettingsResponse {
   data: SystemSettings;
 }
 
+export interface ContactInquiryPayload {
+  name: string;
+  email: string;
+  subject: string;
+  description: string;
+}
+
 export const landingApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getSystemSettings: builder.query<SystemSettingsResponse, void>({
@@ -30,7 +37,14 @@ export const landingApi = baseApi.injectEndpoints({
         params: { sortOrder: "asc" },
       }),
     }),
+    contactUs: builder.mutation<any, ContactInquiryPayload>({
+      query: (body) => ({
+        url: "/contact-us",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
-export const { useGetSystemSettingsQuery } = landingApi;
+export const { useGetSystemSettingsQuery, useContactUsMutation } = landingApi;

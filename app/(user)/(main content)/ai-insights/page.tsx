@@ -81,11 +81,11 @@ export default function AIInsightsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm min-h-[400px]">
+                    <div className="user-card p-6 rounded-3xl min-h-[400px]">
                         <Skeleton className="h-6 w-48 mb-6" />
                         <Skeleton className="h-[300px] w-full" />
                     </div>
-                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                    <div className="user-card p-6 rounded-3xl space-y-4">
                         <Skeleton className="h-6 w-32 mb-6" />
                         {[...Array(3)].map((_, i) => (
                             <Skeleton key={i} className="h-24 w-full rounded-2xl" />
@@ -99,7 +99,7 @@ export default function AIInsightsPage() {
                         <Skeleton className="h-4 w-16" />
                     </div>
                     {[...Array(2)].map((_, i) => (
-                        <div key={i} className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+                        <div key={i} className="user-card p-8 rounded-3xl space-y-6">
                             <div className="flex gap-4">
                                 <Skeleton className="h-6 w-1/2" />
                                 <Skeleton className="h-6 w-24 rounded-full" />
@@ -208,7 +208,7 @@ export default function AIInsightsPage() {
             {/* Performance & Quick Insights Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Radar Chart */}
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm min-h-[400px]">
+                <div className="user-card p-6 rounded-3xl min-h-[400px]">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">Performance by Category</h3>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -233,7 +233,7 @@ export default function AIInsightsPage() {
                 </div>
 
                 {/* Quick Insights */}
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                <div className="user-card p-6 rounded-3xl space-y-4">
                     <h3 className="text-lg font-bold text-gray-900 mb-2">Quick Insights</h3>
 
                     {/* Love */}
@@ -274,7 +274,7 @@ export default function AIInsightsPage() {
             {/* Trends Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Emerging Trends */}
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <div className="user-card p-6 rounded-3xl">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">Emerging Trends</h3>
                     <div className="space-y-3">
                         {insights.emerging_trends?.map((trend, i) => (
@@ -287,7 +287,7 @@ export default function AIInsightsPage() {
                 </div>
 
                 {/* Declining Areas */}
-                <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <div className="user-card p-6 rounded-3xl">
                     <h3 className="text-lg font-bold text-gray-900 mb-6">Declining Areas</h3>
                     <div className="space-y-3">
                         {insights.declining_areas?.map((area, i) => (
@@ -318,7 +318,7 @@ export default function AIInsightsPage() {
                 </div>
 
                 {recommendations?.map((plan, i) => (
-                    <div key={i} className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+                    <div key={i} className="user-card p-6 md:p-8 rounded-3xl">
                         <div className="flex items-center gap-4 mb-4">
                             <h4 className="text-lg font-bold text-gray-900">{plan.title}</h4>
                             <span className={cn(

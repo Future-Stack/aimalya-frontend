@@ -4,11 +4,14 @@ import React, { useState, useEffect } from "react";
 import AuthLayout from "@/components/admin/auth/AuthLayout";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { useAdminForgotPasswordMutation } from "@/redux/api/BE/admin/forgetPassApi";
 
 const VerifyOTPPage = () => {
     const router = useRouter();
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
     const [timer, setTimer] = useState(179); // 2:59 in seconds
+    const [resendOtp, { isLoading: isResending }] = useAdminForgotPasswordMutation();
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -31,15 +34,59 @@ const VerifyOTPPage = () => {
         }
     };
 
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData("text").trim();
+        const pastedDigits = pastedData.replace(/\D/g, "").slice(0, 6).split("");
+        
+        if (pastedDigits.length > 0) {
+            const newOtp = [...otp];
+            for (let i = 0; i < pastedDigits.length; i++) {
+                newOtp[i] = pastedDigits[i];
+            }
+            setOtp(newOtp);
+            
+            const focusIndex = pastedDigits.length < 6 ? pastedDigits.length : 5;
+            const targetElement = e.currentTarget.parentElement?.children[focusIndex] as HTMLInputElement;
+            if (targetElement) {
+                targetElement.focus();
+            }
+        }
+    };
+
+    const handleResend = async () => {
+        const email = sessionStorage.getItem("adminResetEmail");
+        if (!email) {
+            toast.error("Email not found. Please try requesting a new OTP.");
+            router.push("/admin/forget-password");
+            return;
+        }
+
+        try {
+            await resendOtp({ email }).unwrap();
+            toast.success("A new OTP has been sent to your email.");
+            setTimer(179);
+        } catch (error: any) {
+            toast.error(error?.data?.message || "Failed to resend OTP.");
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        const code = otp.join("");
+        if (code.length !== 6) {
+            toast.error("Please enter the full 6-digit code");
+            return;
+        }
+        
+        sessionStorage.setItem("adminResetOtp", code);
         router.push("/admin/reset-password");
     };
 
     return (
         <AuthLayout
             title="Verify OTP"
-            subtitle="We have sent you a 6 digit OTP code to your provided email: example@email.com please input that code here to proceed."
+            subtitle="We have sent you a 6 digit OTP code to your provided email. Please input that code here to proceed."
             icon={
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -62,6 +109,7 @@ const VerifyOTPPage = () => {
                             value={data}
                             onChange={(e) => handleChange(e.target, index)}
                             onFocus={(e) => e.target.select()}
+                            onPaste={handlePaste}
                             placeholder="-"
                         />
                     ))}
@@ -69,9 +117,11 @@ const VerifyOTPPage = () => {
 
                 <button
                     type="button"
-                    className="text-blue-200/60 text-sm hover:text-white transition-colors mb-8 cursor-pointer"
+                    onClick={handleResend}
+                    disabled={isResending || timer > 0}
+                    className="text-blue-200/60 text-sm hover:text-white transition-colors mb-8 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Resend
+                    {isResending ? "Resending..." : "Resend"}
                 </button>
 
                 <div className="flex gap-4 w-full">
