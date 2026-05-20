@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import Skeleton from "@/components/ui/Skeleton";
 import { PageHeaderSkeleton, StatsCardsSkeleton, UsersTableSkeleton } from "@/components/admin/AdminSkeletons";
@@ -213,15 +214,46 @@ export default function UserManagement() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEnterpriseModalOpen, setIsEnterpriseModalOpen] = useState(false);
   const [activeActionUserId, setActiveActionUserId] = useState<string | null>(null);
+  const [actionMenuCoords, setActionMenuCoords] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+  const actionButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  const computeActionMenuCoords = (button: HTMLButtonElement | null) => {
+    if (!button) return null;
+    const rect = button.getBoundingClientRect();
+    const width = 176;
+    const dropdownHeight = 210;
+    let left = rect.right - width;
+    left = Math.max(8, Math.min(left, window.innerWidth - width - 8));
+    let top = rect.bottom + 8;
+    if (top + dropdownHeight > window.innerHeight - 8) {
+      top = rect.top - dropdownHeight - 8;
+    }
+    return { top, left, width };
+  };
+
+  const handleToggleActionMenu = (userId: string) => {
+    if (activeActionUserId === userId) {
+      setActiveActionUserId(null);
+      setActionMenuCoords(null);
+      return;
+    }
+    const button = actionButtonRefs.current[userId];
+    setActiveActionUserId(userId);
+    setActionMenuCoords(computeActionMenuCoords(button));
+  };
 
   // Close any active actions menu when clicking outside
   useEffect(() => {
+    setPortalRoot(document.body);
+
     const handleGlobalClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (target.closest(".actions-dropdown-container")) {
         return;
       }
       setActiveActionUserId(null);
+      setActionMenuCoords(null);
     };
     document.addEventListener("mousedown", handleGlobalClick);
     return () => {
@@ -577,10 +609,11 @@ export default function UserManagement() {
       </div>
 
       {/* Desktop Table View (Visible from lg screens up) */}
-      <div className="hidden xl:block overflow-hidden rounded-2xl admin-card">
+      <div className="hidden xl:block overflow-visible rounded-2xl admin-card">
         <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full table-auto text-left text-sm">
+        <div className="overflow-x-auto overflow-y-visible custom-scrollbar">
+          <div className="min-w-full overflow-visible">
+            <table className="w-full table-auto text-left text-sm">
             <thead className="bg-[#F8FAFC] text-sm font-bold text-gray-500 border-b border-[#E2E8F0]">
               <tr>
                 <th className="px-5 py-4 whitespace-nowrap">User</th>
@@ -594,7 +627,6 @@ export default function UserManagement() {
             </thead>
             <tbody className="divide-y divide-[#E2E8F0]">
               {paginatedUsers.map((user: any, idx: number) => {
-                const isLastRows = idx >= paginatedUsers.length - 3 && paginatedUsers.length > 3;
                 return (
                   <tr
                     key={user.id}
@@ -667,69 +699,77 @@ export default function UserManagement() {
                     <div className="flex items-center justify-end">
                       <div className="relative actions-dropdown-container">
                         <button
-                          onClick={() => {
-                            setActiveActionUserId(activeActionUserId === user.id ? null : user.id);
+                          ref={(el) => {
+                            actionButtonRefs.current[user.id] = el;
                           }}
+                          onClick={() => handleToggleActionMenu(user.id)}
                           className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer focus:outline-none"
                         >
                           <MoreVertical className="size-4" />
                         </button>
 
-                        {activeActionUserId === user.id && (
-                          <div className={cn(
-                            "absolute right-0 w-44 rounded-xl border border-blue-50 bg-white p-1.5 shadow-xl z-20 text-left animate-in fade-in zoom-in-95 duration-100",
-                            isLastRows ? "bottom-full mb-1 origin-bottom" : "top-full mt-1 origin-top"
-                          )}>
-                            <button
-                              onClick={() => {
-                                handleViewDetails(user);
-                                setActiveActionUserId(null);
-                              }}
-                              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
-                            >
-                              <Eye className="size-3.5 text-blue-500" />
-                              View Details
-                            </button>
-                            <button
-                              onClick={() => {
-                                handleOpenSuspension(user);
-                                setActiveActionUserId(null);
-                              }}
-                              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
-                            >
-                              {user.status === "Suspended" ? (
-                                <>
-                                  <Unlock className="size-3.5 text-green-500" />
-                                  Unsuspend User
-                                </>
-                              ) : (
-                                <>
-                                  <Ban className="size-3.5 text-amber-500" />
-                                  Suspend User
-                                </>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => {
-                                handleOpenDelete(user);
-                                setActiveActionUserId(null);
-                              }}
-                              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-all cursor-pointer"
-                            >
-                              <Trash2 className="size-3.5 text-red-500" />
-                              Delete User
-                            </button>
-                            <button
-                              onClick={() => {
-                                handleOpenEnterprise(user);
-                                setActiveActionUserId(null);
-                              }}
-                              className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#0891B2] transition-all cursor-pointer border-t border-gray-100 mt-1 pt-2"
-                            >
-                              <Crown className="size-3.5 text-amber-500" />
-                              Add Enterprise
-                            </button>
-                          </div>
+                        {activeActionUserId === user.id && portalRoot && actionMenuCoords && createPortal(
+                          <div
+                            className="actions-dropdown-container fixed z-50"
+                            style={{ top: actionMenuCoords.top, left: actionMenuCoords.left, width: actionMenuCoords.width }}
+                          >
+                            <div className="rounded-xl border border-blue-50 bg-white p-1.5 shadow-xl text-left animate-in fade-in zoom-in-95 duration-100">
+                              <button
+                                onClick={() => {
+                                  handleViewDetails(user);
+                                  setActiveActionUserId(null);
+                                  setActionMenuCoords(null);
+                                }}
+                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                              >
+                                <Eye className="size-3.5 text-blue-500" />
+                                View Details
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleOpenSuspension(user);
+                                  setActiveActionUserId(null);
+                                  setActionMenuCoords(null);
+                                }}
+                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                              >
+                                {user.status === "Suspended" ? (
+                                  <>
+                                    <Unlock className="size-3.5 text-green-500" />
+                                    Unsuspend User
+                                  </>
+                                ) : (
+                                  <>
+                                    <Ban className="size-3.5 text-amber-500" />
+                                    Suspend User
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleOpenDelete(user);
+                                  setActiveActionUserId(null);
+                                  setActionMenuCoords(null);
+                                }}
+                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-all cursor-pointer"
+                              >
+                                <Trash2 className="size-3.5 text-red-500" />
+                                Delete User
+                              </button>
+                              <button
+                                onClick={() => {
+                                  handleOpenEnterprise(user);
+                                  setActiveActionUserId(null);
+                                  setActionMenuCoords(null);
+                                }}
+                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#0891B2] transition-all cursor-pointer border-t border-gray-100 mt-1 pt-2"
+                              >
+                                <Crown className="size-3.5 text-amber-500" />
+                                Add Enterprise
+                              </button>
+                            </div>
+                          </div>,
+                          portalRoot,
                         )}
                       </div>
                     </div>
@@ -738,7 +778,8 @@ export default function UserManagement() {
                 );
               })}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
 

@@ -218,13 +218,14 @@ export default function AIInsightsPage() {
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                 <Tooltip 
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                    labelStyle={{ color: '#111827', fontWeight: 'bold' }} 
                                 />
                                 <Radar
                                     name="Performance"
                                     dataKey="A"
-                                    stroke="#3b82f6"
+                                    stroke="#22D3EE"
                                     strokeWidth={2}
-                                    fill="#3b82f6"
+                                    fill="#52c6d8"
                                     fillOpacity={0.3}
                                 />
                             </RadarChart>

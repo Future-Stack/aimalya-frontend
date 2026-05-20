@@ -248,12 +248,12 @@ export default function NotificationPage() {
                             <CheckCheck className="size-8 text-gray-400" />
                         </div>
                         <p className="text-gray-500 font-medium">No notifications found.</p>
-                        <button
+                        {/* <button
                             onClick={() => setActiveTab("All")}
                             className="mt-2 text-blue-600 text-sm hover:underline"
                         >
                             View all notifications
-                        </button>
+                        </button> */}
                     </div>
                 )}
             </div>

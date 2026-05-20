@@ -403,6 +403,7 @@ export default function DashboardPage() {
                                     boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                                     padding: '12px'
                                 }}
+                                labelStyle={{ color: '#111827', fontWeight: 'bold' }}
                                 cursor={{ stroke: '#f1f5f9', strokeWidth: 2 }}
                             />
                             <Legend
@@ -449,18 +450,17 @@ export default function DashboardPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Performance by Criteria</h3>
                 <div className="space-y-6">
                     {(performanceCriteria ? Object.entries(performanceCriteria) : performanceData.map(d => [d.label, { score: d.value, growth: { display: d.change, direction: d.change.startsWith("+") ? "up" : "down" } }])).map(([label, data]: any) => (
-                        <div key={label} className="grid grid-cols-[100px_1fr_60px_80px] gap-4 items-center text-sm">
+                        <div key={label} className="grid grid-cols-[100px_1fr_60px_80px] gap-x-2 gap-y-4 items-center text-sm">
                             <span className="font-medium text-gray-700">{label}</span>
                             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-blue-600 rounded-full"
+                                    className="h-full bg-[#22D3EE] rounded-full"
                                     style={{ width: `${(data.score / 5) * 100}%` }}
                                 />
                             </div>
                             <span className="font-bold text-gray-900 text-right">{data.score}</span>
                             <div className={cn(
-                                "text-xs text-right font-medium flex items-center justify-end",
-                                data.growth.direction === "up" ? "text-green-500" : data.growth.direction === "down" ? "text-red-500" : "text-gray-400"
+                                "text-xs text-right font-medium flex items-center justify-end text-[#22D3EE]"
                             )}>
                                 {data.growth.direction === "up" && <TrendingUp className="size-3 mr-1" />}
                                 {data.growth.direction === "down" && <TrendingDown className="size-3 mr-1" />}
