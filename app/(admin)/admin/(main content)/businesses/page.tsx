@@ -69,8 +69,11 @@ const BusinessCard = ({ biz, handleViewDetails }: { biz: any, handleViewDetails:
                     alt={biz.business_name}
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-                <div className="absolute right-3 top-3 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700">
-                    active
+                <div className={cn(
+                    "absolute right-3 top-3 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
+                    biz.is_suspended ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
+                )}>
+                    {biz.is_suspended ? "suspended" : (biz.account_status || "active")}
                 </div>
             </div>
             <div className="p-5">
