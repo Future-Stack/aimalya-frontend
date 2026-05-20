@@ -59,7 +59,10 @@ const StarRating = ({ rating, size = 12 }: { rating: number, size?: number }) =>
 const BusinessCard = ({ biz, handleViewDetails }: { biz: any, handleViewDetails: (biz: any) => void }) => {
     const { data: userData } = useGetUserByIdQuery(biz.owner_id, { skip: !biz.owner_id });
     const ownerName = userData?.data?.name || biz.owner_name || "N/A";
-    const imageUrl = biz?.primary_photo?.photo_url || biz?.photo?.photo_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400";
+    const rawImageUrl = biz?.primary_photo?.photo_url || biz?.photo?.photo_url;
+    const imageUrl = rawImageUrl 
+        ? rawImageUrl.replace("http://13.63.11.191:8000", "/api/ai") 
+        : "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400";
 
     return (
         <div className="group overflow-hidden rounded-xl admin-card">
