@@ -244,31 +244,31 @@ export default function CompetitorsPage() {
                             <h3 className="font-bold text-gray-900 mb-4">{comp.name}</h3>
                             {comp.isBusiness && (
                                 <div className="mb-2">
-                                    <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-1.5 rounded-full uppercase">Your Business</span>
+                                    <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1.5 rounded-full uppercase">Your Business</span>
                                 </div>
                             )}
                         </div>
                         <div className="space-y-2">
-                            <div className="flex justify-between text-xs">
+                            <div className="flex justify-between text-sm">
                                 <span className="text-gray-500 flex items-center gap-1"><span className="text-amber-400">★</span> Rating</span>
                                 <span className="font-bold text-gray-900">{comp.rating}</span>
                             </div>
-                            <div className="flex justify-between text-xs">
+                            <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Reviews</span>
                                 <span className="font-bold text-gray-900">{comp.reviews}</span>
                             </div>
-                            <div className="flex justify-between text-xs">
+                            <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Sentiment</span>
                                 <span className="font-bold text-gray-900">{comp.sentiment}</span>
                             </div>
-                            <div className="flex justify-between text-xs">
+                            <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Response</span>
                                 <span className="font-bold text-gray-900">{comp.response}</span>
                             </div>
                         </div>
                         <button 
                             onClick={() => comp.map_url && window.open(comp.map_url, '_blank')}
-                            className="cursor-pointer w-full mt-4 py-2 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="cursor-pointer w-full mt-4 py-2 text-sm font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!comp.map_url}
                         >
                             Show on Google
@@ -286,7 +286,7 @@ export default function CompetitorsPage() {
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                             <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} dy={10} />
                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                            <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
+                            <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} labelStyle={{ color: '#111827', fontWeight: 'bold' }} />
                             <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '10px' }} />
                             {competitors.map((comp, idx) => (
                                 <Bar 
@@ -318,6 +318,7 @@ export default function CompetitorsPage() {
                                     boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
                                     fontSize: '12px'
                                 }} 
+                                labelStyle={{ color: '#111827', fontWeight: 'bold' }} 
                             />
 
                             {competitors.map((comp, idx) => (
@@ -343,7 +344,7 @@ export default function CompetitorsPage() {
                 <div className="space-y-6">
                     {criteria.map((c, i) => (
                         <div key={i} className="space-y-2">
-                            <div className="flex justify-between text-xs font-semibold text-gray-700">
+                            <div className="flex justify-between text-sm font-semibold text-gray-700">
                                 <span>{c.label}</span>
                                 <span className="text-gray-400 font-normal">Leader: {c.leader}</span>
                             </div>
@@ -351,7 +352,7 @@ export default function CompetitorsPage() {
                                 <div className="absolute top-0 bottom-0 bg-gray-400 w-full" style={{ width: `${(c.competitorAvg / 5) * 100}%` }} />
                                 <div className="absolute top-0 bottom-0 bg-blue-600 z-10 rounded-full" style={{ width: `${(c.score / 5) * 100}%` }} />
                             </div>
-                            <div className="flex justify-between text-[10px] font-medium">
+                            <div className="flex justify-between text-sm font-medium">
                                 <span className="text-blue-600">Your Score: {c.score}</span>
                                 <span className="text-gray-500">Competitor Avg: {c.competitorAvg}</span>
                             </div>
@@ -372,8 +373,8 @@ export default function CompetitorsPage() {
                         {whereCompetitorsExcel.map((item, i) => (
                             <div key={i} className="p-4 bg-orange-50/50 rounded-xl border border-orange-100/50">
                                 <h4 className="text-sm font-bold text-orange-900">{item.title}</h4>
-                                <p className="text-xs text-gray-600 mt-1 mb-2 leading-relaxed">{item.desc}</p>
-                                <span className="text-[10px] font-medium text-orange-600">{item.action}</span>
+                                <p className="text-sm text-gray-600 mt-1 mb-2 leading-relaxed">{item.desc}</p>
+                                <span className="text-xs font-medium text-orange-600">{item.action}</span>
                             </div>
                         ))}
                     </div>
@@ -389,8 +390,8 @@ export default function CompetitorsPage() {
                         {advantages.map((item, i) => (
                             <div key={i} className="p-4 bg-green-50/50 rounded-xl border border-green-100/50">
                                 <h4 className="text-sm font-bold text-green-900">{item.title}</h4>
-                                <p className="text-xs text-gray-600 mt-1 mb-2 leading-relaxed">{item.desc}</p>
-                                <span className="text-[10px] font-medium text-green-600">{item.action}</span>
+                                <p className="text-sm text-gray-600 mt-1 mb-2 leading-relaxed">{item.desc}</p>
+                                <span className="text-xs font-medium text-green-600">{item.action}</span>
                             </div>
                         ))}
                     </div>
@@ -409,7 +410,7 @@ export default function CompetitorsPage() {
                     {strategicRecs.map((rec, i) => (
                         <div key={i} className="p-5 bg-white rounded-xl text-gray-900">
                             <h4 className="font-bold text-sm mb-2">{rec.title}</h4>
-                            <p className="text-xs text-gray-500 leading-relaxed">{rec.description}</p>
+                            <p className="text-sm text-gray-500 leading-relaxed">{rec.description}</p>
                         </div>
                     ))}
                 </div>
