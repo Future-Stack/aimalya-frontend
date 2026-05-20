@@ -77,7 +77,7 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
                     <div className="flex items-center gap-4">
                         <div className="h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
                             <img
-                                src={business.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400"}
+                                src={(business?.primary_photo?.photo_url || business?.photo?.photo_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400").replace("http://13.63.11.191:8000", "/api/ai")}
                                 alt={business.business_name}
                                 className="h-full w-full object-cover"
                             />
