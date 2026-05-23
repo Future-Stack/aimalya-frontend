@@ -347,14 +347,24 @@ export default function UserManagement() {
 
   const paginatedUsers = useMemo(() => {
     if (!usersData?.data) return [];
-    
-    return usersData.data.map((user: any) => {
-      const sub = user.subscriptions && user.subscriptions.length > 0 
-        ? user.subscriptions[user.subscriptions.length - 1] 
+
+    let sourceData = usersData.data;
+
+    // Apply frontend filtering as fallback
+    if (statusFilter !== "All Status") {
+      sourceData = sourceData.filter((user: any) => {
+        const s = user.status === "TRIAL" ? "Trial" : user.status === "ACTIVE" ? "Active" : "Suspended";
+        return s === statusFilter;
+      });
+    }
+
+    return sourceData.map((user: any) => {
+      const sub = user.subscriptions && user.subscriptions.length > 0
+        ? user.subscriptions[user.subscriptions.length - 1]
         : { plan: "NONE", business: "0", location: "0", balance: 0 };
-        
+
       const statusFormat = user.status === "TRIAL" ? "Trial" : user.status === "ACTIVE" ? "Active" : "Suspended";
-        
+
       return {
         ...user,
         id: user.userId,
@@ -369,7 +379,7 @@ export default function UserManagement() {
         lastActive: new Date(user.updatedAt).toLocaleDateString(),
       };
     });
-  }, [usersData]);
+  }, [usersData, statusFilter]);
 
   const totalPages = usersData?.meta?.lastPage || 1;
   const totalUsersCount = usersData?.meta?.total || 0;
@@ -489,7 +499,7 @@ export default function UserManagement() {
                 onClick={() => setIsDropdownOpen(false)}
               />
               <div className="absolute right-0 z-20 mt-2 w-full origin-top-right rounded-xl border border-blue-100 bg-white p-1.5 shadow-none md:w-48 animate-in fade-in zoom-in duration-200">
-                {["All Status", "Active", "Trial", "Suspended"].map(
+                {["All Status", "Active", "Suspended"].map(
                   (status) => (
                     <button
                       key={status}
@@ -614,170 +624,170 @@ export default function UserManagement() {
         <div className="overflow-x-auto overflow-y-visible custom-scrollbar">
           <div className="min-w-full overflow-visible">
             <table className="w-full table-auto text-left text-sm">
-            <thead className="bg-[#F8FAFC] text-sm font-bold text-gray-500 border-b border-[#E2E8F0]">
-              <tr>
-                <th className="px-5 py-4 whitespace-nowrap">User</th>
-                <th className="px-5 py-4 whitespace-nowrap">Status</th>
-                <th className="px-5 py-4 whitespace-nowrap">Plan</th>
-                <th className="px-5 py-4 whitespace-nowrap">Businesses</th>
-                <th className="px-5 py-4 whitespace-nowrap">MRR</th>
-                <th className="px-5 py-4 whitespace-nowrap">Last Active</th>
-                <th className="px-5 py-4 whitespace-nowrap text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E2E8F0]">
-              {paginatedUsers.map((user: any, idx: number) => {
-                return (
-                  <tr
-                    key={user.id}
-                    className="group hover:bg-gray-50/50 transition-all border-b border-[#E2E8F0] last:border-b-0"
-                  >
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={getProfileImageUrl(user)}
-                        alt={user.name}
-                        className="size-10 rounded-full object-cover shrink-0"
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-bold text-sm text-[#0F172A] truncate">
-                          {user.name}
-                        </span>
-                        <span className="text-xs text-gray-500 truncate">
-                          {user.email}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider capitalize",
-                        user.status === "Active" && "bg-green-100 text-green-700",
-                        user.status === "Trial" && "bg-blue-100 text-blue-700",
-                        user.status === "Suspended" && "bg-red-100 text-red-700"
-                      )}
-                    >
-                      {user.status}
-                    </span>
-                  </td>
-
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      {user.plan === "Enterprise" && <Crown className="size-4 text-amber-500" />}
-                      <span className="text-[#0F172A] font-bold text-sm">
-                        {user.plan}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex flex-col">
-                      <span className="text-[#0F172A] font-bold text-sm">
-                        {user.businesses}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {user.locations}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <span className="font-bold text-green-600 text-sm">
-                      {user.mrr}
-                    </span>
-                  </td>
-
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <span className="text-xs text-gray-500">
-                      {user.lastActive}
-                    </span>
-                  </td>
-
-                  <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end">
-                      <div className="relative actions-dropdown-container">
-                        <button
-                          ref={(el) => {
-                            actionButtonRefs.current[user.id] = el;
-                          }}
-                          onClick={() => handleToggleActionMenu(user.id)}
-                          className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer focus:outline-none"
-                        >
-                          <MoreVertical className="size-4" />
-                        </button>
-
-                        {activeActionUserId === user.id && portalRoot && actionMenuCoords && createPortal(
-                          <div
-                            className="actions-dropdown-container fixed z-50"
-                            style={{ top: actionMenuCoords.top, left: actionMenuCoords.left, width: actionMenuCoords.width }}
-                          >
-                            <div className="rounded-xl border border-blue-50 bg-white p-1.5 shadow-xl text-left animate-in fade-in zoom-in-95 duration-100">
-                              <button
-                                onClick={() => {
-                                  handleViewDetails(user);
-                                  setActiveActionUserId(null);
-                                  setActionMenuCoords(null);
-                                }}
-                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
-                              >
-                                <Eye className="size-3.5 text-blue-500" />
-                                View Details
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleOpenSuspension(user);
-                                  setActiveActionUserId(null);
-                                  setActionMenuCoords(null);
-                                }}
-                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
-                              >
-                                {user.status === "Suspended" ? (
-                                  <>
-                                    <Unlock className="size-3.5 text-green-500" />
-                                    Unsuspend User
-                                  </>
-                                ) : (
-                                  <>
-                                    <Ban className="size-3.5 text-amber-500" />
-                                    Suspend User
-                                  </>
-                                )}
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleOpenDelete(user);
-                                  setActiveActionUserId(null);
-                                  setActionMenuCoords(null);
-                                }}
-                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-all cursor-pointer"
-                              >
-                                <Trash2 className="size-3.5 text-red-500" />
-                                Delete User
-                              </button>
-                              <button
-                                onClick={() => {
-                                  handleOpenEnterprise(user);
-                                  setActiveActionUserId(null);
-                                  setActionMenuCoords(null);
-                                }}
-                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#0891B2] transition-all cursor-pointer border-t border-gray-100 mt-1 pt-2"
-                              >
-                                <Crown className="size-3.5 text-amber-500" />
-                                Add Enterprise
-                              </button>
-                            </div>
-                          </div>,
-                          portalRoot,
-                        )}
-                      </div>
-                    </div>
-                  </td>
+              <thead className="bg-[#F8FAFC] text-sm font-bold text-gray-500 border-b border-[#E2E8F0]">
+                <tr>
+                  <th className="px-5 py-4 whitespace-nowrap">User</th>
+                  <th className="px-5 py-4 whitespace-nowrap">Status</th>
+                  <th className="px-5 py-4 whitespace-nowrap">Plan</th>
+                  <th className="px-5 py-4 whitespace-nowrap">Businesses</th>
+                  <th className="px-5 py-4 whitespace-nowrap">MRR</th>
+                  <th className="px-5 py-4 whitespace-nowrap">Last Active</th>
+                  <th className="px-5 py-4 whitespace-nowrap text-right">Actions</th>
                 </tr>
-                );
-              })}
-            </tbody>
+              </thead>
+              <tbody className="divide-y divide-[#E2E8F0]">
+                {paginatedUsers.map((user: any, idx: number) => {
+                  return (
+                    <tr
+                      key={user.id}
+                      className="group hover:bg-gray-50/50 transition-all border-b border-[#E2E8F0] last:border-b-0"
+                    >
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={getProfileImageUrl(user)}
+                            alt={user.name}
+                            className="size-10 rounded-full object-cover shrink-0"
+                          />
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-bold text-sm text-[#0F172A] truncate">
+                              {user.name}
+                            </span>
+                            <span className="text-xs text-gray-500 truncate">
+                              {user.email}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider capitalize",
+                            user.status === "Active" && "bg-green-100 text-green-700",
+                            user.status === "Trial" && "bg-blue-100 text-blue-700",
+                            user.status === "Suspended" && "bg-red-100 text-red-700"
+                          )}
+                        >
+                          {user.status}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          {user.plan === "Enterprise" && <Crown className="size-4 text-amber-500" />}
+                          <span className="text-[#0F172A] font-bold text-sm">
+                            {user.plan}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <div className="flex flex-col">
+                          <span className="text-[#0F172A] font-bold text-sm">
+                            {user.businesses}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {user.locations}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <span className="font-bold text-green-600 text-sm">
+                          {user.mrr}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <span className="text-xs text-gray-500">
+                          {user.lastActive}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex items-center justify-end">
+                          <div className="relative actions-dropdown-container">
+                            <button
+                              ref={(el) => {
+                                actionButtonRefs.current[user.id] = el;
+                              }}
+                              onClick={() => handleToggleActionMenu(user.id)}
+                              className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-900 transition-all cursor-pointer focus:outline-none"
+                            >
+                              <MoreVertical className="size-4" />
+                            </button>
+
+                            {activeActionUserId === user.id && portalRoot && actionMenuCoords && createPortal(
+                              <div
+                                className="actions-dropdown-container fixed z-50"
+                                style={{ top: actionMenuCoords.top, left: actionMenuCoords.left, width: actionMenuCoords.width }}
+                              >
+                                <div className="rounded-xl border border-blue-50 bg-white p-1.5 shadow-xl text-left animate-in fade-in zoom-in-95 duration-100">
+                                  <button
+                                    onClick={() => {
+                                      handleViewDetails(user);
+                                      setActiveActionUserId(null);
+                                      setActionMenuCoords(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                                  >
+                                    <Eye className="size-3.5 text-blue-500" />
+                                    View Details
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handleOpenSuspension(user);
+                                      setActiveActionUserId(null);
+                                      setActionMenuCoords(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-all cursor-pointer"
+                                  >
+                                    {user.status === "Suspended" ? (
+                                      <>
+                                        <Unlock className="size-3.5 text-green-500" />
+                                        Unsuspend User
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Ban className="size-3.5 text-amber-500" />
+                                        Suspend User
+                                      </>
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handleOpenDelete(user);
+                                      setActiveActionUserId(null);
+                                      setActionMenuCoords(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-all cursor-pointer"
+                                  >
+                                    <Trash2 className="size-3.5 text-red-500" />
+                                    Delete User
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handleOpenEnterprise(user);
+                                      setActiveActionUserId(null);
+                                      setActionMenuCoords(null);
+                                    }}
+                                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#0891B2] transition-all cursor-pointer border-t border-gray-100 mt-1 pt-2"
+                                  >
+                                    <Crown className="size-3.5 text-amber-500" />
+                                    Add Enterprise
+                                  </button>
+                                </div>
+                              </div>,
+                              portalRoot,
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
             </table>
           </div>
         </div>
