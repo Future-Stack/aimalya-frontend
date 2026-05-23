@@ -9,7 +9,13 @@ export const planApi = baseApi.injectEndpoints({
         body: data,
       }),
     }),
+    getSubscriptionById: builder.query<any, string>({
+      query: (id) => ({
+        url: `/subscription/${id}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
-export const { useCreateSubscriptionMutation } = planApi;
+export const { useCreateSubscriptionMutation, useGetSubscriptionByIdQuery, useLazyGetSubscriptionByIdQuery } = planApi;

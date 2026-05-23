@@ -14,10 +14,19 @@ export const adminProfileApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["User"],
     }),
+    registerAdmin: builder.mutation<any, any>({
+      query: (data) => ({
+        url: "/auth/register",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
+  overrideExisting: true,
 });
 
 export const {
   useGetAdminProfileQuery,
   useUpdateAdminProfileMutation,
+  useRegisterAdminMutation,
 } = adminProfileApi;

@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Camera, Loader2, Save, UserCircle } from "lucide-react";
+import { Camera, Loader2, Save, UserCircle, Plus, X } from "lucide-react";
 import { PageHeaderSkeleton, SectionSkeleton } from "@/components/admin/AdminSkeletons";
 import toast from "react-hot-toast";
 import {
     useGetAdminProfileQuery,
     useUpdateAdminProfileMutation,
+    useRegisterAdminMutation,
 } from "@/redux/api/BE/admin/profileApi";
 
 export default function AdminProfile() {
@@ -18,6 +19,10 @@ export default function AdminProfile() {
     const [name, setName] = useState("");
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState("");
+
+    const [isAddAdminModalOpen, setIsAddAdminModalOpen] = useState(false);
+    const [newAdminData, setNewAdminData] = useState({ name: "", email: "", password: "", role: "ADMIN" });
+    const [registerAdmin, { isLoading: isRegistering }] = useRegisterAdminMutation();
 
     // Populate form fields once data loads
     useEffect(() => {
@@ -58,6 +63,19 @@ export default function AdminProfile() {
         }
     };
 
+    const handleRegisterAdmin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await registerAdmin(newAdminData).unwrap();
+            toast.success("ADMIN account created successfully.");
+            setIsAddAdminModalOpen(false);
+            setNewAdminData({ name: "", email: "", password: "", role: "ADMIN" });
+        } catch (err: any) {
+            toast.error(err?.data?.message || "Failed to create admin. Please try again.");
+            console.error("Failed to create admin:", err);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="space-y-8 pb-12">
@@ -74,9 +92,18 @@ export default function AdminProfile() {
     return (
         <div className="space-y-8 pb-12">
             {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold text-[#0F172A]">Admin Profile</h1>
-                <p className="text-gray-500">Manage your administrative details and account credentials</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-[#0F172A]">Admin Profile</h1>
+                    <p className="text-gray-500">Manage your administrative details and account credentials</p>
+                </div>
+                <button 
+                    onClick={() => setIsAddAdminModalOpen(true)}
+                    className="flex items-center gap-2 rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-bold text-white shadow-md shadow-[#22D3EE]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                >
+                    <Plus className="size-4" />
+                    Add new admin
+                </button>
             </div>
 
             {/* Profile Section Card */}
@@ -182,6 +209,78 @@ export default function AdminProfile() {
                     </button>
                 </div>
             </form>
+
+            {/* Add Admin Modal */}
+            {isAddAdminModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl relative">
+                        <button
+                            onClick={() => setIsAddAdminModalOpen(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        >
+                            <X className="size-5" />
+                        </button>
+                        <h2 className="text-xl font-bold text-[#0F172A] mb-6">Add New Admin</h2>
+                        
+                        <form onSubmit={handleRegisterAdmin} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={newAdminData.name}
+                                    onChange={(e) => setNewAdminData({ ...newAdminData, name: e.target.value })}
+                                    className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE] transition-all"
+                                    placeholder="John Doe"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={newAdminData.email}
+                                    onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
+                                    className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE] transition-all"
+                                    placeholder="abc@gmail.com"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={newAdminData.password}
+                                    onChange={(e) => setNewAdminData({ ...newAdminData, password: e.target.value })}
+                                    className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE] transition-all"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                            
+                            <div className="pt-4 flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAddAdminModalOpen(false)}
+                                    className="px-4 py-2 rounded-lg text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isRegistering}
+                                    className="flex items-center gap-2 rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-bold text-white shadow-md shadow-[#22D3EE]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+                                >
+                                    {isRegistering ? (
+                                        <Loader2 className="size-4 animate-spin" />
+                                    ) : (
+                                        "Create Admin"
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -171,8 +171,8 @@ export default function LoginPage() {
                         disabled={isLoading}
                         className="w-full h-12 bg-auth-subtitle-color text-white rounded-xl font-bold text-[15px] hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 cursor-pointer flex items-center justify-center gap-2"
                     >
-                        {isLoading && <Loader2 size={18} className="animate-spin" />}
-                        {isLoading ? "Logging In..." : "Log In"}
+                        {isLoading && <span><Loader2 size={18} className="animate-spin" /></span>}
+                        <span>{isLoading ? "Logging In..." : "Log In"}</span>
                     </button>
                 </form>
 

@@ -472,9 +472,15 @@ export default function CompetitorsPage() {
                                     <StylishDropdown
                                         multiSelect
                                         options={[
-                                            { label: "Improve customer satisfaction", value: "Improve customer satisfaction" },
-                                            { label: "Improve service speed", value: "Improve service speed" },
-                                            { label: "Increase ratings", value: "Increase ratings" }
+                                            { label: "Improve customer satisfaction", value: "improve_customer_satisfaction" },
+                                            { label: "Improve service speed", value: "improve_service_speed" },
+                                            { label: "Increase ratings", value: "increase_ratings" },
+                                            { label: "Increase sales", value: "increase_sales" },
+                                            { label: "Increase website traffic", value: "increase_website_traffic" },
+                                            { label: "Improve brand awareness", value: "improve_brand_awareness" },
+                                            { label: "Expand customer base", value: "expand_customer_base" },
+                                            { label: "Improve customer retention", value: "improve_customer_retention" },
+                                            { label: "Better customer engagement", value: "better_customer_engagement" }
                                         ]}
                                         value={form.selectedGoals}
                                         onChange={(val) => setForm({ ...form, selectedGoals: val as string[] })}
@@ -482,6 +488,7 @@ export default function CompetitorsPage() {
                                         selectedColor="#2563EB"
                                         selectedBgColor="#eff6ff"
                                         icon={<Target size={18} className="text-blue-600" />}
+                                        position="top"
                                     />
                                 </div>
 

@@ -230,7 +230,7 @@ export default function SignupPage() {
                         disabled={isLoading}
                         className="cursor-pointer w-full h-12 bg-auth-subtitle-color hover:bg-cyan-300 text-white rounded-xl font-bold text-[15px] transition-all shadow-lg shadow-blue-200 mt-4 disabled:opacity-50"
                     >
-                        {isLoading ? "Creating Account..." : "Create Account"}
+                        <span>{isLoading ? "Creating Account..." : "Create Account"}</span>
                     </button>
                 </form>
 

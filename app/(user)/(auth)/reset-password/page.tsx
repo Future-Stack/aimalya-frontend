@@ -132,7 +132,7 @@ function ResetPasswordContent() {
                         disabled={isLoading}
                         className="cursor-pointer w-full h-12 bg-auth-subtitle-color text-white rounded-xl font-bold text-[15px] hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 mt-4 disabled:opacity-50"
                     >
-                        {isLoading ? "Resetting..." : "Reset"}
+                        <span>{isLoading ? "Resetting..." : "Reset"}</span>
                     </button>
                 </form>
             </div>

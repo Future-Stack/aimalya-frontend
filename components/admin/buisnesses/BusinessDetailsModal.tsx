@@ -56,7 +56,8 @@ export default function BusinessDetailsModal({ isOpen, onClose, business }: Busi
             const action = isSuspended ? "unsuspend" : "suspend";
             await updateStatus({
                 action,
-                business_name: business.business_name
+                business_name: business.business_name,
+                user_id: business.owner_id,
             }).unwrap();
             
             toast.success(`Business ${action === "suspend" ? "suspended" : "unsuspended"} successfully!`);

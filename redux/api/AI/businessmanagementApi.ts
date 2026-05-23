@@ -17,11 +17,43 @@ export const businessmanagementApi = baseApiAi.injectEndpoints({
             }),
             providesTags: ["BusinessManagement"],
         }),
-        updateBusinessStatus: builder.mutation<any, { action: "suspend" | "unsuspend"; business_name: string }>({
+        updateBusinessStatus: builder.mutation<
+            {
+                user_id: string;
+                business_name: string;
+                action: "suspend" | "unsuspend";
+                account_status: string;
+                is_suspended: boolean;
+                updated_count: number;
+                count: number;
+            },
+            { action: "suspend" | "unsuspend"; business_name: string; user_id: string }
+        >({
             query: (body) => ({
                 url: "/businesses/management",
                 method: "PATCH",
                 body,
+            }),
+            invalidatesTags: ["BusinessManagement"],
+        }),
+        deleteUserBusinesses: builder.mutation<
+            {
+                user_id: string;
+                deleted: {
+                    user_businesses: number;
+                    business_contexts: number;
+                    actionable_recommendations: number;
+                    route_hit_events: number;
+                    route_hits: number;
+                };
+                deleted_count: number;
+                count: number;
+            },
+            { user_id: string }
+        >({
+            query: ({ user_id }) => ({
+                url: `/businesses/user/${user_id}`,
+                method: "DELETE",
             }),
             invalidatesTags: ["BusinessManagement"],
         }),
@@ -32,4 +64,5 @@ export const {
     useGetBusinessManagementQuery,
     useGetBusinessManagementDetailQuery,
     useUpdateBusinessStatusMutation,
+    useDeleteUserBusinessesMutation,
 } = businessmanagementApi;

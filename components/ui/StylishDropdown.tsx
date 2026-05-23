@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -27,6 +28,7 @@ interface StylishDropdownProps {
     selectedBgColor?: string; // Background color for selected items
     disabled?: boolean;
     footer?: React.ReactNode;
+    position?: "top" | "bottom";
 }
 
 const StylishDropdown = ({
@@ -40,10 +42,53 @@ const StylishDropdown = ({
     selectedColor = "#0066FF",
     selectedBgColor = "rgb(239 246 255)",
     disabled = false,
-    footer
+    footer,
+    position = "bottom"
 }: StylishDropdownProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const updatePosition = () => {
+        if (dropdownRef.current) {
+            const rect = dropdownRef.current.getBoundingClientRect();
+            if (position === "top") {
+                setDropdownStyle({
+                    position: "fixed",
+                    bottom: window.innerHeight - rect.top + 8,
+                    left: rect.left,
+                    width: rect.width,
+                    zIndex: 99999
+                });
+            } else {
+                setDropdownStyle({
+                    position: "fixed",
+                    top: rect.bottom + 8,
+                    left: rect.left,
+                    width: rect.width,
+                    zIndex: 99999
+                });
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            updatePosition();
+            window.addEventListener("scroll", updatePosition, true);
+            window.addEventListener("resize", updatePosition);
+            return () => {
+                window.removeEventListener("scroll", updatePosition, true);
+                window.removeEventListener("resize", updatePosition);
+            };
+        }
+    }, [isOpen, position]);
 
     const isSelected = (val: string) => {
         if (Array.isArray(value)) {
@@ -76,7 +121,10 @@ const StylishDropdown = ({
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            if (
+                dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
+                (!menuRef.current || !menuRef.current.contains(event.target as Node))
+            ) {
                 setIsOpen(false);
             }
         };
@@ -118,8 +166,15 @@ const StylishDropdown = ({
                 />
             </button>
 
-            {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+            {isOpen && mounted && createPortal(
+                <div 
+                    ref={menuRef}
+                    style={dropdownStyle}
+                    className={cn(
+                        "bg-white border border-zinc-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in duration-200",
+                        position === "top" ? "slide-in-from-bottom-2" : "slide-in-from-top-2"
+                    )}
+                >
                     <div className="max-h-60 overflow-y-auto p-1.5 custom-thin-scrollbar">
                         {options.length > 0 ? (
                             options.map((option) => {
@@ -176,7 +231,8 @@ const StylishDropdown = ({
                             {footer}
                         </div>
                     )}
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
