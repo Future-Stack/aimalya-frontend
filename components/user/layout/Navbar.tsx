@@ -4,6 +4,7 @@ import { Search, Bell } from "lucide-react";
 import Link from "next/link";
 import { useGetProfileQuery } from "@/redux/api/BE/user/profileApi";
 import { useSocket } from "@/context/SocketContext";
+import LanguageTranslator from "@/components/ui/LanguageTranslator";
 
 export default function Navbar() {
     const { data: profileData } = useGetProfileQuery();
@@ -18,6 +19,9 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
+                {/* Language Selector */}
+                <LanguageTranslator />
+
                 {/* Notifications */}
                 <Link href="/notification" className="relative flex items-center justify-center size-10 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all cursor-pointer">
                     <Bell className="size-5" />

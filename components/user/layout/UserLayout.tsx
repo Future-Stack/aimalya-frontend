@@ -6,6 +6,7 @@ import { decodeToken } from "@/lib/utils";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { useRouter } from "next/navigation";
+import SubscriptionGuard from "../SubscriptionGuard";
 
 interface UserLayoutProps {
     children: React.ReactNode;
@@ -55,7 +56,9 @@ export default function UserLayout({ children }: UserLayoutProps) {
 
                 <main className="flex-1 p-4 md:p-6 lg:p-8">
                     <div className="max-w-[1600px] mx-auto">
-                        {children}
+                        <SubscriptionGuard>
+                            {children}
+                        </SubscriptionGuard>
                     </div>
                 </main>
             </div>

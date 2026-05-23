@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useGetAdminProfileQuery } from "@/redux/api/BE/admin/profileApi";
 import { useSocket } from "@/context/SocketContext";
 import { Bell, Clock, Check, X, Trash2 } from "lucide-react";
+import LanguageTranslator from "@/components/ui/LanguageTranslator";
 
 const formatRelativeTime = (isoString: string) => {
     try {
@@ -62,6 +63,9 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
+                {/* Language Selector */}
+                <LanguageTranslator />
+
                 {/* Notifications Bell & Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                     <button

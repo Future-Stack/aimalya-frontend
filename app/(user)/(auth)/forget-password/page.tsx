@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
                             disabled={isLoading}
                             className="cursor-pointer w-full h-12 bg-auth-subtitle-color hover:bg-cyan-300 text-white rounded-xl font-bold text-[15px] transition-all shadow-lg shadow-blue-200 disabled:opacity-50"
                         >
-                            {isLoading ? "Sending..." : "Send OTP"}
+                            <span>{isLoading ? "Sending..." : "Send OTP"}</span>
                         </button>
                     </div>
                 </form>

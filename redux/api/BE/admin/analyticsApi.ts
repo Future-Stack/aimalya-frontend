@@ -15,6 +15,7 @@ export const adminAnalyticsApi = baseApi.injectEndpoints({
       providesTags: ["AdminDashboard"] as any,
     }),
   }),
+  overrideExisting: true,
 });
 
 export const {

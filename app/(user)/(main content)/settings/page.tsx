@@ -35,9 +35,10 @@ import StylishDropdown from "@/components/ui/StylishDropdown";
 import Image from "next/image";
 import { useGetProfileQuery, useUploadProfileImageMutation, useUpdateProfileMutation, useChangePasswordMutation, useDeleteAccountMutation } from "@/redux/api/BE/user/profileApi";
 import { useGetBusinessProfileQuery, useUpdateBusinessProfileMutation } from "@/redux/api/AI/businessSettingsApi";
-import { getUserIdFromToken } from "@/utils/authUtils";
+import { getUserIdFromToken, getSubscriptionFromCookie } from "@/utils/authUtils";
 import { useLoginMutation } from "@/redux/api/BE/user/authApi";
 import { useAuth } from "@/hooks/useAuth";
+import { GOOGLE_BUSINESS_CATEGORIES } from "@/constants/businessCategories";
 import Cookies from "js-cookie";
 import { toast } from "react-hot-toast"; // Assuming toast is used for notifications
 import { Loader2, Camera } from "lucide-react";
@@ -46,6 +47,11 @@ import { useGetNotificationSettingsQuery, useUpdateNotificationSettingsMutation 
 import { useGetMyBillingQuery } from "@/redux/api/BE/user/settingsApi";
 
 import { useGetReviewsQuery, useCreateReviewMutation, useUpdateReviewMutation } from "@/redux/api/BE/reviewsApi";
+import { useDeleteUserBusinessesMutation } from "@/redux/api/AI/businessmanagementApi";
+import Link from "next/link";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { useLazyGetSubscriptionByIdQuery } from "@/redux/api/BE/user/planApi";
 
 // Types
 type Tab = "account" | "business" | "integrations" | "notifications" | "billing" | "reviews";
@@ -85,7 +91,7 @@ const ChangePasswordModal = ({ isOpen, onClose, email }: { isOpen: boolean, onCl
                 oldPassword: currentPassword,
                 newPassword: newPassword
             }).unwrap();
-            
+
             // Silently log back in with the new password so the user is NOT logged out
             if (email) {
                 try {
@@ -104,7 +110,7 @@ const ChangePasswordModal = ({ isOpen, onClose, email }: { isOpen: boolean, onCl
             }
 
             toast.success("Password changed successfully!");
-            
+
             // Reset state fields
             setCurrentPassword("");
             setNewPassword("");
@@ -196,7 +202,7 @@ const ChangePasswordModal = ({ isOpen, onClose, email }: { isOpen: boolean, onCl
                         disabled={isLoading}
                         className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Update Password"}
+                        <span>{isLoading ? <Loader2 className="size-4 animate-spin" /> : "Update Password"}</span>
                     </button>
                 </div>
             </div>
@@ -208,6 +214,7 @@ const DeleteAccountModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
     const [confirmText, setConfirmText] = useState("");
     const [showConfirmStep, setShowConfirmStep] = useState(false);
     const [deleteAccount, { isLoading }] = useDeleteAccountMutation();
+    const [deleteUserBusinesses] = useDeleteUserBusinessesMutation();
     const { logout } = useAuth();
 
     useEffect(() => {
@@ -221,8 +228,14 @@ const DeleteAccountModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
 
     const handleDelete = async () => {
         try {
+            const userId = getUserIdFromToken();
+            // Step 1: delete all business data for this user
+            if (userId) {
+                await deleteUserBusinesses({ user_id: userId }).unwrap();
+            }
+            // Step 2: delete the account itself
             await deleteAccount().unwrap();
-            toast.success("Account and associated data successfully deleted");
+            toast.success("Account and all associated business data deleted successfully");
             logout("/login");
         } catch (err: any) {
             console.error("Failed to delete account:", err);
@@ -258,7 +271,7 @@ const DeleteAccountModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () 
                             onClick={handleDelete}
                             className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-sm flex items-center justify-center gap-2"
                         >
-                            {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Yes, Delete"}
+                            <span>{isLoading ? <Loader2 className="size-4 animate-spin" /> : "Yes, Delete"}</span>
                         </button>
                     </div>
                 </div>
@@ -395,14 +408,14 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
         const formData = new FormData();
         formData.append("name", name);
         formData.append("email", email);
-        
+
         // Pass original values for backend validation / consistency
         formData.append("phone", user?.phone || "");
         formData.append("address", user?.address || "");
         formData.append("country", user?.country || "");
         formData.append("language", user?.language || "");
         formData.append("operationsRole", user?.operationsRole || "manager");
-        
+
         if (imageFile) {
             formData.append("image", imageFile);
         }
@@ -530,14 +543,16 @@ const AccountSettings = ({ onOpenPassword, onOpenDelete, onOpenSave }: SettingsP
                 <button
                     onClick={() => onOpenSave(handleSave)}
                     disabled={isUpdating}
-                    className="cursor-pointer flex items-center justify-center gap-2 px-6 py-3 min-w-[160px] text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50"
+                    className="cursor-pointer flex-items-center justify-center gap-2 px-6 py-3 min-w-[160px] text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 flex"
                 >
-                    {isUpdating ? (
-                        <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                        <Save className="size-4" />
-                    )}
-                    {isUpdating ? "Saving..." : "Save Changes"}
+                    <span>
+                        {isUpdating ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                            <Save className="size-4" />
+                        )}
+                    </span>
+                    <span>{isUpdating ? "Saving..." : "Save Changes"}</span>
                 </button>
             </div>
         </div>
@@ -563,15 +578,7 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
     const [phone, setPhone] = useState("");
     const [website, setWebsite] = useState("");
 
-    const initialCategories = [
-        { label: "Cafe", value: "cafe" },
-        { label: "Restaurant", value: "restaurant" },
-        { label: "Retail", value: "retail" },
-        { label: "Services", value: "services" },
-        { label: "Beauty & Spa", value: "beauty_spa" },
-        { label: "Health & Medical", value: "health_medical" },
-        { label: "Other", value: "other" }
-    ];
+    const initialCategories = GOOGLE_BUSINESS_CATEGORIES;
 
     const [categories, setCategories] = useState(initialCategories);
 
@@ -595,9 +602,9 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
                 if (!exists) {
                     setCategories([
                         ...initialCategories,
-                        { 
-                            label: profileData.category.charAt(0).toUpperCase() + profileData.category.slice(1), 
-                            value: profileData.category 
+                        {
+                            label: profileData.category.charAt(0).toUpperCase() + profileData.category.slice(1),
+                            value: profileData.category
                         }
                     ]);
                 }
@@ -775,14 +782,16 @@ const BusinessSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => 
                 <button
                     onClick={() => onOpenSave(handleSave)}
                     disabled={isUpdating}
-                    className="cursor-pointer flex items-center justify-center gap-2 px-6 py-3 min-w-[160px] text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50"
+                    className="cursor-pointer flex items-center justify-center gap-2 px-6 py-3 min-w-[160px] text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50 flex"
                 >
-                    {isUpdating ? (
-                        <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                        <Save className="size-4" />
-                    )}
-                    {isUpdating ? "Saving..." : "Save Changes"}
+                    <span>
+                        {isUpdating ? (
+                            <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                            <Save className="size-4" />
+                        )}
+                    </span>
+                    <span>{isUpdating ? "Saving..." : "Save Changes"}</span>
                 </button>
             </div>
         </div>
@@ -896,7 +905,7 @@ const NotificationItem = ({
 const NotificationSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">) => {
     const { data: settingsData, isLoading } = useGetNotificationSettingsQuery();
     const [updateSettings, { isLoading: isUpdating }] = useUpdateNotificationSettingsMutation();
-    
+
     const [preferences, setPreferences] = useState({
         emailMonthlyReports: true,
         emailImportantAlerts: true,
@@ -1005,8 +1014,8 @@ const NotificationSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">)
                     onClick={() => onOpenSave(handleSave)}
                     className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[#22D3EE] rounded-xl hover:bg-[#06B6D4] shadow-md shadow-[#22D3EE]/20 transition-all disabled:opacity-50"
                 >
-                    {isUpdating ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-                    {isUpdating ? "Saving..." : "Save Preferences"}
+                    <span>{isUpdating ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}</span>
+                    <span>{isUpdating ? "Saving..." : "Save Preferences"}</span>
                 </button>
             </div>
         </div>
@@ -1017,9 +1026,27 @@ const NotificationSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">)
 // 5. Billing Settings
 const BillingSettings = () => {
     const { data: billingData, isLoading } = useGetMyBillingQuery();
+    const [getSubscriptionById, { isLoading: isDownloading }] = useLazyGetSubscriptionByIdQuery();
+
+    // Fallback or read from cookies
+    const cookieSub = getSubscriptionFromCookie();
+
     const billingInfo = billingData?.data;
-    const currentPlan = billingInfo?.currentPlan;
-    const usage = billingInfo?.usage;
+    const currentPlan = cookieSub?.plan || billingInfo?.currentPlan;
+
+    // Adapt usage from cookie. The cookie provides 'location' and 'review' limits.
+    // 'used' stats might still need to come from the API (billingInfo?.usage) or default to 0.
+    const usage = {
+        locations: {
+            used: billingInfo?.usage?.locations?.used ?? 0,
+            limit: cookieSub?.location ?? billingInfo?.usage?.locations?.limit ?? 1
+        },
+        reviews: {
+            used: billingInfo?.usage?.reviews?.used ?? 0,
+            limit: cookieSub?.review ?? billingInfo?.usage?.reviews?.limit ?? 100
+        }
+    };
+
     const billingHistory = billingInfo?.billingHistory || [];
 
     const formatDate = (dateStr: string) => {
@@ -1035,6 +1062,137 @@ const BillingSettings = () => {
         return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount);
     };
 
+    const handleDownloadInvoice = async (invoice: any) => {
+        try {
+            const subId = invoice.subscriptionId || invoice.id || cookieSub?.subscriptionId;
+            if (!subId) {
+                toast.error("Subscription ID not found");
+                return;
+            }
+
+            const res = await getSubscriptionById(subId).unwrap();
+            const subData = res?.data || res;
+
+            const doc = new jsPDF();
+
+            // Try to load logo
+            try {
+                const img = new window.Image();
+                img.src = '/auth_icon.svg';
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+                
+                // Draw SVG to canvas to convert it to a true PNG format for jsPDF
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width || 173;
+                canvas.height = img.height || 60;
+                const ctx = canvas.getContext("2d");
+                
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const imgData = canvas.toDataURL("image/png");
+                    
+                    const ratio = canvas.width / canvas.height;
+                    const newHeight = 12;
+                    const newWidth = newHeight * ratio;
+                    
+                    doc.addImage(imgData, 'PNG', 14, 15, newWidth, newHeight);
+                } else {
+                    throw new Error("Canvas context unavailable");
+                }
+            } catch (e) {
+                doc.setFontSize(24);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(34, 211, 238); // Cyan
+                doc.text("Aimalya", 14, 25);
+            }
+
+            // Invoice Header
+            doc.setFontSize(20);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(33, 33, 33);
+            doc.text("INVOICE", 150, 25);
+
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Invoice ID: ${subId.split('-')[0].toUpperCase()}`, 150, 32);
+            doc.text(`Date: ${formatDate(invoice.date || subData?.createdAt)}`, 150, 37);
+            doc.text(`Status: ${subData?.paymentStatus || invoice.status || "PAID"}`, 150, 42);
+
+            // Billed To Section
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(33, 33, 33);
+            doc.text("Billed To:", 14, 45);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100, 100, 100);
+            doc.text(`User ID: ${subData?.userId || "N/A"}`, 14, 51);
+
+            // Main Details Table
+            autoTable(doc, {
+                startY: 65,
+                theme: 'striped',
+                headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 250, 252] },
+                bodyStyles: { textColor: 50 },
+                head: [['Description', 'Amount']],
+                body: [
+                    [
+                        `${subData?.plan} Plan Subscription (${subData?.durationsPlan || "Monthly"})`,
+                        formatAmount(invoice.amount || subData?.balance || 0)
+                    ],
+                ],
+            });
+
+            // Feature Details Table
+            const previousY = (doc as any).lastAutoTable.finalY + 15;
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(33, 33, 33);
+            doc.text("Subscription Details", 14, previousY);
+
+            const featureData = [
+                ["Plan", subData?.plan || "N/A"],
+                ["Billing Cycle", subData?.durationsPlan || "N/A"],
+                ["Total Businesses", subData?.business || "0"],
+                ["Locations per Business", subData?.location || "0"],
+                ["Review Limits", subData?.review || "0"],
+                ["Competitor Analysis", subData?.competitor ? "Included" : "Not Included"],
+                ["Report Plans", Array.isArray(subData?.reportPlan) ? subData.reportPlan.join(", ") : (subData?.reportPlan || "None")],
+                ["Expiration Date", subData?.durationDate ? formatDate(subData.durationDate) : "N/A"]
+            ];
+
+            autoTable(doc, {
+                startY: previousY + 5,
+                theme: 'plain',
+                styles: { cellPadding: 2, fontSize: 10 },
+                columnStyles: {
+                    0: { fontStyle: 'bold', textColor: 100, cellWidth: 80 },
+                    1: { textColor: 50 }
+                },
+                body: featureData,
+            });
+
+            // Footer
+            const pageHeight = doc.internal.pageSize.height;
+            doc.setFontSize(9);
+            doc.setTextColor(150, 150, 150);
+            doc.text("Thank you for your business!", 14, pageHeight - 20);
+            doc.text("aimalya.com", 14, pageHeight - 15);
+
+            doc.save(`Invoice_${subId.slice(0, 8)}.pdf`);
+            toast.success("Invoice downloaded successfully!");
+        } catch (error) {
+            console.error("Failed to download invoice:", error);
+            toast.error("Failed to download invoice");
+        }
+    };
+
+
     if (isLoading) {
         return (
             <div className="space-y-8 animate-fadeIn">
@@ -1047,31 +1205,25 @@ const BillingSettings = () => {
 
     // Determine plan info
     const planName = currentPlan || "Free Tier";
-    let planPrice = "$0";
-    let planPeriod = "per month";
-    let planDesc = "Up to 1 location, 100 reviews";
+    let planPrice = cookieSub?.balance !== undefined ? formatAmount(Number(cookieSub.balance)) : "$0";
+    let planPeriod = cookieSub?.durationsPlan?.toLowerCase() === "yearly" || cookieSub?.durationsPlan?.toLowerCase() === "annually" ? "per year" : "per month";
+    let planDesc = "Standard Features";
 
     if (planName.toUpperCase() === "STARTER") {
-        planPrice = "$49";
-        planDesc = "Up to 1 location, 500 reviews";
+        if (cookieSub?.balance === undefined) planPrice = "$49";
+        planDesc = "Basic limits and features";
     } else if (planName.toUpperCase() === "PROFESSIONAL") {
-        planPrice = "$149";
-        planDesc = "Up to 5 locations, unlimited reviews";
+        if (cookieSub?.balance === undefined) planPrice = "$149";
+        planDesc = "Advanced limits and features";
     } else if (planName.toUpperCase() === "ENTERPRISE") {
-        planPrice = "Custom";
-        planPeriod = "custom pricing";
-        planDesc = "Unlimited locations and reviews";
+        if (cookieSub?.balance === undefined) {
+            planPrice = "Custom";
+            planPeriod = "custom pricing";
+        }
+        planDesc = "Premium limits and analytics";
     }
 
-    const locationUsed = usage?.locations?.used ?? 0;
-    const locationLimit = usage?.locations?.limit ?? 1;
-    const isLocationUnlimited = typeof locationLimit === 'string' && locationLimit.toLowerCase() === 'unlimited';
-    const locationPercent = isLocationUnlimited ? 100 : Math.min(100, (locationUsed / (Number(locationLimit) || 1)) * 100);
-
-    const reviewUsed = usage?.reviews?.used ?? 0;
-    const reviewLimit = usage?.reviews?.limit ?? 100;
-    const isReviewUnlimited = typeof reviewLimit === 'string' && reviewLimit.toLowerCase() === 'unlimited';
-    const reviewPercent = isReviewUnlimited ? 100 : Math.min(100, (reviewUsed / (Number(reviewLimit) || 1)) * 100);
+    const expiryDate = cookieSub?.durationDate ? formatDate(cookieSub.durationDate) : null;
 
     return (
         <div className="space-y-8 animate-fadeIn">
@@ -1087,48 +1239,65 @@ const BillingSettings = () => {
                             </div>
                             <p className="text-sm text-gray-500 mt-1">{planDesc}</p>
                             <div className="flex items-center gap-3 mt-4">
-                                <button className="cursor-pointer px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                                {/* <button className="cursor-pointer px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                                     Upgrade Plan
-                                </button>
-                                <button className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                </button> */}
+                                <Link href="/pricing" className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                                     Change Plan
-                                </button>
+                                </Link>
                             </div>
                         </div>
                         <div className="text-right">
                             <div className="text-3xl font-bold text-gray-900">{planPrice}</div>
                             <div className="text-xs text-gray-500">{planPeriod}</div>
+                            {expiryDate && (
+                                <div className="text-[11px] font-medium text-amber-600 mt-1">
+                                    Expires: {expiryDate}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
 
                 <div className="mt-8">
-                    <h3 className="text-sm font-bold text-gray-900 mb-4">Current Usage</h3>
+                    <h3 className="text-sm font-bold text-gray-900 mb-4">Plan Limits & Features</h3>
 
-                    <div className="space-y-6">
-                        <div>
-                            <div className="flex justify-between text-xs font-medium text-gray-600 mb-2">
-                                <span>Locations</span>
-                                <span>{locationUsed} / {locationLimit}</span>
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                    <Building2 className="size-4" />
+                                </div>
+                                <span className="text-sm font-medium text-gray-900">Total Businesses</span>
                             </div>
-                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${locationPercent}%` }} />
-                            </div>
+                            <span className="text-sm font-bold text-gray-900">{cookieSub?.business || 1}</span>
                         </div>
 
-                        <div>
-                            <div className="flex justify-between text-xs font-medium text-gray-600 mb-2">
-                                <span>Reviews This Month</span>
-                                <span>{reviewUsed} / {reviewLimit}</span>
+                        <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                                    <MapPin className="size-4" />
+                                </div>
+                                <span className="text-sm font-medium text-gray-900">Locations per Business</span>
                             </div>
-                            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-green-500 rounded-full" style={{ width: `${reviewPercent}%` }} />
+                            <span className="text-sm font-bold text-gray-900">{cookieSub?.location || 1}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
+                                    <Globe className="size-4" />
+                                </div>
+                                <span className="text-sm font-medium text-gray-900">Competitor Analysis</span>
                             </div>
+                            <span className="text-sm font-bold text-gray-900">
+                                {cookieSub?.competitor ? "Included" : "Not Included"}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-8">
+                {/* <div className="mt-8">
                     <h3 className="text-sm font-bold text-gray-900 mb-4">Payment Method</h3>
                     <div className="p-4 border border-gray-200 rounded-xl flex items-center justify-between bg-white">
                         <div className="flex items-center gap-4">
@@ -1144,7 +1313,7 @@ const BillingSettings = () => {
                             Update
                         </button>
                     </div>
-                </div>
+                </div> */}
 
                 <div className="mt-8">
                     <h3 className="text-sm font-bold text-gray-900 mb-4">Billing History</h3>
@@ -1161,15 +1330,19 @@ const BillingSettings = () => {
                                         <span className="text-sm font-bold text-gray-900">{formatAmount(invoice.amount)}</span>
                                         <span className={cn(
                                             "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide",
-                                            invoice.status?.toLowerCase() === "paid" 
-                                                ? "bg-green-100 text-green-700" 
+                                            invoice.status?.toLowerCase() === "paid"
+                                                ? "bg-green-100 text-green-700"
                                                 : "bg-amber-100 text-amber-700"
                                         )}>
                                             {invoice.status}
                                         </span>
                                     </div>
-                                    <button className="cursor-pointer text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline">
-                                        Download
+                                    <button
+                                        onClick={() => handleDownloadInvoice(invoice)}
+                                        disabled={isDownloading}
+                                        className="cursor-pointer text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline disabled:opacity-50"
+                                    >
+                                        {isDownloading ? "Downloading..." : "Download"}
                                     </button>
                                 </div>
                             ))}
@@ -1282,7 +1455,7 @@ const CreateFeedbackModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: ()
                         disabled={isLoading}
                         className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Submit Feedback"}
+                        <span>{isLoading ? <Loader2 className="size-4 animate-spin" /> : "Submit Feedback"}</span>
                     </button>
                 </div>
             </div>
@@ -1315,9 +1488,9 @@ const EditFeedbackModal = ({ isOpen, onClose, review }: { isOpen: boolean, onClo
         }
 
         try {
-            await updateReview({ 
-                id: review.reviewId, 
-                data: { content, rating, designation, company } 
+            await updateReview({
+                id: review.reviewId,
+                data: { content, rating, designation, company }
             }).unwrap();
             toast.success("Feedback updated successfully!");
             onClose();
@@ -1392,7 +1565,7 @@ const EditFeedbackModal = ({ isOpen, onClose, review }: { isOpen: boolean, onClo
                         disabled={isLoading}
                         className="cursor-pointer flex-1 px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        {isLoading ? <Loader2 className="size-4 animate-spin" /> : "Save Changes"}
+                        <span>{isLoading ? <Loader2 className="size-4 animate-spin" /> : "Save Changes"}</span>
                     </button>
                 </div>
             </div>
@@ -1404,7 +1577,7 @@ const ReviewsSettings = ({ onOpenCreateModal, onOpenEditModal }: { onOpenCreateM
     const { data: reviewsResponse, isLoading } = useGetReviewsQuery({ limit: 100, sortOrder: "desc" });
     const userId = getUserIdFromToken();
     const reviews = reviewsResponse?.data || [];
-    
+
     // Find the single feedback submitted by the current user
     const userReview = reviews.find((r: any) => r.userId === userId);
 
@@ -1459,7 +1632,7 @@ const ReviewsSettings = ({ onOpenCreateModal, onOpenEditModal }: { onOpenCreateM
                                     <Star key={i} className={`size-4 ${i < userReview.rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-100 text-gray-200"}`} />
                                 ))}
                             </div>
-                            <button 
+                            <button
                                 onClick={() => onOpenEditModal(userReview)}
                                 className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                 title="Edit Feedback"
@@ -1544,7 +1717,7 @@ export default function SettingsPage() {
             case "billing":
                 return <BillingSettings />;
             case "reviews":
-                return <ReviewsSettings 
+                return <ReviewsSettings
                     onOpenCreateModal={() => setIsCreateFeedbackOpen(true)}
                     onOpenEditModal={(review) => {
                         setSelectedReviewToEdit(review);

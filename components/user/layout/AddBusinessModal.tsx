@@ -12,6 +12,7 @@ import {
 import StylishDropdown from "@/components/ui/StylishDropdown";
 import { useFetchBusinessDataMutation } from "@/redux/api/AI/signupflowApi";
 import { useGetBusinessNamesQuery } from "@/redux/api/AI/nameFatchingApi";
+import { GOOGLE_BUSINESS_CATEGORIES } from "@/constants/businessCategories";
 import { getUserIdFromToken, getSubscriptionFromCookie } from "@/utils/authUtils";
 import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
@@ -201,14 +202,13 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
                         </button>
                     </div>
 
-                    {/* Important: Add pb-32 to allow StylishDropdown space to open without creating double scrollbars immediately */}
-                    <div className="space-y-6 pb-32">
+                    <div className="space-y-6 pb-6">
                         {businesses.map((biz, bIdx) => (
-                            <div key={biz.id} className="relative border border-zinc-200 rounded-2xl p-4 sm:p-6 bg-zinc-50/30 transition-all duration-300">
+                            <div key={biz.id} className="relative border border-zinc-200 rounded-2xl p-4 sm:p-6 bg-zinc-50/30 transition-all duration-300" style={{ zIndex: 50 - bIdx }}>
                                 {businesses.length > 1 && (
                                     <button 
                                         onClick={() => removeBusiness(bIdx)}
-                                        className="absolute -top-3 -right-3 bg-white border border-zinc-200 p-2 rounded-full text-zinc-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm z-10"
+                                        className="absolute top-4 right-4 bg-white border border-zinc-200 p-2 rounded-full text-zinc-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm z-10"
                                         title="Remove Business"
                                     >
                                         <Trash2 size={16} />
@@ -239,13 +239,7 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
                                             <label className="text-[11px] font-semibold text-zinc-500 mb-1 block">Business Category</label>
                                             <div className="relative">
                                                 <StylishDropdown
-                                                    options={[
-                                                        { label: "Restaurant", value: "Restaurant" },
-                                                        { label: "Retail", value: "Retail" },
-                                                        { label: "Service", value: "Service" },
-                                                        { label: "Cafe", value: "Cafe" },
-                                                        { label: "Agency", value: "Agency" }
-                                                    ]}
+                                                    options={GOOGLE_BUSINESS_CATEGORIES}
                                                     value={biz.category}
                                                     onChange={(val) => {
                                                         const newBiz = [...businesses];

@@ -25,6 +25,7 @@ import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { setSelectedBusiness } from "@/redux/slices/businessSlice";
 import Cookies from "js-cookie";
+import { GOOGLE_BUSINESS_CATEGORIES } from "@/constants/businessCategories";
 
 
 interface Location {
@@ -163,6 +164,16 @@ const StepStructure = ({ businesses, setBusinesses, onNext, onBack, isLoading }:
         setBusinesses(newBusinesses);
     };
 
+    const removeBusiness = (bizIndex: number) => {
+        if (businesses.length > 1) {
+            const newBusinesses = [...businesses];
+            newBusinesses.splice(bizIndex, 1);
+            setBusinesses(newBusinesses);
+        } else {
+            toast.error("At least one business is required");
+        }
+    };
+
     return (
         <div>
             <div className="text-center mb-8">
@@ -172,16 +183,25 @@ const StepStructure = ({ businesses, setBusinesses, onNext, onBack, isLoading }:
                 <h2 className="text-[24px] font-bold text-[#1A1A1A]">Business Profile Setup</h2>
             </div>
 
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-[#1A1A1A]">Business Structure</h3>
                 <button onClick={addBusiness} className="bg-auth-subtitle-color text-white px-3 py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-1 hover:bg-cyan-300 cursor-pointer">
                     <Plus size={14} /> Add Business
                 </button>
             </div>
 
-            <div className="space-y-6 mb-10 max-h-[500px] overflow-y-auto pr-2 scrollbar-hide">
+            <div className="space-y-6 mb-10 max-h-[320px] overflow-y-auto pr-2 scrollbar-hide">
                 {businesses.map((biz, bIdx) => (
-                    <div key={biz.id} className="border border-zinc-200 rounded-2xl p-6 bg-white/50">
+                    <div key={biz.id} className="relative border border-zinc-200 rounded-2xl p-6 bg-white/50" style={{ zIndex: 50 - bIdx }}>
+                        {businesses.length > 1 && (
+                            <button 
+                                onClick={() => removeBusiness(bIdx)}
+                                className="cursor-pointer absolute top-2 right-2 bg-white border border-zinc-200 p-2 rounded-full text-zinc-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm z-10"
+                                title="Remove Business"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        )}
                         <div className="mb-4 pb-4 border-b border-zinc-100">
                             <h4 className="text-[13px] font-bold text-[#1A1A1A] mb-3">Business Information</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -206,11 +226,7 @@ const StepStructure = ({ businesses, setBusinesses, onNext, onBack, isLoading }:
                                     <label className="text-[11px] font-semibold text-zinc-500 mb-1 block">Business Category</label>
                                     <div className="relative">
                                         <StylishDropdown
-                                            options={[
-                                                { label: "Restaurant", value: "Restaurant" },
-                                                { label: "Retail", value: "Retail" },
-                                                { label: "Service", value: "Service" }
-                                            ]}
+                                            options={GOOGLE_BUSINESS_CATEGORIES}
                                             value={biz.category}
                                             onChange={(val) => {
                                                 const newBiz = [...businesses];
@@ -284,7 +300,7 @@ const StepStructure = ({ businesses, setBusinesses, onNext, onBack, isLoading }:
                     Back
                 </button>
                 <button onClick={onNext} disabled={isLoading} className="cursor-pointer bg-auth-subtitle-color text-white px-10 py-3 rounded-xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 text-[14px] disabled:opacity-50">
-                    {isLoading ? "Saving..." : "Continue"}
+                    <span>{isLoading ? "Saving..." : "Continue"}</span>
                 </button>
             </div>
         </div>
@@ -429,7 +445,12 @@ const StepGoal = ({
                                 options={[
                                     { label: "Improve customer satisfaction", value: "improve_customer_satisfaction" },
                                     { label: "Improve service speed", value: "improve_service_speed" },
-                                    { label: "Increase ratings", value: "increase_ratings" }
+                                    { label: "Increase ratings", value: "increase_ratings" },
+                                    { label: "Increase sales", value: "increase_sales" },
+                                    { label: "Improve brand awareness", value: "improve_brand_awareness" },
+                                    { label: "Expand customer base", value: "expand_customer_base" },
+                                    { label: "Improve customer retention", value: "improve_customer_retention" },
+                                    { label: "Better customer engagement", value: "better_customer_engagement" }
                                 ]}
                                 value={goals.selectedGoals}
                                 onChange={(val) => setGoals({ ...goals, selectedGoals: val as string[] })}
@@ -437,6 +458,7 @@ const StepGoal = ({
                                 selectedColor="#22D3EE"
                                 selectedBgColor="#ecf9fbff"
                                 icon={<Target size={18} className="text-cyan-400" />}
+                                position="top"
                             />
                         </div>
                     </div>
@@ -461,7 +483,7 @@ const StepGoal = ({
                         disabled={isLoading}
                         className="bg-auth-subtitle-color text-white px-10 py-3 rounded-xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-blue-200 text-[14px] cursor-pointer disabled:opacity-50"
                     >
-                        {isLoading ? "Starting Analysis..." : "Start Analysis"}
+                        <span>{isLoading ? "Starting Analysis..." : "Start Analysis"}</span>
                     </button>
                 </div>
             </div>

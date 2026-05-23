@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import LanguageTranslator from "@/components/ui/LanguageTranslator";
 
 export default function LandingNavbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -82,36 +83,7 @@ export default function LandingNavbar() {
                 </div>
 
                 <div className="flex items-center gap-6">
-                    <div className="relative">
-                        <button
-                            onClick={toggleLangMenu}
-                            className="hidden sm:flex items-center gap-2 text-zinc-600 cursor-pointer hover:text-zinc-900 transition-colors"
-                        >
-                            <div className="w-6 h-4 bg-[#E8F3EF] rounded flex items-center justify-center overflow-hidden">
-                                <span className="text-[10px] scale-75">{language === 'en' ? '🇺🇸' : '🇸🇦'}</span>
-                            </div>
-                            <span className="text-sm font-semibold">{language === 'en' ? 'En' : 'Ar'}</span>
-                            <ChevronDown size={14} strokeWidth={3} className={`transition-transform duration-200 ${isLangMenuOpen ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {/* Language Dropdown */}
-                        {isLangMenuOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-32 bg-white rounded-xl border border-zinc-100 shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                                <button
-                                    onClick={() => handleLanguageChange('en')}
-                                    className={`w-full px-4 py-2 text-left text-sm font-medium hover:bg-zinc-50 flex items-center gap-3 ${language === 'en' ? 'text-[#0066FF] bg-blue-50/50' : 'text-zinc-600'}`}
-                                >
-                                    <span className="text-lg">🇺🇸</span> English
-                                </button>
-                                <button
-                                    onClick={() => handleLanguageChange('ar')}
-                                    className={`w-full px-4 py-2 text-left text-sm font-medium hover:bg-zinc-50 flex items-center gap-3 ${language === 'ar' ? 'text-[#0066FF] bg-blue-50/50' : 'text-zinc-600'}`}
-                                >
-                                    <span className="text-lg">🇸🇦</span> Arabic
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    <LanguageTranslator />
 
                     <Link href="/login" className="hidden sm:block text-[#0066FF] border border-[#0066FF] px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-50 transition-all cursor-pointer">
                         Login
