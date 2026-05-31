@@ -234,7 +234,7 @@ const StepStructure = ({ businesses, setBusinesses, onNext, onBack, isLoading }:
                                                 setBusinesses(newBiz);
                                             }}
                                             placeholder="Select category"
-                                            selectedColor="#22D3EE"
+                                            selectedColor="var(--primary-brand)"
                                         />
                                     </div>
                                 </div>
@@ -385,7 +385,7 @@ const StepGoal = ({
                                 value={goals.businessName}
                                 onChange={(val) => setGoals({ ...goals, businessName: val as string, location: '' })}
                                 placeholder="Select business"
-                                selectedColor="#22D3EE"
+                                selectedColor="var(--primary-brand)"
                                 selectedBgColor="#ecf9fbff"
                                 icon={<Building2 size={18} className="text-auth-subtitle-color" />}
                             />
@@ -402,12 +402,13 @@ const StepGoal = ({
                                 value={goals.location}
                                 onChange={(val) => setGoals({ ...goals, location: val as string })}
                                 placeholder="Select location"
-                                selectedColor="#22D3EE"
+                                selectedColor="var(--primary-brand)"
                                 selectedBgColor="#ecf9fbff"
                                 icon={<MapPin size={18} className="text-auth-subtitle-color" />}
                                 disabled={!goals.businessName}
                             />
                         </div>
+
 
                         <div>
                             <label className="text-[13px] font-bold text-zinc-700 mb-2 block">Competitors Google Maps URLs (Optional)</label>
@@ -455,7 +456,7 @@ const StepGoal = ({
                                 value={goals.selectedGoals}
                                 onChange={(val) => setGoals({ ...goals, selectedGoals: val as string[] })}
                                 placeholder="Select goals"
-                                selectedColor="#22D3EE"
+                                selectedColor="var(--primary-brand)"
                                 selectedBgColor="#ecf9fbff"
                                 icon={<Target size={18} className="text-cyan-400" />}
                                 position="top"

@@ -252,7 +252,7 @@ export default function DashboardPage() {
         <div className="space-y-8 pb-8">
             {/* Upgrade Banner */}
             {isNonePlan && isBannerVisible && (
-                <div className="bg-[#22D3EE] rounded-3xl p-8 text-white shadow-2xl shadow-cyan-100 flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden group">
+                <div className="bg-[var(--primary-brand)] rounded-3xl p-8 text-white shadow-2xl shadow-cyan-100 flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden group">
                     {/* Abstract Shapes */}
                     <div className="absolute top-0 right-0 -mt-12 -mr-12 size-48 bg-white/10 rounded-full blur-3xl" />
                     <div className="absolute bottom-0 left-0 -mb-12 -ml-12 size-32 bg-white/10 rounded-full blur-2xl" />
@@ -454,13 +454,13 @@ export default function DashboardPage() {
                             <span className="font-medium text-gray-700">{label}</span>
                             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-[#22D3EE] rounded-full"
+                                    className="h-full bg-[var(--primary-brand)] rounded-full"
                                     style={{ width: `${(data.score / 5) * 100}%` }}
                                 />
                             </div>
                             <span className="font-bold text-gray-900 text-right">{data.score}</span>
                             <div className={cn(
-                                "text-xs text-right font-medium flex items-center justify-end text-[#22D3EE]"
+                                "text-xs text-right font-medium flex items-center justify-end text-[var(--primary-brand)]"
                             )}>
                                 {data.growth.direction === "up" && <TrendingUp className="size-3 mr-1" />}
                                 {data.growth.direction === "down" && <TrendingDown className="size-3 mr-1" />}

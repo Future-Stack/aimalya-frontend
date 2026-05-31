@@ -264,13 +264,7 @@ export default function SubscriptionManagement() {
                     <div className="overflow-x-auto custom-scrollbar">
                         <table className="w-full table-auto text-left text-sm">
                             <thead className="bg-[#F8FAFC] text-xs font-semibold uppercase text-gray-500">
-                                <tr className="whitespace-nowrap"><th className="px-5 py-4 min-w-[180px]">User</th>           {/* ← reduced a bit */}
-                                    <th className="px-5 py-4 min-w-[100px]">Plan</th>
-                                    <th className="px-5 py-4 min-w-[90px]">Status</th>
-                                    <th className="px-5 py-4 min-w-[90px]">Amount</th>
-                                    <th className="px-5 py-4 min-w-[110px]">Billing Cycle</th>
-                                    <th className="px-5 py-4 min-w-[130px]">Next Billing</th>   {/* ← most variable */}
-                                    <th className="px-5 py-4 min-w-[70px] text-right">Actions</th></tr>
+                                <tr className="whitespace-nowrap"><th className="px-5 py-4 min-w-[180px]">User</th><th className="px-5 py-4 min-w-[100px]">Plan</th><th className="px-5 py-4 min-w-[90px]">Status</th><th className="px-5 py-4 min-w-[90px]">Amount</th><th className="px-5 py-4 min-w-[110px]">Billing Cycle</th><th className="px-5 py-4 min-w-[130px]">Next Billing</th><th className="px-5 py-4 min-w-[70px] text-right">Actions</th></tr>
                             </thead>
                             <tbody className="divide-y divide-[#E2E8F0]">
                                 {paginatedSubscriptions.map((sub: any) => (

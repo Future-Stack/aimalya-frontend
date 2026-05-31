@@ -102,24 +102,24 @@ export default function Sidebar() {
                             className={cn(
                                 "group relative flex items-center h-11 rounded-xl transition-all duration-200 cursor-pointer",
                                 isActive
-                                    ? "bg-[#22D3EE] text-white shadow-lg shadow-[#22D3EE]/20"
+                                    ? "bg-[var(--primary-brand)] text-white shadow-lg shadow-[var(--primary-brand)]/20"
                                     : "text-gray-300 hover:bg-white/10 hover:text-white"
                             )}
                         >
                             <div className="flex items-center justify-center w-11 h-11 flex-shrink-0">
-                                <item.icon 
+                                <item.icon
                                     className={cn(
                                         "size-[20px] transition-colors duration-200",
                                         isActive ? "text-white" : "text-gray-300 group-hover:text-white"
-                                    )} 
+                                    )}
                                 />
                             </div>
                             <span className={cn(
                                 "ml-2 transition-all duration-300 whitespace-nowrap",
                                 isSmallScreen ? "opacity-0 group-hover:opacity-100" : "opacity-100",
                                 isActive
-                                    ? "text-[15px] font-semibold leading-[26px] text-white"
-                                    : "text-[16px] font-normal leading-[24px] text-gray-300 group-hover:text-white"
+                                    ? "text-[16px] leading-[26px] text-white"
+                                    : "text-[15px] leading-[24px] text-gray-300 group-hover:text-white"
                             )}>
                                 {item.label}
                             </span>
@@ -128,7 +128,7 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            <div className="mt-auto border-t border-gray-500/50 bg-[#111827]/50 m-4 pt-4">
+            <div className="mt-auto border-t border-gray-500/50 m-4 pt-4">
                 <button
                     onClick={() => logout("/admin/signin")}
                     className={cn(

@@ -218,7 +218,7 @@ export default function SignupPage() {
                             id="terms"
                             required
                             className="w-4 h-4 rounded cursor-pointer"
-                            style={{ accentColor: '#22D3EE' }}
+                            style={{ accentColor: 'var(--primary-brand)' }}
                         />
                         <label htmlFor="terms" className="text-[14px] text-zinc-500 font-medium">
                             I accept the <Link href="#" className="text-auth-subtitle-color font-bold hover:underline">Terms & Privacy Policy</Link>

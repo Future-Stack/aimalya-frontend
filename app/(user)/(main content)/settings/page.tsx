@@ -892,7 +892,7 @@ const NotificationItem = ({
         </div>
         <div className={cn(
             "relative w-11 h-6 transition-colors duration-200 ease-in-out bg-gray-200 rounded-full cursor-pointer",
-            isActive ? "bg-[#22D3EE]" : "bg-gray-200"
+            isActive ? "bg-[var(--primary-brand)]" : "bg-gray-200"
         )}>
             <div className={cn(
                 "absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out shadow-sm",
@@ -1012,7 +1012,7 @@ const NotificationSettings = ({ onOpenSave }: Pick<SettingsProps, "onOpenSave">)
                 <button
                     disabled={isUpdating}
                     onClick={() => onOpenSave(handleSave)}
-                    className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[#22D3EE] rounded-xl hover:bg-[#06B6D4] shadow-md shadow-[#22D3EE]/20 transition-all disabled:opacity-50"
+                    className="cursor-pointer flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-[var(--primary-brand)] rounded-xl hover:bg-[var(--primary-brand-dark)] shadow-md shadow-[var(--primary-brand)]/20 transition-all disabled:opacity-50"
                 >
                     <span>{isUpdating ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}</span>
                     <span>{isUpdating ? "Saving..." : "Save Preferences"}</span>
@@ -1750,7 +1750,7 @@ export default function SettingsPage() {
                                     className={cn(
                                         "cursor-pointer w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 mb-3",
                                         isActive
-                                            ? "bg-[#22D3EE] text-white shadow-md shadow-[#22D3EE]/20 translate-x-1"
+                                            ? "bg-[var(--primary-brand)] text-white shadow-md shadow-[var(--primary-brand)]/20 translate-x-1"
                                             : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                                     )}
                                 >

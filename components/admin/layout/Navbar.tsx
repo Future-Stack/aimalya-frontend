@@ -80,7 +80,7 @@ export default function Navbar() {
 
                     {/* Notification Dropdown Modal */}
                     {isOpen && (
-                        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-[#22D3EE]/20 shadow-2xl p-4 z-50 flex flex-col space-y-3">
+                        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-[var(--primary-brand)]/20 shadow-2xl p-4 z-50 flex flex-col space-y-3">
                             <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                                 <h3 className="text-sm font-black text-gray-900">Admin Notifications</h3>
                                 <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function Navbar() {
                                             key={n.id}
                                             className={`p-3 rounded-xl border transition-all ${
                                                 n.unread 
-                                                    ? "bg-[#22D3EE]/5 border-[#22D3EE]/20" 
+                                                    ? "bg-[var(--primary-brand)]/5 border-[var(--primary-brand)]/20" 
                                                     : "bg-gray-50/50 border-gray-100"
                                             }`}
                                         >

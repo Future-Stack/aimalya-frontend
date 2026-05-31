@@ -31,7 +31,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: () => void }) {
             onClick={onChange}
             className={cn(
                 "h-6 w-11 rounded-full p-1 transition-colors duration-200 ease-in-out cursor-pointer",
-                value ? "bg-[#22D3EE]" : "bg-gray-200"
+                value ? "bg-[var(--primary-brand)]" : "bg-gray-200"
             )}
         >
             <div className={cn(
@@ -116,7 +116,7 @@ export default function SystemSettings() {
             </div>
 
             {/* General Settings */}
-            <section className="admin-card border border-[#22D3EE]/30 bg-white shadow-none rounded-xl p-6">
+            <section className="admin-card border border-[var(--primary-brand)]/30 bg-white shadow-none rounded-xl p-6">
                 <div className="flex items-center gap-2 border-b border-[#F1F5F9] pb-4">
                     <Globe className="size-5 text-[#0891B2]" />
                     <h3 className="text-lg font-bold text-[#0F172A]">General</h3>
@@ -128,7 +128,7 @@ export default function SystemSettings() {
                             type="text"
                             value={form.siteName}
                             onChange={(e) => handleInput('siteName', e.target.value)}
-                            className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE]"
+                            className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)]"
                         />
                     </div>
                     <div className="space-y-2">
@@ -137,7 +137,7 @@ export default function SystemSettings() {
                             type="email"
                             value={form.supportEmail}
                             onChange={(e) => handleInput('supportEmail', e.target.value)}
-                            className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE]"
+                            className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)]"
                         />
                     </div>
                     <div className="space-y-2">
@@ -146,7 +146,7 @@ export default function SystemSettings() {
                             type="text"
                             value={form.supportUrl}
                             onChange={(e) => handleInput('supportUrl', e.target.value)}
-                            className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE]"
+                            className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)]"
                         />
                     </div>
                     <div className="space-y-2">
@@ -155,7 +155,7 @@ export default function SystemSettings() {
                             type="text"
                             value={form.supportPhone}
                             onChange={(e) => handleInput('supportPhone', e.target.value)}
-                            className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE]"
+                            className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)]"
                         />
                     </div>
                     <div className="space-y-2 sm:col-span-2">
@@ -164,14 +164,14 @@ export default function SystemSettings() {
                             type="text"
                             value={form.location}
                             onChange={(e) => handleInput('location', e.target.value)}
-                            className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE]"
+                            className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)]"
                         />
                     </div>
                 </div>
             </section>
 
             {/* User Management */}
-            <section className="admin-card border border-[#22D3EE]/30 bg-white shadow-none rounded-xl p-6">
+            <section className="admin-card border border-[var(--primary-brand)]/30 bg-white shadow-none rounded-xl p-6">
                 <div className="flex items-center gap-2 border-b border-[#F1F5F9] pb-4">
                     <Users className="size-5 text-[#0891B2]" />
                     <h3 className="text-lg font-bold text-[#0F172A]">User Management</h3>
@@ -190,14 +190,14 @@ export default function SystemSettings() {
                             type="number"
                             value={form.freeTrialDuration}
                             onChange={(e) => handleInput('freeTrialDuration', parseInt(e.target.value) || 0)}
-                            className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE]"
+                            className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)]"
                         />
                     </div>
                 </div>
             </section>
 
             {/* Platform Limits */}
-            <section className="admin-card border border-[#22D3EE]/30 bg-white shadow-none rounded-xl p-6">
+            <section className="admin-card border border-[var(--primary-brand)]/30 bg-white shadow-none rounded-xl p-6">
                 <div className="flex items-center gap-2 border-b border-[#F1F5F9] pb-4">
                     <Smartphone className="size-5 text-[#0891B2]" />
                     <h3 className="text-lg font-bold text-[#0F172A]">Platform Limits</h3>
@@ -209,7 +209,7 @@ export default function SystemSettings() {
                             type="number"
                             value={form.planLimitMaxBusiness}
                             onChange={(e) => handleInput('planLimitMaxBusiness', parseInt(e.target.value) || 0)}
-                            className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE]"
+                            className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)]"
                         />
                         <p className="text-[10px] text-gray-400 font-medium">For non-enterprise plans</p>
                     </div>
@@ -219,7 +219,7 @@ export default function SystemSettings() {
                             type="number"
                             value={form.planLimitMaxLocations}
                             onChange={(e) => handleInput('planLimitMaxLocations', parseInt(e.target.value) || 0)}
-                            className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE]"
+                            className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-2.5 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)]"
                         />
                         <p className="text-[10px] text-gray-400 font-medium">For non-enterprise plans</p>
                     </div>
@@ -227,7 +227,7 @@ export default function SystemSettings() {
             </section>
 
             {/* Notifications */}
-            <section className="admin-card border border-[#22D3EE]/30 bg-white shadow-none rounded-xl p-6">
+            <section className="admin-card border border-[var(--primary-brand)]/30 bg-white shadow-none rounded-xl p-6">
                 <div className="flex items-center gap-2 border-b border-[#F1F5F9] pb-4">
                     <Bell className="size-5 text-[#0891B2]" />
                     <h3 className="text-lg font-bold text-[#0F172A]">Notifications</h3>
@@ -286,7 +286,7 @@ export default function SystemSettings() {
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex items-center gap-2 rounded-lg bg-[#22D3EE] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#22D3EE]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+                    className="flex items-center gap-2 rounded-lg bg-[var(--primary-brand)] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-[var(--primary-brand)]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
                 >
                     {isSaving ? (
                         <Loader2 className="size-4 animate-spin" />

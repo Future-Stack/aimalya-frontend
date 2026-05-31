@@ -99,7 +99,7 @@ export default function AdminProfile() {
                 </div>
                 <button 
                     onClick={() => setIsAddAdminModalOpen(true)}
-                    className="flex items-center gap-2 rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-bold text-white shadow-md shadow-[#22D3EE]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                    className="flex items-center gap-2 rounded-lg bg-[var(--primary-brand)] px-4 py-2 text-sm font-bold text-white shadow-md shadow-[var(--primary-brand)]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                 >
                     <Plus className="size-4" />
                     Add new admin
@@ -108,7 +108,7 @@ export default function AdminProfile() {
 
             {/* Profile Section Card */}
             <form onSubmit={handleSave} className="space-y-8">
-                <section className="admin-card border border-[#22D3EE]/30 bg-white shadow-none rounded-xl p-6">
+                <section className="admin-card border border-[var(--primary-brand)]/30 bg-white shadow-none rounded-xl p-6">
                     {/* Header bar */}
                     <div className="flex items-center gap-2 border-b border-[#F1F5F9] pb-4">
                         <UserCircle className="size-5 text-[#0891B2]" />
@@ -119,14 +119,14 @@ export default function AdminProfile() {
                         {/* Profile Image Column */}
                         <div className="flex flex-col items-center gap-3 shrink-0 mx-auto md:mx-0">
                             <div className="relative group">
-                                <div className="size-32 rounded-full overflow-hidden ring-4 ring-[#22D3EE]/10 shadow-inner">
+                                <div className="size-32 rounded-full overflow-hidden ring-4 ring-[var(--primary-brand)]/10 shadow-inner">
                                     <img
                                         src={previewUrl || defaultAvatar}
                                         alt="Admin Avatar"
                                         className="size-full object-cover"
                                     />
                                 </div>
-                                <label className="absolute bottom-0 right-0 p-2.5 bg-[#22D3EE] rounded-full text-white shadow-lg cursor-pointer hover:bg-[#06B6D4] transition-colors border-2 border-white">
+                                <label className="absolute bottom-0 right-0 p-2.5 bg-[var(--primary-brand)] rounded-full text-white shadow-lg cursor-pointer hover:bg-[#06B6D4] transition-colors border-2 border-white">
                                     <Camera className="size-4.5" />
                                     <input
                                         type="file"
@@ -152,7 +152,7 @@ export default function AdminProfile() {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     required
-                                    className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE] transition-all"
+                                    className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)] transition-all"
                                 />
                             </div>
 
@@ -162,7 +162,7 @@ export default function AdminProfile() {
                                     type="email"
                                     value={admin?.email || ""}
                                     disabled
-                                    className="w-full rounded-lg border border-[#22D3EE]/20 bg-gray-50 p-3 text-sm text-gray-400 cursor-not-allowed outline-none"
+                                    className="w-full rounded-lg border border-[var(--primary-brand)]/20 bg-gray-50 p-3 text-sm text-gray-400 cursor-not-allowed outline-none"
                                 />
                             </div>
 
@@ -173,7 +173,7 @@ export default function AdminProfile() {
                                         type="text"
                                         value={admin?.role || "ADMIN"}
                                         disabled
-                                        className="w-full rounded-lg border border-[#22D3EE]/20 bg-gray-50 p-3 text-sm text-gray-400 cursor-not-allowed outline-none uppercase font-semibold tracking-wide"
+                                        className="w-full rounded-lg border border-[var(--primary-brand)]/20 bg-gray-50 p-3 text-sm text-gray-400 cursor-not-allowed outline-none uppercase font-semibold tracking-wide"
                                     />
                                 </div>
 
@@ -183,7 +183,7 @@ export default function AdminProfile() {
                                         type="text"
                                         value={admin?.createdAt ? new Date(admin.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : ""}
                                         disabled
-                                        className="w-full rounded-lg border border-[#22D3EE]/20 bg-gray-50 p-3 text-sm text-gray-400 cursor-not-allowed outline-none"
+                                        className="w-full rounded-lg border border-[var(--primary-brand)]/20 bg-gray-50 p-3 text-sm text-gray-400 cursor-not-allowed outline-none"
                                     />
                                 </div>
                             </div>
@@ -196,7 +196,7 @@ export default function AdminProfile() {
                     <button
                         type="submit"
                         disabled={isSaving}
-                        className="flex items-center gap-2 rounded-lg bg-[#22D3EE] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#22D3EE]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+                        className="flex items-center gap-2 rounded-lg bg-[var(--primary-brand)] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-[var(--primary-brand)]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
                     >
                         {isSaving ? (
                             <Loader2 className="size-4 animate-spin" />
@@ -230,7 +230,7 @@ export default function AdminProfile() {
                                     required
                                     value={newAdminData.name}
                                     onChange={(e) => setNewAdminData({ ...newAdminData, name: e.target.value })}
-                                    className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE] transition-all"
+                                    className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)] transition-all"
                                     placeholder="John Doe"
                                 />
                             </div>
@@ -241,7 +241,7 @@ export default function AdminProfile() {
                                     required
                                     value={newAdminData.email}
                                     onChange={(e) => setNewAdminData({ ...newAdminData, email: e.target.value })}
-                                    className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE] transition-all"
+                                    className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)] transition-all"
                                     placeholder="abc@gmail.com"
                                 />
                             </div>
@@ -252,7 +252,7 @@ export default function AdminProfile() {
                                     required
                                     value={newAdminData.password}
                                     onChange={(e) => setNewAdminData({ ...newAdminData, password: e.target.value })}
-                                    className="w-full rounded-lg border border-[#22D3EE]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[#22D3EE] focus:outline-none focus:ring-1 focus:ring-[#22D3EE] transition-all"
+                                    className="w-full rounded-lg border border-[var(--primary-brand)]/30 bg-white p-3 text-sm text-[#0F172A] focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)] transition-all"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -268,7 +268,7 @@ export default function AdminProfile() {
                                 <button
                                     type="submit"
                                     disabled={isRegistering}
-                                    className="flex items-center gap-2 rounded-lg bg-[#22D3EE] px-4 py-2 text-sm font-bold text-white shadow-md shadow-[#22D3EE]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+                                    className="flex items-center gap-2 rounded-lg bg-[var(--primary-brand)] px-4 py-2 text-sm font-bold text-white shadow-md shadow-[var(--primary-brand)]/20 hover:bg-[#06B6D4] transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
                                 >
                                     {isRegistering ? (
                                         <Loader2 className="size-4 animate-spin" />

@@ -625,15 +625,7 @@ export default function UserManagement() {
           <div className="min-w-full overflow-visible">
             <table className="w-full table-auto text-left text-sm">
               <thead className="bg-[#F8FAFC] text-sm font-bold text-gray-500 border-b border-[#E2E8F0]">
-                <tr>
-                  <th className="px-5 py-4 whitespace-nowrap">User</th>
-                  <th className="px-5 py-4 whitespace-nowrap">Status</th>
-                  <th className="px-5 py-4 whitespace-nowrap">Plan</th>
-                  <th className="px-5 py-4 whitespace-nowrap">Businesses</th>
-                  <th className="px-5 py-4 whitespace-nowrap">MRR</th>
-                  <th className="px-5 py-4 whitespace-nowrap">Last Active</th>
-                  <th className="px-5 py-4 whitespace-nowrap text-right">Actions</th>
-                </tr>
+                <tr><th className="px-5 py-4 whitespace-nowrap">User</th><th className="px-5 py-4 whitespace-nowrap">Status</th><th className="px-5 py-4 whitespace-nowrap">Plan</th><th className="px-5 py-4 whitespace-nowrap">Businesses</th><th className="px-5 py-4 whitespace-nowrap">MRR</th><th className="px-5 py-4 whitespace-nowrap">Last Active</th><th className="px-5 py-4 whitespace-nowrap text-right">Actions</th></tr>
               </thead>
               <tbody className="divide-y divide-[#E2E8F0]">
                 {paginatedUsers.map((user: any, idx: number) => {

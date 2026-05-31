@@ -158,7 +158,7 @@ export default function NotificationPage() {
                         className={cn(
                             "px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                             activeTab === cat
-                                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                                ? "bg-[var(--primary-brand)] text-white shadow-lg shadow-[var(--primary-brand)]/20"
                                 : "bg-white text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200"
                         )}
                     >
