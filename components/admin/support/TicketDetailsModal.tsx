@@ -31,9 +31,9 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket, onUpdateSt
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 transition-opacity">
-            <div className="relative w-full max-w-lg overflow-visible rounded-2xl bg-white shadow-2xl flex flex-col border border-[#22D3EE]/30">
+            <div className="relative w-full max-w-lg overflow-visible rounded-2xl bg-white shadow-2xl flex flex-col border border-[var(--primary-brand)]/30">
                 {/* Header */}
-                <div className="flex items-start justify-between p-6 pb-4 bg-[#F9FCFF] border-b border-[#22D3EE]/20 rounded-t-2xl">
+                <div className="flex items-start justify-between p-6 pb-4 bg-[#F9FCFF] border-b border-[var(--primary-brand)]/20 rounded-t-2xl">
                     <div>
                         <h2 className="text-2xl font-bold text-[#0F172A]">{ticket.id}</h2>
                         <p className="text-gray-500 mt-1">{ticket.subject}</p>
@@ -64,7 +64,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket, onUpdateSt
                                 "text-sm border-l-2 pl-2 font-medium",
                                 ticket.priority === "Urgent" && "text-red-600 border-red-600",
                                 ticket.priority === "High" && "text-orange-600 border-orange-600",
-                                ticket.priority === "Medium" && "text-[#0891B2] border-[#22D3EE]",
+                                ticket.priority === "Medium" && "text-[#0891B2] border-[var(--primary-brand)]",
                                 ticket.priority === "Low" && "text-gray-600 border-gray-600"
                             )}>
                                 {ticket.priority}
@@ -74,7 +74,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket, onUpdateSt
                             <p className="text-sm text-gray-400 font-medium mb-1">Status</p>
                             <span className={cn(
                                 "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border",
-                                ticket.status === "Open" && "bg-[#22D3EE]/10 text-[#0891B2] border-[#22D3EE]/20",
+                                ticket.status === "Open" && "bg-[var(--primary-brand)]/10 text-[#0891B2] border-[var(--primary-brand)]/20",
                                 ticket.status === "In Progress" && "bg-amber-50 text-amber-700 border-amber-200",
                                 ticket.status === "Resolved" && "bg-green-50 text-green-700 border-green-200"
                             )}>
@@ -94,7 +94,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket, onUpdateSt
                                 { label: "In Progress", value: "In Progress" },
                                 { label: "Resolved", value: "Resolved" }
                             ]}
-                            selectedColor="#22D3EE"
+                            selectedColor="var(--primary-brand)"
                             selectedBgColor="#ecf9fb"
                         />
                     </div>
@@ -120,7 +120,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket, onUpdateSt
                                 }
                                 onClose();
                             }}
-                            className="flex-1 rounded-xl bg-[#22D3EE] py-3 text-sm font-bold text-white hover:bg-[#06B6D4] transition-all shadow-md shadow-[#22D3EE]/10 cursor-pointer disabled:opacity-50"
+                            className="flex-1 rounded-xl bg-[var(--primary-brand)] py-3 text-sm font-bold text-white hover:bg-[#06B6D4] transition-all shadow-md shadow-[var(--primary-brand)]/10 cursor-pointer disabled:opacity-50"
                         >
                             {isSaving ? "Saving..." : "Save Changes"}
                         </button>

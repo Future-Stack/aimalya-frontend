@@ -223,7 +223,7 @@ export default function AIInsightsPage() {
                                 <Radar
                                     name="Performance"
                                     dataKey="A"
-                                    stroke="#22D3EE"
+                                    stroke="var(--primary-brand)"
                                     strokeWidth={2}
                                     fill="#52c6d8"
                                     fillOpacity={0.3}

@@ -83,11 +83,11 @@ export default function SubscriptionDetailsModal({ isOpen, onClose, subscription
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 transition-opacity">
-            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col border border-[#22D3EE]/30">
+            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col border border-[var(--primary-brand)]/30">
                 {/* Header */}
-                <div className="flex items-start justify-between p-6 bg-[#F9FCFF] border-b border-[#22D3EE]/20">
+                <div className="flex items-start justify-between p-6 bg-[#F9FCFF] border-b border-[var(--primary-brand)]/20">
                     <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-[#22D3EE]/10 flex items-center justify-center border border-[#22D3EE]/20">
+                        <div className="h-12 w-12 rounded-xl bg-[var(--primary-brand)]/10 flex items-center justify-center border border-[var(--primary-brand)]/20">
                             <Shield className="size-6 text-[#0891B2]" />
                         </div>
                         <div>
@@ -121,7 +121,7 @@ export default function SubscriptionDetailsModal({ isOpen, onClose, subscription
                         </div>
                     </div>
 
-                    <div className="h-px bg-[#22D3EE]/20" />
+                    <div className="h-px bg-[var(--primary-brand)]/20" />
 
                     {/* Backend Subscription Parameters */}
                     <div className="grid grid-cols-2 gap-6">
@@ -164,16 +164,16 @@ export default function SubscriptionDetailsModal({ isOpen, onClose, subscription
                         </div>
                     </div>
 
-                    <div className="h-px bg-[#22D3EE]/20" />
+                    <div className="h-px bg-[var(--primary-brand)]/20" />
 
                     {/* Real Database Limits & Allowances */}
-                    <div className="rounded-xl border border-[#22D3EE]/30 bg-[#F9FCFF] p-4">
+                    <div className="rounded-xl border border-[var(--primary-brand)]/30 bg-[#F9FCFF] p-4">
                         <h4 className="text-xs font-bold text-[#0891B2] uppercase mb-3 flex items-center gap-2">
                             <CheckCircle2 className="size-3.5 text-[#0891B2]" /> Platform Allowances & Limits
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                             <div className="flex items-center gap-2.5">
-                                <div className="p-1.5 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/20">
+                                <div className="p-1.5 rounded-lg bg-[var(--primary-brand)]/10 border border-[var(--primary-brand)]/20">
                                     <Layers className="size-3.5 text-[#0891B2]" />
                                 </div>
                                 <div>
@@ -182,7 +182,7 @@ export default function SubscriptionDetailsModal({ isOpen, onClose, subscription
                                 </div>
                             </div>
                             <div className="flex items-center gap-2.5">
-                                <div className="p-1.5 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/20">
+                                <div className="p-1.5 rounded-lg bg-[var(--primary-brand)]/10 border border-[var(--primary-brand)]/20">
                                     <MapPin className="size-3.5 text-[#0891B2]" />
                                 </div>
                                 <div>
@@ -192,7 +192,7 @@ export default function SubscriptionDetailsModal({ isOpen, onClose, subscription
                             </div>
 
                             <div className="flex items-center gap-2.5">
-                                <div className="p-1.5 rounded-lg bg-[#22D3EE]/10 border border-[#22D3EE]/20">
+                                <div className="p-1.5 rounded-lg bg-[var(--primary-brand)]/10 border border-[var(--primary-brand)]/20">
                                     <Sparkles className="size-3.5 text-[#0891B2]" />
                                 </div>
                                 <div>

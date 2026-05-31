@@ -212,16 +212,7 @@ export default function SupportTickets() {
                 <div className="overflow-x-auto">
                     <table className="w-full table-auto text-left text-sm">
                         <thead className="bg-[#F8FAFC] text-xs font-semibold uppercase text-gray-500">
-                            <tr className="whitespace-nowrap">
-                                <th className="px-4 py-4 min-w-[100px]">Ticket ID</th>
-                                <th className="px-4 py-4 min-w-[160px]">Customer</th>
-                                <th className="px-4 py-4 min-w-[160px]">Subject</th>     {/* ← was 220 → reduced significantly */}
-                                <th className="px-4 py-4 min-w-[80px]">Priority</th>
-                                <th className="px-4 py-4 min-w-[80px]">Status</th>
-                                <th className="px-4 py-4 min-w-[90px]">Category</th>
-                                <th className="px-4 py-4 min-w-[110px]">Last Update</th>
-                                <th className="px-4 py-4 min-w-[60px] text-right">Actions</th>
-                            </tr>
+                            <tr className="whitespace-nowrap"><th className="px-4 py-4 min-w-[100px]">Ticket ID</th><th className="px-4 py-4 min-w-[160px]">Customer</th><th className="px-4 py-4 min-w-[160px]">Subject</th><th className="px-4 py-4 min-w-[80px]">Priority</th><th className="px-4 py-4 min-w-[80px]">Status</th><th className="px-4 py-4 min-w-[90px]">Category</th><th className="px-4 py-4 min-w-[110px]">Last Update</th><th className="px-4 py-4 min-w-[60px] text-right">Actions</th></tr>
                         </thead>
                         <tbody className="divide-y divide-[#E2E8F0]">
                             {paginatedTickets.map((tkt: any) => (

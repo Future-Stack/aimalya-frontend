@@ -91,11 +91,11 @@ export default function UserDetailsModal({ isOpen, onClose, user }: UserDetailsM
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 transition-opacity animate-in fade-in duration-200">
-            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col border border-[#22D3EE]/30 animate-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col border border-[var(--primary-brand)]/30 animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="flex items-start justify-between p-6 bg-[#F9FCFF] border-b border-[#22D3EE]/20">
+                <div className="flex items-start justify-between p-6 bg-[#F9FCFF] border-b border-[var(--primary-brand)]/20">
                     <div className="flex items-center gap-4">
-                        <div className="size-14 rounded-full bg-[#22D3EE]/10 flex items-center justify-center border-4 border-white shadow-sm overflow-hidden">
+                        <div className="size-14 rounded-full bg-[var(--primary-brand)]/10 flex items-center justify-center border-4 border-white shadow-sm overflow-hidden">
                             <img
                                 src={userData.profileImage || `https://ui-avatars.com/api/?name=${userData.name}&background=22D3EE&color=0891B2&bold=true`}
                                 alt={userData.name}
@@ -121,7 +121,7 @@ export default function UserDetailsModal({ isOpen, onClose, user }: UserDetailsM
                 <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                     {/* Status & Plan Section */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="rounded-xl border border-[#22D3EE]/20 bg-[#F9FCFF] p-4 space-y-1">
+                        <div className="rounded-xl border border-[var(--primary-brand)]/20 bg-[#F9FCFF] p-4 space-y-1">
                             <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Account Status</p>
                             <span className={cn(
                                 "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border",
@@ -138,7 +138,7 @@ export default function UserDetailsModal({ isOpen, onClose, user }: UserDetailsM
                                 {userData.status || "TRIAL"}
                             </span>
                         </div>
-                        <div className="rounded-xl border border-[#22D3EE]/20 bg-[#F9FCFF] p-4 space-y-1">
+                        <div className="rounded-xl border border-[var(--primary-brand)]/20 bg-[#F9FCFF] p-4 space-y-1">
                             <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Current Plan</p>
                             <div className="flex items-center gap-2">
                                 <Shield className="size-4 text-[#0891B2]" />
@@ -175,10 +175,10 @@ export default function UserDetailsModal({ isOpen, onClose, user }: UserDetailsM
                         </div>
                     </div>
 
-                    <div className="h-px bg-[#22D3EE]/20" />
+                    <div className="h-px bg-[var(--primary-brand)]/20" />
 
                     {/* Dynamic MRR Section (Lifetime value removed as it does not come from backend) */}
-                    <div className="rounded-xl bg-[#22D3EE]/10 p-4 border border-[#22D3EE]/20">
+                    <div className="rounded-xl bg-[var(--primary-brand)]/10 p-4 border border-[var(--primary-brand)]/20">
                         <div className="flex justify-between items-center">
                             <div>
                                 <p className="text-[10px] font-extrabold text-[#0891B2] uppercase">Monthly Contribution (MRR)</p>
@@ -193,10 +193,10 @@ export default function UserDetailsModal({ isOpen, onClose, user }: UserDetailsM
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-[#22D3EE]/20 bg-[#F9FCFF]">
+                <div className="p-6 border-t border-[var(--primary-brand)]/20 bg-[#F9FCFF]">
                     <button
                         onClick={onClose}
-                        className="w-full rounded-xl bg-[#0891B2] py-3.5 text-sm font-bold text-white hover:bg-[#06B6D4] transition-all shadow-md shadow-[#22D3EE]/10 cursor-pointer text-center"
+                        className="w-full rounded-xl bg-[#0891B2] py-3.5 text-sm font-bold text-white hover:bg-[#06B6D4] transition-all shadow-md shadow-[var(--primary-brand)]/10 cursor-pointer text-center"
                     >
                         Close Details
                     </button>

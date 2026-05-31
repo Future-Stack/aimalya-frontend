@@ -228,7 +228,7 @@ export default function Sidebar() {
                                 }
                                 setIsAddBusinessModalOpen(true);
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-[#06B6D4] hover:bg-[#22D3EE]/10 transition-colors whitespace-nowrap cursor-pointer"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-[#06B6D4] hover:bg-[var(--primary-brand)]/10 transition-colors whitespace-nowrap cursor-pointer"
                         >
                             <Plus size={16} />
                             Add Business
@@ -259,7 +259,7 @@ export default function Sidebar() {
                                 }
                                 setIsAddLocationModalOpen(true);
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-[#06B6D4] hover:bg-[#22D3EE]/10 transition-colors whitespace-nowrap cursor-pointer"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-[#06B6D4] hover:bg-[var(--primary-brand)]/10 transition-colors whitespace-nowrap cursor-pointer"
                         >
                             <Plus size={16} />
                             Add Location
@@ -290,7 +290,7 @@ export default function Sidebar() {
                             className={cn(
                                 "relative flex items-center h-11 rounded-xl transition-all duration-200 cursor-pointer",
                                 isActive
-                                    ? "bg-[#22D3EE] text-white shadow-lg shadow-[#22D3EE]/20"
+                                    ? "bg-[var(--primary-brand)] text-white shadow-lg shadow-[var(--primary-brand)]/20"
                                     : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                             )}
                         >

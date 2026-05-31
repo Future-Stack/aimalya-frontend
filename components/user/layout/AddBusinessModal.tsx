@@ -174,7 +174,7 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
                 <div className="flex items-center justify-between px-6 sm:px-10 pt-8 pb-4 bg-white relative z-20">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100 shadow-sm shrink-0">
-                            <Building2 className="text-[#22D3EE]" size={24} />
+                            <Building2 className="text-[var(--primary-brand)]" size={24} />
                         </div>
                         <div>
                             <h2 className="text-[20px] sm:text-[24px] font-bold text-[#1A1A1A] leading-tight">Add New Business</h2>
@@ -196,7 +196,7 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
                         <h3 className="font-bold text-[#1A1A1A] text-[15px]">Business Structure</h3>
                         <button 
                             onClick={addBusiness} 
-                            className="bg-[#22D3EE] text-white px-3 py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-1 hover:bg-cyan-300 cursor-pointer transition-all shadow-sm shadow-cyan-200"
+                            className="bg-[var(--primary-brand)] text-white px-3 py-1.5 rounded-lg text-[12px] font-bold flex items-center gap-1 hover:bg-cyan-300 cursor-pointer transition-all shadow-sm shadow-cyan-200"
                         >
                             <Plus size={14} /> Add Business
                         </button>
@@ -247,7 +247,7 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
                                                         setBusinesses(newBiz);
                                                     }}
                                                     placeholder="Select category"
-                                                    selectedColor="#22D3EE"
+                                                    selectedColor="var(--primary-brand)"
                                                 />
                                             </div>
                                         </div>
@@ -259,7 +259,7 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
                                         <h4 className="text-[13px] font-bold text-[#1A1A1A]">Location</h4>
                                         <button 
                                             onClick={() => addLocation(bIdx)} 
-                                            className="cursor-pointer text-[#22D3EE] hover:text-cyan-600 text-[11px] font-bold flex items-center gap-1 hover:underline transition-colors"
+                                            className="cursor-pointer text-[var(--primary-brand)] hover:text-cyan-600 text-[11px] font-bold flex items-center gap-1 hover:underline transition-colors"
                                         >
                                             <Plus size={12} /> Add Location
                                         </button>
@@ -331,7 +331,7 @@ export default function AddBusinessModal({ isOpen, onClose }: AddBusinessModalPr
                     <button 
                         onClick={handleSubmit} 
                         disabled={isLoading} 
-                        className="cursor-pointer bg-[#22D3EE] text-white px-8 py-2.5 rounded-xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-cyan-200/50 text-[14px] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="cursor-pointer bg-[var(--primary-brand)] text-white px-8 py-2.5 rounded-xl font-bold hover:bg-cyan-300 transition-all shadow-lg shadow-cyan-200/50 text-[14px] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? (
                             <>
