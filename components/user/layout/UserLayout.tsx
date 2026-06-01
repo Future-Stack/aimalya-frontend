@@ -19,18 +19,61 @@ export default function UserLayout({ children }: UserLayoutProps) {
     const router = useRouter();
 
     useEffect(() => {
-        setMounted(true);
-        const token = Cookies.get("accessToken");
+        let token = Cookies.get("accessToken");
+
+        // Parse Google OAuth URL parameters if present on layout mount
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const urlAccessToken = params.get("accessToken");
+            const urlRefreshToken = params.get("refreshToken");
+            const urlUser = params.get("user");
+            const urlSub = params.get("subscription");
+
+            let updated = false;
+
+            if (urlAccessToken) {
+                Cookies.set("accessToken", urlAccessToken, { expires: 7, path: "/" });
+                token = urlAccessToken;
+                updated = true;
+            }
+            if (urlRefreshToken) {
+                Cookies.set("refreshToken", urlRefreshToken, { expires: 30, path: "/" });
+                updated = true;
+            }
+            if (urlUser) {
+                Cookies.set("user", urlUser, { expires: 7, path: "/" });
+                updated = true;
+            }
+            if (urlSub) {
+                try {
+                    const encodedSub = btoa(urlSub);
+                    Cookies.set("subscription", encodedSub, { expires: 7, path: "/" });
+                } catch (e) {
+                    Cookies.set("subscription", urlSub, { expires: 7, path: "/" });
+                }
+                updated = true;
+            }
+
+            if (updated) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
         const decoded = token ? decodeToken(token) : null;
         const role = decoded?.role;
 
         if (!token) {
             router.push("/login");
+            return;
         } else if (role === "ADMIN" || role === "SUPER_ADMIN") {
             router.push("/admin/dashboard");
+            return;
         } else if (role !== "USER") {
             router.push("/login");
+            return;
         }
+
+        setMounted(true);
         
         const handleResize = () => {
             setSidebarOffset(window.innerWidth < 1024 ? 72 : 256);
