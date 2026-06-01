@@ -616,23 +616,23 @@ export default function AccountSetupPage() {
             let updated = false;
 
             if (accessToken) {
-                Cookies.set('accessToken', accessToken, { expires: 7 });
+                Cookies.set('accessToken', accessToken, { expires: 7, path: '/' });
                 updated = true;
             }
             if (refreshToken) {
-                Cookies.set('refreshToken', refreshToken, { expires: 7 });
+                Cookies.set('refreshToken', refreshToken, { expires: 30, path: '/' });
                 updated = true;
             }
             if (userStr) {
-                Cookies.set('user', userStr, { expires: 7 });
+                Cookies.set('user', userStr, { expires: 7, path: '/' });
                 updated = true;
             }
             if (subscription) {
                 try {
                     const encodedSub = btoa(subscription);
-                    Cookies.set('subscription', encodedSub, { expires: 7 });
+                    Cookies.set('subscription', encodedSub, { expires: 7, path: '/' });
                 } catch (e) {
-                    Cookies.set('subscription', subscription, { expires: 7 });
+                    Cookies.set('subscription', subscription, { expires: 7, path: '/' });
                 }
                 updated = true;
             }

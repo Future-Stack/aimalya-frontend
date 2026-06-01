@@ -65,7 +65,9 @@ const keyStrengths = [
 export default function DashboardPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { data: profileData } = useGetProfileQuery();
+    const hasUrlTokens = !!(searchParams.get('accessToken') && searchParams.get('refreshToken'));
+    const [isTokenProcessing, setIsTokenProcessing] = React.useState(hasUrlTokens);
+    const { data: profileData } = useGetProfileQuery(undefined, { skip: isTokenProcessing });
     const [getMe] = useLazyGetMeQuery();
     const user = profileData?.data;
     const userId = getUserIdFromToken();
@@ -87,23 +89,23 @@ export default function DashboardPage() {
             let updated = false;
 
             if (accessToken) {
-                Cookies.set('accessToken', accessToken, { expires: 7 });
+                Cookies.set('accessToken', accessToken, { expires: 7, path: '/' });
                 updated = true;
             }
             if (refreshToken) {
-                Cookies.set('refreshToken', refreshToken, { expires: 7 });
+                Cookies.set('refreshToken', refreshToken, { expires: 30, path: '/' });
                 updated = true;
             }
             if (userStr) {
-                Cookies.set('user', userStr, { expires: 7 });
+                Cookies.set('user', userStr, { expires: 7, path: '/' });
                 updated = true;
             }
             if (subscriptionParams) {
                 try {
                     const encodedSub = btoa(subscriptionParams);
-                    Cookies.set('subscription', encodedSub, { expires: 7 });
+                    Cookies.set('subscription', encodedSub, { expires: 7, path: '/' });
                 } catch (e) {
-                    Cookies.set('subscription', subscriptionParams, { expires: 7 });
+                    Cookies.set('subscription', subscriptionParams, { expires: 7, path: '/' });
                 }
                 updated = true;
             }
@@ -111,6 +113,7 @@ export default function DashboardPage() {
             if (updated) {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
+            setIsTokenProcessing(false);
         }
     }, []);
 
