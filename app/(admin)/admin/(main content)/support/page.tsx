@@ -7,6 +7,7 @@ import {
     useGetAdminSupportSummaryQuery,
     useUpdateSupportTicketAdminMutation
 } from "@/redux/api/BE/admin/supportApi";
+import { toast } from "react-hot-toast";
 import {
     Inbox,
     Clock,
@@ -43,11 +44,13 @@ export default function SupportTickets() {
         setIsModalOpen(true);
     };
 
-    const handleUpdateStatus = async (id: string, status: string) => {
+    const handleUpdateStatus = async (id: string, status: string, feedback?: string) => {
         try {
-            await updateTicketStatus({ id, status }).unwrap();
+            await updateTicketStatus({ id, status, feedback }).unwrap();
+            toast.success("Ticket updated successfully!");
         } catch (err) {
             console.error("Failed to update status", err);
+            toast.error("Failed to update ticket.");
         }
     };
 
@@ -95,6 +98,7 @@ export default function SupportTickets() {
                 priority: formattedPriority,
                 status: formattedStatus,
                 category: formattedCategory,
+                feedback: tkt.feedback || "",
                 updated: tkt.updatedAt ? new Date(tkt.updatedAt).toLocaleDateString() : "N/A"
             };
         });

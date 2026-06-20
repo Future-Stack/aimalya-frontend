@@ -1,12 +1,13 @@
 "use client";
 
 import { Star, Loader2 } from "lucide-react";
-import { forwardRef, useState } from "react";
+import { forwardRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import gsap from "gsap";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import Cookies from "js-cookie";
 import { useCreateSubscriptionMutation } from "@/redux/api/BE/user/planApi";
 import { getUserIdFromToken } from "@/utils/authUtils";
 import ContactUsModal from "./ContactUsModal";
@@ -24,6 +25,40 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
     const [createSubscription] = useCreateSubscriptionMutation();
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+    const [starterSettings, setStarterSettings] = useState<any>(null);
+    const [professionalSettings, setProfessionalSettings] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchPlanSettings = async () => {
+            const token = Cookies.get("accessToken");
+            const headers: Record<string, string> = {
+                "accept": "*/*",
+            };
+            if (token) {
+                headers["Authorization"] = `Bearer ${token}`;
+            }
+
+            try {
+                const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://aimaliya.sakibalhasa.xyz/api/v1";
+                const [starterRes, profRes] = await Promise.all([
+                    fetch(`${baseUrl}/plan-settings/starter`, { headers }).then(r => r.json()),
+                    fetch(`${baseUrl}/plan-settings/professional`, { headers }).then(r => r.json())
+                ]);
+
+                if (starterRes?.success && starterRes?.data) {
+                    setStarterSettings(starterRes.data);
+                }
+                if (profRes?.success && profRes?.data) {
+                    setProfessionalSettings(profRes.data);
+                }
+            } catch (err) {
+                console.error("Error fetching plan settings:", err);
+            }
+        };
+
+        fetchPlanSettings();
+    }, []);
 
     const handlePlanClick = async (planName: string) => {
         setLoadingPlan(planName);
@@ -74,10 +109,18 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
         try {
             const payload = {
                 plan: planName.toUpperCase(),
-                review: planName === "Starter" ? "500" : "Unlimited",
-                balance: planName === "Starter" ? 49 : 149,
-                reportPlan: planName === "Starter" ? ["WEEKLY"] : ["WEEKLY", "MONTHLY"],
-                competitor: planName === "Professional",
+                review: planName === "Starter"
+                    ? (starterSettings?.review?.toString() || "500")
+                    : (professionalSettings?.review?.toString() || "Unlimited"),
+                balance: planName === "Starter"
+                    ? (starterSettings?.balance ?? 49)
+                    : (professionalSettings?.balance ?? 149),
+                reportPlan: planName === "Starter"
+                    ? (starterSettings?.reportPlan || ["WEEKLY"])
+                    : (professionalSettings?.reportPlan || ["WEEKLY", "MONTHLY"]),
+                competitor: planName === "Starter"
+                    ? (starterSettings?.competitor ?? false)
+                    : (professionalSettings?.competitor ?? true),
                 durationDate: "2026-12-31T23:59:59Z",
                 durationsPlan: "MONTHLY"
             };
@@ -97,6 +140,48 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
         }
     };
 
+    // Dynamically build features lists based on API settings while keeping the same UI structure
+    const starterLocationText = starterSettings
+        ? `${starterSettings.location} ${starterSettings.location === 1 ? 'Location' : 'Locations'}`
+        : '1 Location';
+
+    const starterReviewsText = starterSettings
+        ? `Up to ${starterSettings.review} reviews/mo`
+        : 'Up to 500 reviews/mo';
+
+    const starterReportsText = starterSettings && starterSettings.reportPlan && starterSettings.reportPlan.length > 0
+        ? `${starterSettings.reportPlan.join(" + ")} reports`
+        : 'Monthly reports';
+
+    const starterList = [
+        starterLocationText,
+        starterReviewsText,
+        starterReportsText,
+        'Basic AI insights'
+    ];
+
+    const professionalLocationText = professionalSettings
+        ? `Up to ${professionalSettings.location} Locations`
+        : 'Up to 5 Locations';
+
+    const professionalReviewsText = professionalSettings
+        ? `${professionalSettings.review === 999999 || typeof professionalSettings.review === 'string' || professionalSettings.review > 99999 ? 'Unlimited' : `Up to ${professionalSettings.review}`} reviews`
+        : 'Unlimited reviews';
+
+    const professionalReportsText = professionalSettings && professionalSettings.reportPlan && professionalSettings.reportPlan.length > 0
+        ? `${professionalSettings.reportPlan.join(" + ")} reports`
+        : 'Weekly + Monthly reports';
+
+    const professionalList = [
+        professionalLocationText,
+        professionalReviewsText,
+        professionalReportsText,
+        'Advanced AI insights',
+    ];
+    if (professionalSettings ? professionalSettings.competitor : true) {
+        professionalList.push('Competitor analysis');
+    }
+
     return (
         <section id="pricing" ref={ref} className={cn(
             "bg-[#f8fafc]",
@@ -113,11 +198,13 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                 <div className="gsap-pricing-card bg-white p-10 rounded-[40px] border border-gray-100 shadow-none hover:shadow-none transition-all reveal-up">
                     <h3 className="text-[22px] font-black mb-2 tracking-tight text-[#0F172A]">Starter</h3>
                     <div className="flex items-baseline gap-1 mb-8">
-                        <span className="text-[48px] font-black tracking-tighter text-[#0F172A]">$49</span>
+                        <span className="text-[48px] font-black tracking-tighter text-[#0F172A]">
+                            ${starterSettings?.balance ?? 49}
+                        </span>
                         <span className="text-gray-400 font-bold text-[16px]">/mo</span>
                     </div>
                     <ul className="space-y-5 mb-10">
-                        {['1 Location', 'Up to 500 reviews/mo', 'Monthly reports', 'Basic AI insights'].map((item, i) => (
+                        {starterList.map((item, i) => (
                             <li key={i} className="flex items-center gap-3 text-[14px] text-[#475569] font-bold tracking-tight">
                                 <Star size={16} className="text-[#0066FF]" /> {item}
                             </li>
@@ -141,17 +228,13 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                     </div>
                     <h3 className="text-[22px] font-black text-white mt-8 mb-2 tracking-tight">Professional</h3>
                     <div className="flex items-baseline gap-1 mb-8">
-                        <span className="text-[48px] font-black text-white tracking-tighter">$149</span>
+                        <span className="text-[48px] font-black text-white tracking-tighter">
+                            ${professionalSettings?.balance ?? 149}
+                        </span>
                         <span className="text-white/80 font-bold text-[16px]">/mo</span>
                     </div>
                     <ul className="space-y-5 mb-10">
-                        {[
-                            'Up to 5 Locations',
-                            'Unlimited reviews',
-                            'Weekly + Monthly reports',
-                            'Advanced AI insights',
-                            'Competitor analysis'
-                        ].map((item, i) => (
+                        {professionalList.map((item, i) => (
                             <li key={i} className="flex items-center gap-3 text-[14px] text-white font-bold tracking-tight">
                                 <Star size={16} fill="white" className="text-white" /> {item}
                             </li>

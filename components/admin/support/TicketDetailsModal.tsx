@@ -14,16 +14,18 @@ interface TicketDetailsModalProps {
     isOpen: boolean;
     onClose: () => void;
     ticket: any;
-    onUpdateStatus?: (id: string, status: string) => Promise<void>;
+    onUpdateStatus?: (id: string, status: string, feedback?: string) => Promise<void>;
 }
 
 export default function TicketDetailsModal({ isOpen, onClose, ticket, onUpdateStatus }: TicketDetailsModalProps) {
     const [selectedStatus, setSelectedStatus] = useState("");
+    const [feedback, setFeedback] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (ticket) {
             setSelectedStatus(ticket.status);
+            setFeedback(ticket.feedback || "");
         }
     }, [ticket]);
 
@@ -99,6 +101,18 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket, onUpdateSt
                         />
                     </div>
 
+                    {/* Feedback */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-600">Feedback</label>
+                        <textarea
+                            value={feedback}
+                            onChange={(e) => setFeedback(e.target.value)}
+                            rows={3}
+                            className="block w-full rounded-xl border border-gray-200 bg-white p-3 text-sm text-[#0F172A] placeholder-gray-400 focus:border-[var(--primary-brand)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-brand)] transition-colors resize-none"
+                            placeholder="Add feedback or notes about this ticket..."
+                        />
+                    </div>
+
                     {/* Actions */}
                     <div className="flex gap-4 pt-2">
                         <button
@@ -111,7 +125,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket, onUpdateSt
                                         if (selectedStatus === "In Progress") apiStatus = "IN_PROGRESS";
                                         else if (selectedStatus === "Resolved") apiStatus = "RESOLVED";
 
-                                        await onUpdateStatus(ticket.supportTicketId, apiStatus);
+                                        await onUpdateStatus(ticket.supportTicketId, apiStatus, feedback);
                                     } catch (err) {
                                         console.error("Failed to update status", err);
                                     } finally {

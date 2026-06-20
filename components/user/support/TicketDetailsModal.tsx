@@ -49,7 +49,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{ticket.supportTicketId}</span>
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">TKT-{ticket.supportTicketId.slice(-4)}</span>
                             <span className={cn(
                                 "px-2.5 py-0.5 rounded-md text-[10px] font-bold",
                                 ticket.status === "IN_PROGRESS" ? "bg-amber-100 text-amber-600" :
@@ -63,7 +63,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                        className="cursor-pointer p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                     >
                         <X className="size-5" />
                     </button>
@@ -108,7 +108,7 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
                                 <User className="size-4 text-gray-400" />
                                 <div>
                                     <p className="text-gray-500 text-xs">Created By</p>
-                                    <p className="font-semibold text-gray-900">{ticket.users?.[0]?.name || "Unknown User"}</p>
+                                    <p className="font-semibold text-gray-900">{ticket.users?.[0]?.name || "Me"}</p>
                                 </div>
                             </div>
                         </div>
@@ -124,13 +124,24 @@ export default function TicketDetailsModal({ isOpen, onClose, ticket }: TicketDe
                             {ticket.description}
                         </div>
                     </div>
+
+                    {/* Admin Feedback */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                            <MessageSquare className="size-4 text-blue-500" />
+                            <h3>Admin Feedback</h3>
+                        </div>
+                        <div className="bg-blue-50/30 rounded-2xl p-5 border border-blue-100/50 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {ticket.feedback || "No feedback from admin yet."}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                        className="cursor-pointer px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
                     >
                         Close
                     </button>
