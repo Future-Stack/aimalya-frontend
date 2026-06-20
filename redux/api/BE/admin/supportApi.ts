@@ -19,11 +19,11 @@ export const adminSupportApi = baseApi.injectEndpoints({
       query: (id) => `/support-ticket/${id}`,
       providesTags: (_result, _error, id) => [{ type: "SupportTicket" as const, id }],
     }),
-    updateSupportTicketAdmin: builder.mutation<any, { id: string; status: string }>({
-      query: ({ id, status }) => ({
+    updateSupportTicketAdmin: builder.mutation<any, { id: string; status: string; feedback?: string }>({
+      query: ({ id, status, feedback }) => ({
         url: `/support-ticket/${id}`,
         method: "PATCH",
-        body: { status },
+        body: { status, feedback },
       }),
       invalidatesTags: (_result, _error, { id }) => [
         { type: "SupportTicket" as const, id },

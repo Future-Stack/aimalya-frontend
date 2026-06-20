@@ -14,6 +14,7 @@ import {
     Settings,
     LogOut,
     UserCircle,
+    Sliders,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -31,6 +32,7 @@ const menuItems = [
     { icon: PieChart, label: "Analytics", href: "/admin/analytics" },
     { icon: MessageSquare, label: "Support", href: "/admin/support" },
     { icon: UserCircle, label: "Profile", href: "/admin/profile" },
+    { icon: Sliders, label: "Plan Settings", href: "/admin/plan-settings" },
     { icon: Settings, label: "Settings", href: "/admin/settings" },
 ];
 

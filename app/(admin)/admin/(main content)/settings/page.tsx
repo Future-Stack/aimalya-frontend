@@ -197,7 +197,7 @@ export default function SystemSettings() {
             </section>
 
             {/* Platform Limits */}
-            <section className="admin-card border border-[var(--primary-brand)]/30 bg-white shadow-none rounded-xl p-6">
+            {/* <section className="admin-card border border-[var(--primary-brand)]/30 bg-white shadow-none rounded-xl p-6">
                 <div className="flex items-center gap-2 border-b border-[#F1F5F9] pb-4">
                     <Smartphone className="size-5 text-[#0891B2]" />
                     <h3 className="text-lg font-bold text-[#0F172A]">Platform Limits</h3>
@@ -224,7 +224,7 @@ export default function SystemSettings() {
                         <p className="text-[10px] text-gray-400 font-medium">For non-enterprise plans</p>
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             {/* Notifications */}
             <section className="admin-card border border-[var(--primary-brand)]/30 bg-white shadow-none rounded-xl p-6">
