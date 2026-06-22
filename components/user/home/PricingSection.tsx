@@ -112,12 +112,18 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                 review: planName === "Starter"
                     ? (starterSettings?.review?.toString() || "500")
                     : (professionalSettings?.review?.toString() || "Unlimited"),
+                location: planName === "Starter"
+                    ? (starterSettings?.location?.toString() || "5")
+                    : (professionalSettings?.location?.toString() || "5"),
+                business: planName === "Starter"
+                    ? (starterSettings?.business ?? 4)
+                    : (professionalSettings?.business ?? 10),
                 balance: planName === "Starter"
-                    ? (starterSettings?.balance ?? 49)
-                    : (professionalSettings?.balance ?? 149),
+                    ? (starterSettings?.balance ?? 150)
+                    : (professionalSettings?.balance ?? 299),
                 reportPlan: planName === "Starter"
-                    ? (starterSettings?.reportPlan || ["WEEKLY"])
-                    : (professionalSettings?.reportPlan || ["WEEKLY", "MONTHLY"]),
+                    ? (starterSettings?.reportPlan || ["Weekly"])
+                    : (professionalSettings?.reportPlan || ["Monthly", "Weekly"]),
                 competitor: planName === "Starter"
                     ? (starterSettings?.competitor ?? false)
                     : (professionalSettings?.competitor ?? true),
@@ -141,38 +147,48 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
     };
 
     // Dynamically build features lists based on API settings while keeping the same UI structure
+    const starterBusinessText = starterSettings
+        ? `Up to ${starterSettings.business} ${starterSettings.business === 1 ? 'Business' : 'Businesses'}`
+        : 'Up to 4 Businesses';
+
     const starterLocationText = starterSettings
-        ? `${starterSettings.location} ${starterSettings.location === 1 ? 'Location' : 'Locations'}`
-        : '1 Location';
+        ? `Up to ${starterSettings.location} ${starterSettings.location === 1 ? 'Location per business' : 'Locations per business'}`
+        : 'Up to 5 Locations per business';
 
     const starterReviewsText = starterSettings
         ? `Up to ${starterSettings.review} reviews/mo`
-        : 'Up to 500 reviews/mo';
+        : 'Up to 100 reviews/mo';
 
     const starterReportsText = starterSettings && starterSettings.reportPlan && starterSettings.reportPlan.length > 0
         ? `${starterSettings.reportPlan.join(" + ")} reports`
-        : 'Monthly reports';
+        : 'Weekly reports';
 
     const starterList = [
+        starterBusinessText,
         starterLocationText,
         starterReviewsText,
         starterReportsText,
         'Basic AI insights'
     ];
 
+    const professionalBusinessText = professionalSettings
+        ? `Up to ${professionalSettings.business} ${professionalSettings.business === 1 ? 'Business' : 'Businesses'}`
+        : 'Up to 10 Businesses';
+
     const professionalLocationText = professionalSettings
-        ? `Up to ${professionalSettings.location} Locations`
-        : 'Up to 5 Locations';
+        ? `Up to ${professionalSettings.location} Locations per business`
+        : 'Up to 5 Locations per business';
 
     const professionalReviewsText = professionalSettings
-        ? `${professionalSettings.review === 999999 || typeof professionalSettings.review === 'string' || professionalSettings.review > 99999 ? 'Unlimited' : `Up to ${professionalSettings.review}`} reviews`
-        : 'Unlimited reviews';
+        ? `${professionalSettings.review === 999999 || typeof professionalSettings.review === 'string' || professionalSettings.review > 99999 ? 'Unlimited' : `Up to ${professionalSettings.review}`} reviews/mo`
+        : 'Up to 1000 reviews/mo';
 
     const professionalReportsText = professionalSettings && professionalSettings.reportPlan && professionalSettings.reportPlan.length > 0
         ? `${professionalSettings.reportPlan.join(" + ")} reports`
         : 'Weekly + Monthly reports';
 
     const professionalList = [
+        professionalBusinessText,
         professionalLocationText,
         professionalReviewsText,
         professionalReportsText,
@@ -199,7 +215,7 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                     <h3 className="text-[22px] font-black mb-2 tracking-tight text-[#0F172A]">Starter</h3>
                     <div className="flex items-baseline gap-1 mb-8">
                         <span className="text-[48px] font-black tracking-tighter text-[#0F172A]">
-                            ${starterSettings?.balance ?? 49}
+                            ${starterSettings?.balance ?? 159}
                         </span>
                         <span className="text-gray-400 font-bold text-[16px]">/mo</span>
                     </div>
@@ -229,7 +245,7 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                     <h3 className="text-[22px] font-black text-white mt-8 mb-2 tracking-tight">Professional</h3>
                     <div className="flex items-baseline gap-1 mb-8">
                         <span className="text-[48px] font-black text-white tracking-tighter">
-                            ${professionalSettings?.balance ?? 149}
+                            ${professionalSettings?.balance ?? 299}
                         </span>
                         <span className="text-white/80 font-bold text-[16px]">/mo</span>
                     </div>
@@ -259,10 +275,10 @@ const PricingSection = forwardRef<HTMLDivElement, PricingSectionProps>(({ isDash
                     </div>
                     <ul className="space-y-5 mb-10">
                         {[
+                            'Unlimited Businesses',
                             'Unlimited Locations',
                             'Unlimited reviews',
                             'Custom reporting',
-                            'API access',
                             'Dedicated support'
                         ].map((item, i) => (
                             <li key={i} className="flex items-center gap-3 text-[14px] text-[#475569] font-bold tracking-tight">
